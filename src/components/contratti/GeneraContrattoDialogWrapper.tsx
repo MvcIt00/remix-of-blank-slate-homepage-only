@@ -55,11 +55,11 @@ export function GeneraContrattoDialogWrapper({
 
             // Strategia A: Se abbiamo già un contratto, usiamo quell'ID fornitore
             if (existingContract?.id_anagrafica_fornitore) {
-                const { data } = await supabase
-                    .from("vw_anagrafiche_complete")
+                const { data } = await (supabase
+                    .from("vw_anagrafiche_complete" as any)
                     .select("*")
                     .eq("id_anagrafica", existingContract.id_anagrafica_fornitore)
-                    .maybeSingle();
+                    .maybeSingle() as any);
                 owner = data;
             }
 

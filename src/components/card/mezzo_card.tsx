@@ -108,14 +108,14 @@ export function MezzoCard({ mezzoId, onClose }: MezzoCardProps) {
             }
 
             // Fetch subnoleggio
-            const { data: subnoleggioData } = await supabase
-                .from("vw_subnoleggi_completo")
+            const { data: subnoleggioData } = await (supabase
+                .from("vw_subnoleggi_completo" as any)
                 .select("*")
                 .eq("id_mezzo", mezzoId)
                 .eq("is_cancellato", false)
-                .maybeSingle();
+                .maybeSingle() as any);
 
-            setSubnoleggio(subnoleggioData);
+            setSubnoleggio(subnoleggioData as SubnoleggioData | null);
         } catch (error) {
             console.error("Error fetching mezzo:", error);
         } finally {
