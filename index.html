@@ -19,6 +19,13 @@
 
   <body>
     <div id="root"></div>
+
+    <!-- Workaround: prevent blank screen if Vite HMR token injection fails in proxied previews -->
+    <script>
+      // eslint-disable-next-line no-var
+      var __WS_TOKEN__ = "";
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
