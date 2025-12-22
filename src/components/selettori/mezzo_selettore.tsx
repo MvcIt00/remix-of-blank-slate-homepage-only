@@ -29,27 +29,27 @@ export function MezzoSelettore({
 
   const handleSearch = async (term: string) => {
     // Query ultra-veloce sulla VIEW ottimizzata con tutti i JOIN pre-computati
-    const { data, error } = await supabase
-      .from("vw_mezzi_selettore")
+    const { data, error } = await (supabase
+      .from("vw_mezzi_selettore" as any)
       .select("*")
       .or(`marca.ilike.%${term}%,modello.ilike.%${term}%,matricola.ilike.%${term}%,id_interno.ilike.%${term}%,owner_ragione_sociale.ilike.%${term}%`)
-      .limit(50);
+      .limit(50) as any);
 
     if (error) {
       console.error("Error searching mezzi:", error);
       return null;
     }
 
-    return data as unknown as Mezzo[];
+    return data as Mezzo[];
   };
 
-  const loadById = async (id: string) => {
-    const { data } = await supabase
-      .from("vw_mezzi_selettore")
+  const loadById = async (id: string): Promise<Mezzo | null> => {
+    const { data } = await (supabase
+      .from("vw_mezzi_selettore" as any)
       .select("*")
       .eq("id_mezzo", id)
-      .single();
-    return data;
+      .single() as any);
+    return data as Mezzo | null;
   };
 
   return (

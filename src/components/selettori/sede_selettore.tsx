@@ -10,10 +10,11 @@ interface Sede {
 interface SedeSelettoreProps {
   sedi: Sede[];
   onSelectSede: (id: string) => void;
-  defaultValue?: string;
+  value?: string;
+  placeholder?: string;
 }
 
-export function SedeSelettore({ sedi, onSelectSede, value, placeholder }: { sedi: Sede[], onSelectSede: (id: string) => void, value?: string, placeholder?: string }) {
+export function SedeSelettore({ sedi, onSelectSede, value, placeholder }: SedeSelettoreProps) {
   if (sedi.length === 0) {
     return (
       <div className="p-4 text-center text-muted-foreground border rounded-lg">

@@ -149,7 +149,7 @@ export function PreventivoNoleggioForm({
                   <SedeSelettore
                     sedi={sedi}
                     onSelectSede={field.onChange}
-                    defaultValue={field.value ?? undefined}
+                    value={field.value ?? undefined}
                   />
                 </FormControl>
                 <FormMessage />
