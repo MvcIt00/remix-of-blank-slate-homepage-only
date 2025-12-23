@@ -1,29 +1,31 @@
 /**
  * PATTERN CENTRALIZZATO CARTA INTESTATA PDF
  * 
- * Versione 3.0 - Enterprise Design System
+ * Versione 4.0 - Compact Enterprise Design
+ * Standard professionale con ottimizzazione spazi
  */
 
 import { Page, View, Text, Image, StyleSheet, Document } from "@react-pdf/renderer";
 import logoMvc from "@/assets/logo_mvc.png";
 
-// Costanti per margini standard (Equilibrati per enterprise look)
+// Margini compatti professionali
 export const PDF_MARGINS = {
-  top: 35,
-  bottom: 70, // Spazio per footer fisso
-  horizontal: 35,
-  footerPosition: 25,
+  top: 25,
+  bottom: 50,
+  horizontal: 30,
+  footerPosition: 18,
 };
 
-// Tavolozza colori Premium (Figma Design System)
+// Palette enterprise sobria
 export const PDF_COLORS = {
-  primary: "#1e293b", // Slate 800
-  secondary: "#334155", // Slate 700
-  accent: "#b45309", // Amber 700 (Toscana Carrelli)
+  primary: "#1e293b",
+  secondary: "#475569",
+  accent: "#d97706",
   textMain: "#1e293b",
-  textMuted: "#64748b", // Slate 500
-  border: "#e2e8f0", // Slate 200
-  bgLight: "#f8fafc", // Slate 50
+  textMuted: "#64748b",
+  border: "#cbd5e1",
+  borderLight: "#e2e8f0",
+  bgLight: "#f8fafc",
   white: "#ffffff",
 };
 
@@ -32,153 +34,153 @@ export const pdfStyles = StyleSheet.create({
     paddingTop: PDF_MARGINS.top,
     paddingBottom: PDF_MARGINS.bottom,
     paddingHorizontal: PDF_MARGINS.horizontal,
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica",
-    backgroundColor: "#ffffff",
+    backgroundColor: PDF_COLORS.white,
   },
-  // Header Premium con logo e dati aziendali
+  // Header compatto inline
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 25,
-    paddingBottom: 15,
-    borderBottomWidth: 1.5,
-    borderBottomColor: "#1a365d",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: PDF_COLORS.primary,
   },
   logoContainer: {
-    width: 150,
+    width: 100,
   },
   logo: {
-    width: 140,
+    width: 90,
     height: "auto",
   },
   companyInfo: {
     textAlign: "right",
-    maxWidth: 250,
+    flex: 1,
+    paddingLeft: 15,
   },
   companyName: {
-    fontSize: 13,
+    fontSize: 10,
     fontFamily: "Helvetica-Bold",
-    color: "#1a365d",
-    marginBottom: 4,
-    textTransform: "uppercase",
+    color: PDF_COLORS.primary,
+    marginBottom: 2,
   },
   companyDetails: {
-    fontSize: 7.5,
-    color: "#4a5568",
-    lineHeight: 1.4,
+    fontSize: 6.5,
+    color: PDF_COLORS.textMuted,
+    lineHeight: 1.3,
   },
-  // Titolo documento (Dimensioni enterprise ultra-sobrie)
+  // Titolo documento compatto
   documentTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: "Helvetica-Bold",
     textAlign: "center",
-    marginBottom: 4,
-    color: "#1a365d",
+    color: PDF_COLORS.primary,
     textTransform: "uppercase",
-    letterSpacing: 1.2,
+    letterSpacing: 0.8,
+    marginTop: 8,
+    marginBottom: 2,
   },
   documentCode: {
-    fontSize: 9,
-    fontFamily: "Helvetica-Bold",
+    fontSize: 8,
     textAlign: "center",
-    marginBottom: 15,
-    color: "#718096",
+    color: PDF_COLORS.textMuted,
+    marginBottom: 12,
   },
-  // Griglia Layout
+  // Griglia Layout ottimizzata
   contentGrid: {
     flexDirection: "row",
-    gap: 20,
-    marginBottom: 25,
+    gap: 12,
+    marginBottom: 10,
   },
   gridColumn: {
     flex: 1,
   },
-  // Sezioni
+  // Sezioni compatte
   section: {
-    marginBottom: 15,
+    marginBottom: 8,
   },
   sectionHeader: {
-    fontSize: 10,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    color: "#1a365d",
-    marginBottom: 8,
+    color: PDF_COLORS.primary,
+    marginBottom: 4,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
-    borderLeftWidth: 3,
-    borderLeftColor: "#FBBF24", // Accent gold Toscana Carrelli
-    paddingLeft: 6,
+    letterSpacing: 0.3,
+    paddingBottom: 2,
+    borderBottomWidth: 0.5,
+    borderBottomColor: PDF_COLORS.border,
   },
   content: {
-    paddingTop: 5,
+    paddingTop: 3,
   },
   // Testi
   text: {
-    fontSize: 9,
-    lineHeight: 1.4,
-    color: "#2d3748",
+    fontSize: 8,
+    lineHeight: 1.35,
+    color: PDF_COLORS.textMain,
   },
   textBold: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    lineHeight: 1.4,
-    color: "#1a365d",
+    lineHeight: 1.35,
+    color: PDF_COLORS.primary,
   },
   label: {
-    width: 110,
-    fontSize: 8.5,
-    color: "#718096",
+    width: 80,
+    fontSize: 7.5,
+    color: PDF_COLORS.textMuted,
   },
   value: {
-    fontSize: 8.5,
-    color: "#1a365d",
+    fontSize: 8,
+    color: PDF_COLORS.primary,
     fontFamily: "Helvetica-Bold",
   },
   row: {
     flexDirection: "row",
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  // Tabelle
+  // Tabelle compatte
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#1a365d",
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    backgroundColor: PDF_COLORS.primary,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
   },
   tableHeaderText: {
-    color: "#ffffff",
-    fontSize: 8,
+    color: PDF_COLORS.white,
+    fontSize: 7,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 0.5,
-    borderBottomColor: "#e2e8f0",
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    borderBottomColor: PDF_COLORS.borderLight,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
   },
   tableCell: {
-    fontSize: 8.5,
-    color: "#2d3748",
+    fontSize: 8,
+    color: PDF_COLORS.textMain,
   },
-  // Footer
+  // Footer minimo
   footer: {
     position: "absolute",
     bottom: PDF_MARGINS.footerPosition,
     left: PDF_MARGINS.horizontal,
     right: PDF_MARGINS.horizontal,
     textAlign: "center",
-    fontSize: 7,
-    color: "#a0aec0",
+    fontSize: 6,
+    color: PDF_COLORS.textMuted,
     borderTopWidth: 0.5,
-    borderTopColor: "#e2e8f0",
-    paddingTop: 8,
+    borderTopColor: PDF_COLORS.borderLight,
+    paddingTop: 5,
   },
-  // Firma - non spezzabile
+  // Firma compatta
   signatureSection: {
-    marginTop: 30,
+    marginTop: 20,
     flexDirection: "row",
     justifyContent: "space-between",
   },
@@ -186,18 +188,18 @@ export const pdfStyles = StyleSheet.create({
     width: "45%",
   },
   signatureLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontFamily: "Helvetica-Bold",
-    marginBottom: 35,
-    color: "#4a5568",
+    marginBottom: 25,
+    color: PDF_COLORS.secondary,
     textTransform: "uppercase",
   },
   signatureLine: {
-    borderTopWidth: 1,
-    borderTopColor: "#2d3748",
-    paddingTop: 4,
-    fontSize: 7,
-    color: "#718096",
+    borderTopWidth: 0.5,
+    borderTopColor: PDF_COLORS.primary,
+    paddingTop: 3,
+    fontSize: 6,
+    color: PDF_COLORS.textMuted,
   },
 });
 
@@ -205,7 +207,6 @@ export const pdfStyles = StyleSheet.create({
    COMPONENTI WRAPPER (PAGE SHELL)
    ========================================================================== */
 
-// Interfaccia per i dati aziendali owner
 export interface DatiAziendaOwner {
   ragione_sociale: string;
   partita_iva: string | null;
@@ -228,8 +229,7 @@ interface PageShellProps {
 }
 
 /**
- * PageShell - Il componente più 'sicuro' per generare documenti.
- * Enforces standardized margins, header, and footer.
+ * PageShell V4 - Compact Enterprise Layout
  */
 export function PageShell({ children, titolo, sottoTitolo, datiOwner }: PageShellProps) {
   if (!datiOwner) return null;
@@ -241,11 +241,9 @@ export function PageShell({ children, titolo, sottoTitolo, datiOwner }: PageShel
         sottoTitolo={sottoTitolo}
         datiOwner={datiOwner}
       />
-
-      <View style={{ marginTop: 10, paddingBottom: 40 }}>
+      <View style={{ flex: 1 }}>
         {children}
       </View>
-
       <LetterheadFooter datiOwner={datiOwner} />
     </Page>
   );
@@ -258,47 +256,39 @@ interface LetterheadHeaderProps {
 }
 
 /**
- * Componente Header della carta intestata
+ * Header compatto inline: logo sx, dati dx, titolo sotto
  */
 export function LetterheadHeader({ datiOwner, titolo, sottoTitolo }: LetterheadHeaderProps) {
-  const indirizzoCompleto = [
+  const indirizzoCompatto = [
     datiOwner.indirizzo,
-    `${datiOwner.cap || ""} ${datiOwner.citta || ""}`.trim(),
+    datiOwner.cap,
+    datiOwner.citta,
     datiOwner.provincia ? `(${datiOwner.provincia})` : "",
-  ]
-    .filter(Boolean)
-    .join(" - ");
+  ].filter(Boolean).join(" ");
 
   return (
     <View>
+      {/* Header row: logo + info */}
       <View style={pdfStyles.header}>
-        {/* Logo a sinistra */}
         <View style={pdfStyles.logoContainer}>
           <Image style={pdfStyles.logo} src={logoMvc} />
         </View>
-
-        {/* Dati aziendali a destra */}
         <View style={pdfStyles.companyInfo}>
           <Text style={pdfStyles.companyName}>{datiOwner.ragione_sociale}</Text>
           <Text style={pdfStyles.companyDetails}>
-            {datiOwner.partita_iva && `P.IVA: ${datiOwner.partita_iva}`}
+            P.IVA {datiOwner.partita_iva} | {indirizzoCompatto}
             {"\n"}
-            {indirizzoCompleto}
-            {"\n"}
-            {datiOwner.telefono && `Tel: ${datiOwner.telefono}`}
-            {datiOwner.telefono && datiOwner.email && " - "}
-            {datiOwner.email && `Email: ${datiOwner.email}`}
-            {"\n"}
-            {datiOwner.pec && `PEC: ${datiOwner.pec}`}
-            {"\n"}
-            {datiOwner.codice_univoco && `SDI: ${datiOwner.codice_univoco}`}
+            {datiOwner.telefono && `Tel ${datiOwner.telefono}`}
+            {datiOwner.telefono && datiOwner.email && " | "}
+            {datiOwner.email}
+            {datiOwner.pec && ` | PEC: ${datiOwner.pec}`}
           </Text>
         </View>
       </View>
 
-      {/* Titolo Documento centrato se presente */}
+      {/* Titolo centrato compatto */}
       {(titolo || sottoTitolo) && (
-        <View style={{ marginBottom: 20 }}>
+        <View>
           {titolo && <Text style={pdfStyles.documentTitle}>{titolo}</Text>}
           {sottoTitolo && <Text style={pdfStyles.documentCode}>{sottoTitolo}</Text>}
         </View>
@@ -313,19 +303,17 @@ interface LetterheadFooterProps {
 }
 
 /**
- * Componente Footer della carta intestata
+ * Footer minimalista
  */
 export function LetterheadFooter({ datiOwner, pageNumber = true }: LetterheadFooterProps) {
   return (
     <View style={pdfStyles.footer} fixed>
       <Text>
-        {datiOwner.ragione_sociale} - P.IVA {datiOwner.partita_iva}
-        {datiOwner.iban && ` - IBAN: ${datiOwner.iban}`}
+        {datiOwner.ragione_sociale} | P.IVA {datiOwner.partita_iva}
+        {datiOwner.iban && ` | IBAN: ${datiOwner.iban}`}
       </Text>
       {pageNumber && (
-        <Text
-          render={({ pageNumber: pn, totalPages }) => `Pagina ${pn} di ${totalPages}`}
-        />
+        <Text render={({ pageNumber: pn, totalPages }) => `Pag. ${pn}/${totalPages}`} />
       )}
     </View>
   );
@@ -345,6 +333,16 @@ export function formatDataItaliana(dateString: string | null | undefined): strin
   });
 }
 
+export function formatDataBreve(dateString: string | null | undefined): string {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("it-IT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 export function formatEuro(amount: number | null | undefined): string {
   if (amount === null || amount === undefined) return "-";
   return new Intl.NumberFormat("it-IT", {
@@ -355,12 +353,12 @@ export function formatEuro(amount: number | null | undefined): string {
 
 export const MODALITA_PAGAMENTO_LABELS: Record<string, string> = {
   bonifico_anticipato: "Bonifico Anticipato",
-  bonifico_30gg: "Bonifico 30 giorni",
-  bonifico_60gg: "Bonifico 60 giorni",
-  bonifico_90gg: "Bonifico 90 giorni",
-  riba_30gg: "Ri.Ba. 30 giorni",
-  riba_60gg: "Ri.Ba. 60 giorni",
-  riba_90gg: "Ri.Ba. 90 giorni",
+  bonifico_30gg: "Bonifico 30gg",
+  bonifico_60gg: "Bonifico 60gg",
+  bonifico_90gg: "Bonifico 90gg",
+  riba_30gg: "Ri.Ba. 30gg",
+  riba_60gg: "Ri.Ba. 60gg",
+  riba_90gg: "Ri.Ba. 90gg",
   rimessa_diretta: "Rimessa Diretta",
   contrassegno: "Contrassegno",
 };

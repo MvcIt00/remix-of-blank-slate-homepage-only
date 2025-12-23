@@ -162,8 +162,8 @@ export const ParcoMacchine = () => {
       const key = m.id_sede_assegnata || noSedeKey;
       if (!groups[key]) {
         groups[key] = {
-          nome: m.nome_sede || "Nessuna sede assegnata",
-          indirizzo: m.sede_indirizzo ? `${m.sede_indirizzo}${m.sede_citta ? `, ${m.sede_citta}` : ''}` : "",
+          nome: m.nome_sede_ubicazione || "Nessuna sede assegnata",
+          indirizzo: m.sede_ubicazione_indirizzo ? `${m.sede_ubicazione_indirizzo}${m.sede_ubicazione_citta ? `, ${m.sede_ubicazione_citta}` : ''}` : "",
           mezzi: []
         };
       }
