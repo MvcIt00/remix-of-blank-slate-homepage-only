@@ -7,6 +7,7 @@ import { TableActions } from "@/components/ui/table-actions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useQuery } from "@tanstack/react-query";
 import { ModificaNoleggioForm } from "@/components/form/modifica_noleggio_form";
 import { useNavigate } from "react-router-dom";
 import { MezzoClickable } from "@/components/mezzo-clickable";
@@ -66,8 +67,6 @@ interface Noleggio {
 
 export default function NoleggiAttivi() {
   const navigate = useNavigate();
-  const [noleggi, setNoleggi] = useState<Noleggio[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showModificaForm, setShowModificaForm] = useState(false);
   const [noleggioSelezionato, setNoleggioSelezionato] = useState<Noleggio | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -75,59 +74,63 @@ export default function NoleggiAttivi() {
   const [terminaDialogOpen, setTerminaDialogOpen] = useState(false);
   const [noleggioToTerminate, setNoleggioToTerminate] = useState<Noleggio | null>(null);
 
-  useEffect(() => {
-    loadNoleggi();
-  }, []);
-
-  async function loadNoleggi() {
-    setLoading(true);
-    try {
-      // Fetch all non-archived noleggi
-      const { data: allNoleggi, error: allError } = await supabase
-        .from("Noleggi")
-        .select(
-          `
-          *,
-          Mezzi (marca, modello, matricola),
-          Anagrafiche (ragione_sociale, richiede_contratto_noleggio),
-          Sedi (nome_sede, indirizzo, citta),
-          contratti_noleggio (id_contratto, created_at)
-        `
-        )
-        .eq("is_cancellato", false)
+  const { data: noleggi = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ["noleggi-attivi"],
+    queryFn: async () => {
+      // Fetch optimized view directly
+      const { data, error } = await supabase
+        .from("vw_noleggi_completi" as any)
+        .select("*")
         .neq("stato_noleggio", "archiviato")
         .order("created_at", { ascending: false });
 
-      if (allError) throw allError;
+      if (error) {
+        console.error("Error loading noleggi:", error);
+        toast({
+          title: "Errore",
+          description: "Impossibile caricare i noleggi",
+          variant: "destructive",
+        });
+        throw error;
+      }
 
-      // Fetch documents separately
-      const { data: documenti } = await supabase
-        .from("documenti_noleggio")
-        .select("*")
-        .eq("tipo_documento", "contratto_firmato")
-        .eq("is_cancellato", false);
-
-      // Merge documents with noleggi
-      const noleggiWithDocs = (allNoleggi || []).map((noleggio: any) => {
-        const doc = documenti?.find((d) => d.id_noleggio === noleggio.id_noleggio);
-        return {
-          ...noleggio,
-          documenti_noleggio: doc ? [doc] : null,
-        };
-      });
-
-      setNoleggi(noleggiWithDocs as Noleggio[]);
-    } catch (error) {
-      console.error("Error loading noleggi:", error);
-      toast({
-        title: "Errore",
-        description: "Impossibile caricare i noleggi",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
+      // Map view fields to internal Noleggio interface structure if needed
+      // or adjust the Noleggio interface to match the view. 
+      // For now, we map manually to preserve existing component structure.
+      return (data || []).map((row: any) => ({
+        id_noleggio: row.id_noleggio,
+        id_mezzo: row.id_mezzo,
+        id_anagrafica: row.id_anagrafica,
+        sede_operativa: row.sede_operativa,
+        data_inizio: row.data_inizio,
+        data_fine: row.data_fine,
+        tempo_indeterminato: row.tempo_indeterminato,
+        prezzo_noleggio: row.prezzo_noleggio,
+        prezzo_trasporto: row.prezzo_trasporto,
+        tipo_canone: row.tipo_canone,
+        is_terminato: row.is_terminato,
+        stato_noleggio: row.stato_noleggio,
+        note: row.note,
+        Mezzi: {
+          marca: row.marca,
+          modello: row.modello,
+          matricola: row.matricola
+        },
+        Anagrafiche: {
+          ragione_sociale: row.cliente_ragione_sociale,
+          richiede_contratto_noleggio: row.richiede_contratto_noleggio
+        },
+        Sedi: row.nome_sede ? {
+          nome_sede: row.nome_sede,
+          indirizzo: row.sede_indirizzo,
+          citta: row.sede_citta
+        } : null,
+        contratti_noleggio: row.contratti || [],
+        documenti_noleggio: row.documenti_firmati || []
+      })) as Noleggio[];
+    },
+    staleTime: 1000 * 60 * 5, // Cache valid for 5 minutes
+  });
 
   function calcolaStato(noleggio: Noleggio): {
     label: string;
@@ -197,7 +200,7 @@ export default function NoleggiAttivi() {
         description: "Noleggio archiviato con successo",
       });
 
-      loadNoleggi();
+      refetch();
     } catch (error) {
       console.error("Error archiving noleggio:", error);
       toast({
@@ -223,7 +226,7 @@ export default function NoleggiAttivi() {
 
       setDeleteDialogOpen(false);
       setNoleggioToDelete(null);
-      loadNoleggi();
+      refetch();
     } catch (error) {
       console.error("Error deleting noleggio:", error);
       toast({
@@ -336,7 +339,7 @@ export default function NoleggiAttivi() {
             contrattoFirmato={contrattoFirmato}
             richiedeContratto={richiedeContratto}
             hasDraftContract={hasDraft}
-            onUploadSuccess={loadNoleggi}
+            onUploadSuccess={() => refetch()}
           />
         );
       },
@@ -397,7 +400,7 @@ export default function NoleggiAttivi() {
               onSuccess={() => {
                 setShowModificaForm(false);
                 setNoleggioSelezionato(null);
-                loadNoleggi();
+                refetch();
               }}
             />
           )}
@@ -411,7 +414,7 @@ export default function NoleggiAttivi() {
         noteEsistenti={noleggioToTerminate?.note}
         onSuccess={() => {
           setNoleggioToTerminate(null);
-          loadNoleggi();
+          refetch();
         }}
       />
 

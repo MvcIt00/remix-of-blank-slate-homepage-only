@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NuovaAnagraficaForm } from "@/components/form/nuova_anagrafica_form";
@@ -12,6 +14,23 @@ import { ParcoMacchine } from "@/components/parco_macchine";
 const Index = () => {
   const [selectedAnagraficaId, setSelectedAnagraficaId] = useState<string | null>(null);
   const [selectedMezzoId, setSelectedMezzoId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Prefetch noleggi attivi to cache them for instant navigation
+    queryClient.prefetchQuery({
+      queryKey: ["noleggi-attivi"],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("vw_noleggi_completi" as any)
+          .select("*")
+          .neq("stato_noleggio", "archiviato")
+          .order("created_at", { ascending: false });
+        return data || [];
+      },
+      staleTime: 1000 * 60 * 5,
+    });
+  }, [queryClient]);
 
   return (
     <div className="min-h-screen bg-background">
