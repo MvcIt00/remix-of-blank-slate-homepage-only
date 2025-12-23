@@ -1,65 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, DataTableColumn } from "@/components/ui/data-table";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { RotateCcw, Clock } from "lucide-react";
+import { RotateCcw, Clock, Loader2 } from "lucide-react";
 import { RiattivaNoleggioDialog } from "@/components/noleggi/riattiva_noleggio_dialog";
-
-interface StoricoRecord {
-    id_storico: string;
-    id_noleggio: string;
-    mezzo_descrizione: string | null;
-    ragione_sociale_cliente: string | null;
-    sede_operativa_descrizione: string | null;
-    data_inizio: string | null;
-    data_fine: string | null;
-    data_fine_periodo: string | null;
-    data_terminazione_effettiva: string | null;
-    tempo_indeterminato: boolean | null;
-    prezzo_noleggio: number | null;
-    prezzo_trasporto: number | null;
-    tipo_canone: "giornaliero" | "mensile" | null;
-    tipo_evento: "creazione" | "modifica" | "terminazione" | "cancellazione" | "riattivazione" | "cambio_sede";
-    data_evento: string;
-    note: string | null;
-    is_terminato: boolean | null;
-}
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { StoricoNoleggioView } from "@/types/database_views";
 
 export default function StoricoNoleggi() {
-    const [storico, setStorico] = useState<StoricoRecord[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<StoricoRecord | null>(null);
+    const [selectedRecord, setSelectedRecord] = useState<StoricoNoleggioView | null>(null);
     const [riattivaDialogOpen, setRiattivaDialogOpen] = useState(false);
+    const queryClient = useQueryClient();
 
-    useEffect(() => {
-        loadStorico();
-    }, []);
-
-    async function loadStorico() {
-        setLoading(true);
-        try {
+    // Fetch con React Query e VIEW ottimizzata
+    const { data: storico = [], isLoading } = useQuery({
+        queryKey: ["storico_noleggi"],
+        queryFn: async () => {
             const { data, error } = await supabase
-                .from("noleggi_storico")
+                .from("vw_storico_noleggi" as any)
                 .select("*")
-                .in("tipo_evento", ["terminazione", "cambio_sede", "cancellazione"])
                 .order("data_evento", { ascending: false });
 
             if (error) throw error;
-            setStorico((data as StoricoRecord[]) || []);
-        } catch (error) {
-            console.error("Error loading storico:", error);
-            toast({
-                title: "Errore",
-                description: "Impossibile caricare lo storico noleggi",
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    }
+            return data as unknown as StoricoNoleggioView[];
+        },
+    });
 
     function formatDate(date: string | null): string {
         if (!date) return "-";
@@ -85,29 +52,29 @@ export default function StoricoNoleggi() {
     function getTipoEventoBadge(tipo: string) {
         switch (tipo) {
             case "terminazione":
-                return <Badge variant="default" className="bg-red-500">Terminato</Badge>;
+                return <Badge variant="default" className="bg-red-500 hover:bg-red-600">Terminato</Badge>;
             case "cambio_sede":
-                return <Badge variant="default" className="bg-blue-500">Cambio Sede</Badge>;
+                return <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">Cambio Sede</Badge>;
             case "cancellazione":
                 return <Badge variant="destructive">Cancellato</Badge>;
             case "riattivazione":
-                return <Badge variant="default" className="bg-green-500">Riattivato</Badge>;
+                return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Riattivato</Badge>;
             default:
                 return <Badge variant="outline">{tipo}</Badge>;
         }
     }
 
-    function handleRipristina(record: StoricoRecord) {
+    function handleRipristina(record: StoricoNoleggioView) {
         setSelectedRecord(record);
         setRiattivaDialogOpen(true);
     }
 
-    const columns: DataTableColumn<StoricoRecord>[] = [
+    const columns: DataTableColumn<StoricoNoleggioView>[] = [
         {
             key: "mezzo_descrizione",
             label: "Mezzo",
             sortable: true,
-            render: (value) => value || "-",
+            render: (value) => <span className="font-medium">{value || "-"}</span>,
         },
         {
             key: "ragione_sociale_cliente",
@@ -118,19 +85,16 @@ export default function StoricoNoleggi() {
         {
             key: "sede_operativa_descrizione",
             label: "Sede Operativa",
-            sortable: true,
             render: (value) => value || "-",
         },
         {
             key: "data_inizio",
-            label: "Inizio Periodo",
-            sortable: true,
+            label: "Inizio",
             render: (value) => formatDate(value),
         },
         {
             key: "data_fine_periodo",
-            label: "Fine Periodo",
-            sortable: true,
+            label: "Fine",
             render: (value, row) => {
                 if (row.tipo_evento === "terminazione") {
                     return formatDate(row.data_terminazione_effettiva || value);
@@ -141,20 +105,18 @@ export default function StoricoNoleggi() {
         {
             key: "prezzo_noleggio",
             label: "Canone",
-            sortable: true,
             render: (value, row) => formatPrezzo(value, row.tipo_canone),
         },
         {
             key: "tipo_evento",
             label: "Tipo",
-            sortable: true,
             render: (value) => getTipoEventoBadge(value),
         },
         {
             key: "data_evento",
-            label: "Data Registrazione",
+            label: "Registrato il",
             sortable: true,
-            render: (value) => formatDateTime(value),
+            render: (value) => <span className="text-xs text-muted-foreground">{formatDateTime(value)}</span>,
         },
         {
             key: "note",
@@ -162,7 +124,7 @@ export default function StoricoNoleggi() {
             render: (value) => {
                 if (!value) return "-";
                 return (
-                    <span className="max-w-[200px] truncate block" title={value}>
+                    <span className="max-w-[150px] truncate block text-xs" title={value}>
                         {value}
                     </span>
                 );
@@ -170,16 +132,17 @@ export default function StoricoNoleggi() {
         },
     ];
 
-    const renderActions = (record: StoricoRecord) => {
+    const renderActions = (record: StoricoNoleggioView) => {
         if (record.tipo_evento === "terminazione") {
             return (
                 <Button
                     size="sm"
-                    variant="outline"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
                     onClick={() => handleRipristina(record)}
                     title="Ripristina noleggio (annulla terminazione)"
                 >
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-4 w-4 text-blue-600" />
                 </Button>
             );
         }
@@ -187,32 +150,38 @@ export default function StoricoNoleggi() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">Storico Noleggi</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Storico Noleggi</h1>
                     <p className="text-muted-foreground">
-                        Cronologia dei noleggi terminati e archivio eventi.
+                        Cronologia completa dei noleggi terminati e archivio eventi.
                     </p>
                 </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Clock className="h-5 w-5" />
+            <Card className="border-muted/50 shadow-sm">
+                <CardHeader className="pb-3 border-b bg-muted/20">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Clock className="h-5 w-5 text-primary" />
                         Archivio Periodi
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <DataTable
-                        data={storico}
-                        columns={columns}
-                        actions={renderActions}
-                        loading={loading}
-                        searchPlaceholder="Cerca nello storico..."
-                        emptyMessage="Nessun periodo completato trovato"
-                    />
+                <CardContent className="p-0">
+                    {isLoading ? (
+                        <div className="flex justify-center items-center py-20">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : (
+                        <DataTable
+                            data={storico}
+                            columns={columns}
+                            actions={renderActions}
+                            searchPlaceholder="Cerca mezzo, cliente o note..."
+                            emptyMessage="Nessun evento trovato nello storico."
+                            className="border-0 rounded-none shadow-none"
+                        />
+                    )}
                 </CardContent>
             </Card>
 
@@ -223,7 +192,7 @@ export default function StoricoNoleggi() {
                 storicoId={selectedRecord?.id_storico || ""}
                 onSuccess={() => {
                     setSelectedRecord(null);
-                    loadStorico();
+                    queryClient.invalidateQueries({ queryKey: ["storico_noleggi"] });
                 }}
             />
         </div>
