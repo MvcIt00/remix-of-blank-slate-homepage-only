@@ -87,7 +87,7 @@ export const pdfStyles = StyleSheet.create({
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
     textAlign: "center",
-    marginBottom: 3,
+    marginBottom: 0,
     color: "#718096",
   },
   // Griglia Layout

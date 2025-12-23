@@ -89,8 +89,8 @@ export function ContrattoPDF({ datiOwner, datiCliente, datiMezzo, datiContratto 
         sottoTitolo={datiContratto.codice_contratto}
         datiOwner={datiOwner}
       >
-        {/* 1. Dati Cliente - spacing='section' (25pt) */}
-        <PDFSection title="Dati Cliente" spacing="section">
+        {/* 1. Dati Cliente - spacing='normal' (15pt, closer to title) */}
+        <PDFSection title="Dati Cliente" spacing="normal">
           <PDFKeyValue label="Ragione Sociale" value={datiCliente.ragione_sociale} />
           <PDFKeyValue label="Partita IVA" value={datiCliente.p_iva} />
           <PDFKeyValue label="Sede Operativa" value={`${datiCliente.indirizzo}, ${datiCliente.cap} ${datiCliente.citta} (${datiCliente.provincia})`} />
