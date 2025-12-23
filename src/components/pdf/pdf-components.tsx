@@ -35,11 +35,11 @@ const SPACING_MAP = {
 
 /**
  * Section with hierarchical spacing control
- * CRITICAL: Uses external marginTop wrapper to prevent overlaps
+ * NUCLEAR FIX: wrap={false} forces atomic rendering to prevent overlaps
  */
 export function PDFSection({ title, children, spacing = 'section' }: PDFSectionProps) {
     return (
-        <View style={{ marginTop: SPACING_MAP[spacing], marginBottom: 15 }}>
+        <View style={{ marginTop: SPACING_MAP[spacing], marginBottom: 15 }} wrap={false}>
             <Text style={pdfStyles.sectionHeader}>{title}</Text>
             <View style={{ marginTop: 5 }}>
                 {children}
