@@ -5,7 +5,8 @@
  * Standard professionale con ottimizzazione spazi
  */
 
-import { Page, View, Text, Image, StyleSheet, Document } from "@react-pdf/renderer";
+import type { ReactNode } from "react";
+import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import logoMvc from "@/assets/logo_mvc.png";
 
 // Margini compatti professionali
@@ -222,7 +223,7 @@ export interface DatiAziendaOwner {
 }
 
 interface PageShellProps {
-  children: React.ReactNode;
+  children: ReactNode;
   titolo?: string;
   sottoTitolo?: string;
   datiOwner?: DatiAziendaOwner;

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { pdf } from "@react-pdf/renderer";
-import { Download, Printer, Save, Loader2, AlertTriangle } from "lucide-react";
+import { Download, Printer, Save, Loader2, AlertTriangle, RotateCcw } from "lucide-react";
 import { ContrattoPDF, DatiCliente, DatiMezzo, DatiContratto } from "./ContrattoPDF";
 import { DatiAziendaOwner } from "@/components/pdf";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,9 +65,19 @@ export function ContrattoPreviewDialog({
     data_creazione: existingContract?.data_creazione || new Date().toISOString(),
   };
 
+  const revokeMergedUrl = () => {
+    setMergedPdfUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  };
+
   const generateFullPdf = async () => {
     setGenerating(true);
     setError(null);
+    revokeMergedUrl();
+    setMergedPdfBlob(null);
+
     try {
       // 1. Genera la pagina dinamica (Contratto)
       const dynamicBlob = await pdf(
@@ -117,7 +127,9 @@ export function ContrattoPreviewDialog({
       generateFullPdf();
     }
     return () => {
-      if (mergedPdfUrl) URL.revokeObjectURL(mergedPdfUrl);
+      revokeMergedUrl();
+      setMergedPdfBlob(null);
+      setError(null);
     };
   }, [open]);
 
