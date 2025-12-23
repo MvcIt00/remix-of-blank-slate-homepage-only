@@ -1,27 +1,18 @@
 import React from "react";
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
-import { pdfStyles } from "./LetterheadPDF";
+import { pdfStyles, PDF_COLORS } from "./LetterheadPDF";
 
 /* ==========================================================================
    DESIGN TOKENS & LEGACY EXPORTS
    ========================================================================== */
 
-export const PDFColors = {
-    primary: "#1a365d",
-    secondary: "#2c5282",
-    accent: "#FBBF24",
-    bgLight: "#F7FAFC",
-    borderLight: "#CBD5E0",
-    border: "#E2E8F0",
-    textDark: "#000000ff",
-    textMuted: "#718096",
-    white: "#FFFFFF",
-};
+// Legacy export - use PDF_COLORS from LetterheadPDF instead
+export const PDFColors = PDF_COLORS;
 
-// Dummy styles for backward compatibility during transition
+// Backward compatibility styles
 export const sharedStyles = StyleSheet.create({
-    text: { fontSize: 9, color: PDFColors.textDark },
-    textBold: { fontSize: 9, fontFamily: "Helvetica-Bold", color: PDFColors.primary },
+    text: { fontSize: 9, color: PDF_COLORS.textMain },
+    textBold: { fontSize: 9, fontFamily: "Helvetica-Bold", color: PDF_COLORS.primary },
 });
 
 /* ==========================================================================

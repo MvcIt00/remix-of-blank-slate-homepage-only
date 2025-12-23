@@ -15,6 +15,18 @@ export const PDF_MARGINS = {
   footerPosition: 25,
 };
 
+// Tavolozza colori Premium (Figma Design System)
+export const PDF_COLORS = {
+  primary: "#1e293b", // Slate 800
+  secondary: "#334155", // Slate 700
+  accent: "#b45309", // Amber 700 (Toscana Carrelli)
+  textMain: "#1e293b",
+  textMuted: "#64748b", // Slate 500
+  border: "#e2e8f0", // Slate 200
+  bgLight: "#f8fafc", // Slate 50
+  white: "#ffffff",
+};
+
 export const pdfStyles = StyleSheet.create({
   page: {
     paddingTop: PDF_MARGINS.top,
