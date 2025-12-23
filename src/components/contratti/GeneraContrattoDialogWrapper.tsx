@@ -83,15 +83,28 @@ export function GeneraContrattoDialogWrapper({
             const normalizedOwner = ownerFull ? {
                 ragione_sociale: ownerFull.ragione_sociale,
                 partita_iva: ownerFull.partita_iva,
-                sede_legale_indirizzo: ownerFull.sede_legale?.indirizzo || "",
-                sede_legale_citta: ownerFull.sede_legale?.citta || "",
-                sede_legale_cap: ownerFull.sede_legale?.cap || "",
-                sede_legale_provincia: ownerFull.sede_legale?.provincia || "",
+                indirizzo: ownerFull.sede_legale?.indirizzo || "",
+                citta: ownerFull.sede_legale?.citta || "",
+                cap: ownerFull.sede_legale?.cap || "",
+                provincia: ownerFull.sede_legale?.provincia || "",
                 pec: ownerFull.pec,
                 iban: ownerFull.iban,
-                contatto_telefono: ownerFull.contatti?.[0]?.telefono || "",
-                contatto_email: ownerFull.contatti?.[0]?.email || "",
-            } : owner;
+                telefono: ownerFull.contatti?.[0]?.telefono || "",
+                email: ownerFull.contatti?.[0]?.email || "",
+                codice_univoco: ownerFull.codice_univoco
+            } : (owner ? {
+                ragione_sociale: owner.ragione_sociale,
+                partita_iva: owner.partita_iva,
+                indirizzo: owner.sede_legale_indirizzo,
+                citta: owner.sede_legale_citta,
+                cap: owner.sede_legale_cap,
+                provincia: owner.sede_legale_provincia,
+                pec: owner.pec,
+                iban: owner.iban,
+                telefono: owner.contatto_telefono,
+                email: owner.contatto_email,
+                codice_univoco: owner.codice_univoco
+            } : null);
 
             // 2. Fetch Client Data (Using aggregated view)
             const { data: clienteRaw, error: clienteError } = await supabase
@@ -110,11 +123,11 @@ export function GeneraContrattoDialogWrapper({
             const formattedData = {
                 existingContract: existingContract,
                 datiOwner: normalizedOwner || {
-                    ragione_sociale: "Azienda Owner",
-                    sede_legale_indirizzo: "",
-                    sede_legale_citta: "",
-                    sede_legale_cap: "",
-                    sede_legale_provincia: "",
+                    ragione_sociale: "Toscana Carrelli S.r.l.",
+                    indirizzo: "",
+                    citta: "",
+                    cap: "",
+                    provincia: "",
                     partita_iva: "",
                 },
                 datiCliente: {

@@ -1,98 +1,21 @@
 import React from "react";
-import { Page, Text, View, Document, StyleSheet, Font, Image, Svg, Polygon } from "@react-pdf/renderer";
-import { formatDataItaliana, formatEuro, getModalitaPagamentoLabel } from "../pdf/LetterheadPDF";
-import { PDFColors, sharedStyles, PDFSection, PDFKeyValue, PDFTable, PDFSignatureBox } from "../pdf";
-import logoMvc from "@/assets/logo_mvc.png";
-
-// Register fonts if needed (using Helvetiva as default)
-
-const styles = StyleSheet.create({
-  page: {
-    padding: 30,
-    backgroundColor: "#FFFFFF",
-    fontFamily: "Helvetica",
-  },
-
-  // Clean Corporate Header
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    borderBottomWidth: 2,
-    borderBottomColor: PDFColors.primary,
-    paddingBottom: 20,
-    marginBottom: 20,
-  },
-  logo: {
-    width: 140,
-    height: "auto",
-  },
-  headerContact: {
-    textAlign: "right",
-    maxWidth: 250,
-  },
-  ownerName: {
-    fontSize: 12,
-    fontFamily: "Helvetica-Bold",
-    color: PDFColors.primary,
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  ownerDetails: {
-    fontSize: 8,
-    color: PDFColors.textMuted,
-    lineHeight: 1.4,
-  },
-
-  // Document Info
-  documentInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: PDFColors.bgLight,
-    padding: 10,
-    borderRadius: 4,
-    marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: PDFColors.accent,
-  },
-  infoCol: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 7,
-    textTransform: "uppercase",
-    color: PDFColors.textMuted,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    color: PDFColors.primary,
-  },
-
-  // Financial Summary Section
-  financials: {
-    marginTop: 20,
-  },
-
-  // Footer
-  footer: {
-    position: "absolute",
-    bottom: 30,
-    left: 30,
-    right: 30,
-    borderTopWidth: 0.5,
-    borderTopColor: PDFColors.borderLight,
-    paddingTop: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  footerText: {
-    fontSize: 8,
-    color: PDFColors.textMuted,
-  },
-});
+import { Document, View, Text } from "@react-pdf/renderer";
+import {
+  PageShell,
+  DatiAziendaOwner,
+  formatDataItaliana,
+  formatEuro,
+  getModalitaPagamentoLabel
+} from "../pdf/LetterheadPDF";
+import {
+  PDFSection,
+  PDFKeyValue,
+  PDFTable,
+  PDFGrid,
+  PDFGridCol,
+  PDFSignatureBox
+} from "../pdf/pdf-components";
+import { pdfStyles } from "../pdf/LetterheadPDF";
 
 export interface DatiCliente {
   ragione_sociale: string;
@@ -133,185 +56,110 @@ export interface DatiContratto {
 }
 
 interface ContrattoPDFProps {
-  datiOwner: any; // Using vw_anagrafiche_complete structure
+  datiOwner: DatiAziendaOwner;
   datiCliente: DatiCliente;
   datiMezzo: DatiMezzo;
   datiContratto: DatiContratto;
 }
 
 export function ContrattoPDF({ datiOwner, datiCliente, datiMezzo, datiContratto }: ContrattoPDFProps) {
-  const isBozza = datiContratto.codice_contratto === "ANTEPRIMA";
-
-  // Calculate totals for the table
-  const rows = [
-    ["Canone di Noleggio (" + (datiContratto.tipo_canone || "mensile") + ")", "1", formatEuro(datiContratto.canone_noleggio || 0), formatEuro(datiContratto.canone_noleggio || 0)],
+  const canoneRow = [
+    "Canone di Noleggio (" + (datiContratto.tipo_canone || "mensile") + ")",
+    formatEuro(datiContratto.canone_noleggio || 0),
+    datiContratto.tipo_canone || "Mese"
   ];
 
+  const rows = [canoneRow];
+
   if (datiContratto.costo_trasporto) {
-    rows.push(["Costi di Trasporto", "1", formatEuro(datiContratto.costo_trasporto), formatEuro(datiContratto.costo_trasporto)]);
+    rows.push([
+      "Costi di Trasporto (Andata/Ritorno)",
+      formatEuro(datiContratto.costo_trasporto),
+      "Una Tantum"
+    ]);
   }
 
   const totale = (datiContratto.canone_noleggio || 0) + (datiContratto.costo_trasporto || 0);
 
   return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        {/* CORPORATE HEADER */}
-        <View style={styles.header}>
-          <Image src={logoMvc} style={styles.logo} />
+    <Document title={`Contratto_${datiContratto.codice_contratto}`}>
+      <PageShell
+        titolo="Contratto di Noleggio"
+        sottoTitolo={datiContratto.codice_contratto}
+        datiOwner={datiOwner}
+      >
+        {/* 1. Cliente e Mezzo - Deterministic Grid */}
+        <PDFGrid>
+          <PDFGridCol width="50%">
+            <PDFSection title="Dati Cliente">
+              <PDFKeyValue label="Ragione Sociale" value={datiCliente.ragione_sociale} />
+              <PDFKeyValue label="Partita IVA" value={datiCliente.p_iva} />
+              <PDFKeyValue
+                label="Sede Operativa"
+                value={`${datiCliente.indirizzo}\n${datiCliente.cap} ${datiCliente.citta} (${datiCliente.provincia})`}
+              />
+              <PDFKeyValue label="Email / PEC" value={datiCliente.pec || datiCliente.email} />
+            </PDFSection>
+          </PDFGridCol>
+          <PDFGridCol width="45%">
+            <PDFSection title="Dettaglio Mezzo">
+              <PDFKeyValue label="Marca / Modello" value={`${datiMezzo.marca} ${datiMezzo.modello}`} />
+              <PDFKeyValue label="Matricola" value={datiMezzo.matricola} />
+              <PDFKeyValue label="Anno / Ore" value={`${datiMezzo.anno || "-"} / ${datiMezzo.ore_moto || "-"}`} />
+              <PDFKeyValue label="Targa" value={datiMezzo.targa} />
+            </PDFSection>
+          </PDFGridCol>
+        </PDFGrid>
 
-          <View style={styles.headerContact}>
-            <Text style={styles.ownerName}>{datiOwner.ragione_sociale || "MVC S.r.l."}</Text>
-            <Text style={styles.ownerDetails}>{datiOwner.sede_legale_indirizzo}</Text>
-            <Text style={styles.ownerDetails}>
-              {datiOwner.sede_legale_cap} {datiOwner.sede_legale_citta} ({datiOwner.sede_legale_provincia})
-            </Text>
-            <Text style={styles.ownerDetails}>P.IVA: {datiOwner.partita_iva}</Text>
-            <Text style={styles.ownerDetails}>Tel: {datiOwner.contatto_principale_telefono || "-"}</Text>
-            <Text style={styles.ownerDetails}>PEC/Email: {datiOwner.pec || datiOwner.contatto_principale_email || "-"}</Text>
-          </View>
-        </View>
+        {/* 2. Dettagli Noleggio */}
+        <PDFSection title="Condizioni del Servizio">
+          <PDFGrid>
+            <PDFGridCol width="50%">
+              <PDFKeyValue label="Data Inizio" value={formatDataItaliana(datiContratto.data_inizio)} />
+              <PDFKeyValue
+                label="Data Scadenza"
+                value={datiContratto.tempo_indeterminato ? "Tempo Indeterminato" : formatDataItaliana(datiContratto.data_fine)}
+              />
+            </PDFGridCol>
+            <PDFGridCol width="45%">
+              <PDFKeyValue label="Pagamento" value={getModalitaPagamentoLabel(datiContratto.modalita_pagamento)} />
+              <PDFKeyValue label="Cauzione" value={formatEuro(datiContratto.deposito_cauzionale)} />
+            </PDFGridCol>
+          </PDFGrid>
+        </PDFSection>
 
-        {/* DOCUMENT INFO BOX */}
-        <View style={styles.documentInfo}>
-          <View style={styles.infoCol}>
-            <Text style={styles.infoLabel}>Tipo Documento</Text>
-            <Text style={styles.infoValue}>Contratto di Noleggio</Text>
-          </View>
-          <View style={styles.infoCol}>
-            <Text style={styles.infoLabel}>Codice Contratto</Text>
-            <Text style={styles.infoValue}>{datiContratto.codice_contratto}</Text>
-          </View>
-          <View style={styles.infoCol}>
-            <Text style={styles.infoLabel}>Data Emissione</Text>
-            <Text style={styles.infoValue}>{formatDataItaliana(datiContratto.data_creazione)}</Text>
-          </View>
-        </View>
-
-        <View>
-          {/* CLIENT SECTION */}
-          <PDFSection title="CLIENTE">
-            <PDFKeyValue label="Ragione Sociale" value={datiCliente.ragione_sociale} />
-            <PDFKeyValue label="Indirizzo" value={datiCliente.indirizzo + " - " + datiCliente.cap + " " + datiCliente.citta + " (" + datiCliente.provincia + ")"} />
-            <PDFKeyValue label="Partita IVA" value={datiCliente.p_iva} />
-            <PDFKeyValue label="Email / PEC" value={datiCliente.email || datiCliente.pec} />
-            <PDFKeyValue label="Contatto" value={datiCliente.telefono} />
-          </PDFSection>
-
-          {/* VEHICLE SECTION */}
-          <PDFSection title="DETTAGLIO MEZZO">
-            <PDFKeyValue label="Marca / Modello" value={datiMezzo.marca + " " + datiMezzo.modello} />
-            <PDFKeyValue label="Matricola" value={datiMezzo.matricola} />
-            {datiMezzo.targa && <PDFKeyValue label="Targa" value={datiMezzo.targa} />}
-            <PDFKeyValue label="Ore Moto" value={datiMezzo.ore_moto} />
-          </PDFSection>
-
-          {/* RENTAL INFO SECTION */}
-          <PDFSection title="DETTAGLI NOLEGGIO">
-            <PDFKeyValue label="Data Inizio" value={formatDataItaliana(datiContratto.data_inizio)} />
-            <PDFKeyValue
-              label="Data Fine"
-              value={datiContratto.tempo_indeterminato ? "Tempo Indeterminato" : formatDataItaliana(datiContratto.data_fine)}
-            />
-            <PDFKeyValue label="Canone" value={datiContratto.tipo_canone} />
-            <PDFKeyValue label="Pagamento" value={getModalitaPagamentoLabel(datiContratto.modalita_pagamento)} />
-          </PDFSection>
-
-          {/* TABLE */}
+        {/* 3. Riepilogo Economico */}
+        <PDFSection title="Proposta Economica">
           <PDFTable
-            headers={[
-              { label: "Descrizione", width: "50%" },
-              { label: "Qtà", width: "10%" },
-              { label: "Prezzo", width: "20%" },
-              { label: "Subtotale", width: "20%" }
-            ]}
+            headers={["Descrizione", "Importo (IVA escl.)", "Note"]}
+            columnWidths={["55%", "20%", "25%"]}
             rows={rows}
           />
 
-          {/* TOTALS */}
-          <View style={{ marginTop: -10 }}>
-            <View style={sharedStyles.summaryRow}>
-              <Text style={sharedStyles.summaryLabel}>Totale Imponibile</Text>
-              <Text style={sharedStyles.summaryValue}>{formatEuro(totale)}</Text>
-            </View>
-            <View style={[sharedStyles.summaryRow, { backgroundColor: PDFColors.secondary }]}>
-              <Text style={sharedStyles.summaryLabel}>TOTALE GENERALE</Text>
-              <Text style={sharedStyles.summaryValue}>{formatEuro(totale)}</Text>
-            </View>
-          </View>
-
-          {/* NOTES */}
-          {datiContratto.clausole_speciali && (
-            <PDFSection title="NOTE / CLAUSOLE">
-              <Text style={{ fontSize: 9, color: PDFColors.textDark, lineHeight: 1.4 }}>
-                {datiContratto.clausole_speciali}
-              </Text>
-            </PDFSection>
-          )}
-
-          {/* SIGNATURES PAGE 1 */}
-          <View style={{ marginTop: 20, borderTopWidth: 0.5, borderTopColor: PDFColors.borderLight, paddingTop: 20 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <View style={{ width: "45%" }}>
-                <PDFSignatureBox label="Il Cliente" date={formatDataItaliana(new Date().toISOString())} />
-              </View>
-              <View style={{ width: "45%" }}>
-                <PDFSignatureBox label="Il Fornitore" date={formatDataItaliana(new Date().toISOString())} />
+          <View style={{ marginTop: 5, alignItems: 'flex-end' }}>
+            <View style={{ width: 180, borderTopWidth: 1, borderTopColor: '#1a365d', paddingTop: 8 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold" }}>TOTALE DOC.</Text>
+                <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold" }}>{formatEuro(totale)}</Text>
               </View>
             </View>
           </View>
+        </PDFSection>
+
+        {/* 4. Note / Clausole */}
+        {datiContratto.clausole_speciali && (
+          <PDFSection title="Note e Clausole Speciali">
+            <Text style={pdfStyles.text}>{datiContratto.clausole_speciali}</Text>
+          </PDFSection>
+        )}
+
+        {/* 5. Firme - Grouped and Protected */}
+        <View style={{ marginTop: 30 }} wrap={false}>
+          <PDFSignatureBox label="Per Accettazione (Il Cliente)" date={formatDataItaliana(new Date().toISOString())} />
+          <PDFSignatureBox label="Il Locatore (Toscana Carrelli S.r.l.)" date={formatDataItaliana(new Date().toISOString())} />
         </View>
 
-        {/* FOOTER */}
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>Pagina 1 di 2</Text>
-          <Text style={styles.footerText}>{datiOwner.ragione_sociale} - Generato da NXUS</Text>
-        </View>
-      </Page>
-
-      {/* PAGE 2 - CONDIZIONI GENERALI */}
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Image src={logoMvc} style={styles.logo} />
-          <Text style={[styles.ownerName, { marginTop: 10 }]}>CONDIZIONI GENERALI DI NOLEGGIO</Text>
-        </View>
-
-        <View style={{ marginTop: 10 }}>
-          <Text style={{ fontSize: 8, textAlign: "justify", lineHeight: 1.5, marginBottom: 10 }}>
-            Art. 1 - OGGETTO DEL CONTRATTO: Il locatore concede in noleggio al locatario il bene descritto nella prima pagina del presente contratto...
-          </Text>
-          <Text style={{ fontSize: 8, textAlign: "justify", lineHeight: 1.5, marginBottom: 10 }}>
-            Art. 2 - CONSEGNA E RICONSEGNA: Il mezzo viene consegnato in perfetto stato di funzionamento e deve essere riconsegnato nelle medesime condizioni...
-          </Text>
-          <Text style={{ fontSize: 8, textAlign: "justify", lineHeight: 1.5, marginBottom: 10 }}>
-            Art. 3 - RESPONSABILITÀ: Il locatario è custode del bene e responsabile per ogni danno causato a terzi o al bene stesso durante il periodo di noleggio...
-          </Text>
-
-          <View style={{ marginTop: 20, padding: 10, backgroundColor: PDFColors.bgLight, borderLeftWidth: 2, borderLeftColor: PDFColors.accent }}>
-            <Text style={{ fontSize: 7, color: PDFColors.textMuted }}>
-              Nota: Questo è un testo segnaposto. Le condizioni definitive devono essere caricate o modificate nel componente ContrattoPDF.tsx.
-            </Text>
-          </View>
-        </View>
-
-        {/* SIGNATURES PAGE 2 */}
-        <View style={{ marginTop: 40 }}>
-          <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", marginBottom: 10 }}>
-            Per accettazione specifica delle clausole vessatorie (Art. 2, 3, 5, 8):
-          </Text>
-          <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-            <View style={{ width: "45%" }}>
-              <PDFSignatureBox label="Il Cliente" />
-            </View>
-          </View>
-        </View>
-
-        {/* FOOTER */}
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>Pagina 2 di 2</Text>
-          <Text style={styles.footerText}>{datiOwner.ragione_sociale} - Generato da NXUS</Text>
-        </View>
-      </Page>
+      </PageShell>
     </Document>
   );
 }

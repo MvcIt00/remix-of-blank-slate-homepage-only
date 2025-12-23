@@ -22,6 +22,9 @@ export interface PreventivoNoleggio {
   note: string | null;
   sede_operativa: string | null;
   stato: StatoPreventivo; // Use Enum
+  codice: string | null;
+  pdf_bozza_path: string | null;
+  pdf_firmato_path: string | null;
   convertito_in_noleggio_id?: string | null;
   created_at: string;
   updated_at: string | null;

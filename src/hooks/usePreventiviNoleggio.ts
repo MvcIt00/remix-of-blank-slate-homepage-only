@@ -28,6 +28,9 @@ function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleg
     tipo_canone: view.tipo_canone || "mensile",
     note: view.note || undefined,
     stato: view.stato || StatoPreventivo.BOZZA,
+    codice: view.codice || null,
+    pdf_bozza_path: view.pdf_bozza_path || null,
+    pdf_firmato_path: view.pdf_firmato_path || null,
     convertito_in_noleggio_id: view.convertito_in_noleggio_id || undefined,
     created_at: view.created_at,
     // Relazioni espanse (simuliamo la struttura annidata attesa dai componenti vecchi)

@@ -104,6 +104,9 @@ export interface PreventivoCompletoView {
     tipo_canone: "giornaliero" | "mensile" | null;
     note: string | null;
     stato: "bozza" | "inviato" | "approvato" | "rifiutato" | "concluso" | "archiviato";
+    codice: string | null;
+    pdf_bozza_path: string | null;
+    pdf_firmato_path: string | null;
     convertito_in_noleggio_id: string | null;
     created_at: string;
     // Dati Cliente

@@ -9,6 +9,9 @@ import { usePreventiviNoleggio } from "@/hooks/usePreventiviNoleggio";
 import { PreventivoNoleggio, PreventivoNoleggioInput, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { toast } from "@/hooks/use-toast";
 import { TableActions } from "@/components/ui/table-actions";
+import { PreventivoPreviewDialog } from "@/components/preventivi/PreventivoPreviewDialog";
+import { FileText, Eye } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const statoBadgeVariant: Record<StatoPreventivo, "secondary" | "default" | "destructive" | "outline"> = {
   bozza: "secondary",
@@ -35,11 +38,19 @@ export default function PreventiviNoleggio() {
   const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggio | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [preventivoPerPDF, setPreventivoPerPDF] = useState<PreventivoNoleggio | null>(null);
+
   const filteredData = useMemo(() => {
     return statoFiltro ? preventivi.filter((p) => p.stato === statoFiltro) : preventivi;
   }, [preventivi, statoFiltro]);
 
   const columns: DataTableColumn<PreventivoNoleggio>[] = [
+    {
+      key: "codice",
+      label: "Codice",
+      render: (v) => <span className="font-mono text-xs font-bold">{v || "-"}</span>,
+    },
     {
       key: "cliente",
       label: "Cliente",
@@ -112,6 +123,17 @@ export default function PreventiviNoleggio() {
           }
           : undefined
       }
+      customActions={[
+        {
+          label: row.pdf_bozza_path ? "Visualizza PDF" : "Genera PDF",
+          icon: row.pdf_bozza_path ? <Eye className="h-4 w-4" /> : <FileText className="h-4 w-4" />,
+          onClick: () => {
+            setPreventivoPerPDF(row);
+            setPreviewOpen(true);
+          },
+          className: row.pdf_bozza_path ? "text-primary" : "text-muted-foreground",
+        }
+      ]}
     />
   );
 
@@ -185,6 +207,15 @@ export default function PreventiviNoleggio() {
           await aggiornaPreventivo(preventivoDaModificare.id_preventivo, values);
           toast({ title: "Preventivo aggiornato" });
           setPreventivoDaModificare(null);
+        }}
+      />
+
+      <PreventivoPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        preventivo={preventivoPerPDF as any}
+        onSuccess={() => {
+          // hook invalida già la query
         }}
       />
     </div>

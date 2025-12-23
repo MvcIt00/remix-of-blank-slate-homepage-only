@@ -1,206 +1,118 @@
-/**
- * Centralized PDF Components Library (v2 - Teal Theme)
- * Reusable components for professional PDF documents
- */
-
 import React from "react";
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
+import { pdfStyles } from "./LetterheadPDF";
 
-/* =======================
-   COLOR PALETTE
-======================= */
+/* ==========================================================================
+   DESIGN TOKENS & LEGACY EXPORTS
+   ========================================================================== */
 
 export const PDFColors = {
-    primary: "#1a365d",        // Corporate Navy Blue
-    secondary: "#2c5282",      // Medium Blue
-    accent: "#FBBF24",         // Corporate Yellow/Gold
-    bgLight: "#F7FAFC",        // Light gray background
-    borderLight: "#CBD5E0",    // Subtle borders
-    textDark: "#000000ff",       // Main text
-    textMuted: "#718096",      // Secondary text
+    primary: "#1a365d",
+    secondary: "#2c5282",
+    accent: "#FBBF24",
+    bgLight: "#F7FAFC",
+    borderLight: "#CBD5E0",
+    border: "#E2E8F0",
+    textDark: "#000000ff",
+    textMuted: "#718096",
     white: "#FFFFFF",
 };
 
-/* =======================
-   SHARED STYLES
-======================= */
-
+// Dummy styles for backward compatibility during transition
 export const sharedStyles = StyleSheet.create({
-    // Section heading (e.g., BILL TO)
-    sectionHeader: {
-        fontSize: 10,
-        fontFamily: "Helvetica-Bold",
-        color: PDFColors.primary,
-        marginBottom: 8,
-        marginTop: 12,
-        textTransform: "uppercase",
-        letterSpacing: 0.5,
-    },
-
-    // Key-value row with COLON alignment
-    kvRow: {
-        flexDirection: "row",
-        paddingVertical: 3,
-        alignItems: "flex-start",
-    },
-    kvLabel: {
-        width: "100pt",
-        fontSize: 9,
-        fontFamily: "Helvetica",
-        color: PDFColors.textDark,
-    },
-    kvSeparator: {
-        width: "15pt",
-        fontSize: 9,
-        fontFamily: "Helvetica",
-        color: PDFColors.textDark,
-    },
-    kvValue: {
-        flex: 1,
-        fontSize: 9,
-        fontFamily: "Helvetica-Bold",
-        color: PDFColors.textDark,
-    },
-
-    // Table styles
-    table: {
-        marginTop: 10,
-        marginBottom: 10,
-    },
-    tableHeader: {
-        flexDirection: "row",
-        backgroundColor: PDFColors.primary,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-    },
-    tableHeaderText: {
-        fontSize: 9,
-        fontFamily: "Helvetica-Bold",
-        color: PDFColors.white,
-        textTransform: "uppercase",
-    },
-    tableRow: {
-        flexDirection: "row",
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        backgroundColor: PDFColors.white,
-        borderBottomWidth: 0.5,
-        borderBottomColor: PDFColors.borderLight,
-    },
-    tableRowAlt: {
-        backgroundColor: PDFColors.bgLight,
-    },
-    tableCell: {
-        fontSize: 9,
-        fontFamily: "Helvetica",
-        color: PDFColors.textDark,
-    },
-
-    // Financial Summary Rows
-    summaryRow: {
-        flexDirection: "row",
-        backgroundColor: PDFColors.primary,
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        marginTop: 1,
-    },
-    summaryLabel: {
-        flex: 1,
-        fontSize: 9,
-        fontFamily: "Helvetica-Bold",
-        color: PDFColors.white,
-        textAlign: "right",
-        paddingRight: 20,
-    },
-    summaryValue: {
-        width: "80pt",
-        fontSize: 9,
-        fontFamily: "Helvetica-Bold",
-        color: PDFColors.white,
-        textAlign: "right",
-    },
-
-    // Signature box
-    signatureContainer: {
-        marginTop: 30,
-        alignItems: "flex-end",
-    },
-    signatureBox: {
-        width: "180pt",
-        alignItems: "center",
-    },
-    signatureLine: {
-        width: "100%",
-        borderBottomWidth: 1,
-        borderBottomColor: PDFColors.textDark,
-        marginBottom: 5,
-        marginTop: 20,
-    },
-    signatureLabel: {
-        fontSize: 9,
-        fontFamily: "Helvetica-Bold",
-        color: PDFColors.textDark,
-    },
-    signatureSubLabel: {
-        fontSize: 8,
-        fontFamily: "Helvetica",
-        color: PDFColors.textMuted,
-    },
+    text: { fontSize: 9, color: PDFColors.textDark },
+    textBold: { fontSize: 9, fontFamily: "Helvetica-Bold", color: PDFColors.primary },
 });
 
-/* =======================
+/* ==========================================================================
    REUSABLE COMPONENTS
-======================= */
+   ========================================================================== */
 
 interface PDFSectionProps {
     title: string;
     children: React.ReactNode;
 }
 
+/**
+ * Standard section with title and bottom border
+ */
 export function PDFSection({ title, children }: PDFSectionProps) {
     return (
-        <View wrap={false} style={{ marginBottom: 15 }}>
-            <Text style={sharedStyles.sectionHeader}>{title}</Text>
-            {children}
+        <View style={{ marginBottom: 25 }}>
+            <Text style={pdfStyles.sectionHeader}>{title}</Text>
+            <View style={{ marginTop: 5 }}>
+                {children}
+            </View>
         </View>
     );
 }
 
 interface PDFKeyValueProps {
     label: string;
-    value: string | null | undefined;
+    value: string | number | null | undefined;
+    flex?: number;
 }
 
-export function PDFKeyValue({ label, value }: PDFKeyValueProps) {
+/**
+ * Key-Value row with optimized spacing for side-by-side grids.
+ * Enforces a strict label width to prevent layout bleeding.
+ */
+export function PDFKeyValue({ label, value, flex = 1 }: PDFKeyValueProps) {
     return (
-        <View style={sharedStyles.kvRow}>
-            <Text style={sharedStyles.kvLabel}>{label}</Text>
-            <Text style={sharedStyles.kvSeparator}>:</Text>
-            <Text style={sharedStyles.kvValue}>{value || "-"}</Text>
+        <View style={{ flexDirection: 'row', marginBottom: 4, flex, minHeight: 12 }}>
+            <View style={{ width: 85 }}>
+                <Text style={{ fontSize: 8, color: "#718096" }}>{label}</Text>
+            </View>
+            <View style={{ width: 10 }}>
+                <Text style={{ fontSize: 8, color: "#718096" }}>:</Text>
+            </View>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={{ fontSize: 8.5, color: "#1a365d", fontFamily: "Helvetica-Bold" }}>
+                    {value || "-"}
+                </Text>
+            </View>
         </View>
     );
 }
 
-interface PDFTableProps {
-    headers: Array<{ label: string; width: string }>;
-    rows: Array<Array<string>>;
+/**
+ * Grid component with deterministic percentage based columns
+ */
+export function PDFGrid({ children }: { children: React.ReactNode }) {
+    return <View style={[pdfStyles.contentGrid, { gap: 15 }]}>{children}</View>;
 }
 
-export function PDFTable({ headers, rows }: PDFTableProps) {
+export function PDFGridCol({ children, width = "48%" }: { children: React.ReactNode; width?: string | number }) {
+    return <View style={[pdfStyles.gridColumn, { width }]}>{children}</View>;
+}
+
+interface PDFTableProps {
+    headers: string[];
+    rows: (string | number)[][];
+    columnWidths: string[];
+}
+
+/**
+ * Premium data table
+ */
+export function PDFTable({ headers, rows, columnWidths }: PDFTableProps) {
     return (
-        <View style={sharedStyles.table}>
+        <View style={{ marginTop: 5, marginBottom: 15 }}>
             {/* Header */}
-            <View style={sharedStyles.tableHeader}>
+            <View style={pdfStyles.tableHeader}>
                 {headers.map((header, idx) => (
                     <Text
                         key={idx}
                         style={[
-                            sharedStyles.tableHeaderText,
-                            { width: header.width },
-                            header.label === "Importo" || header.label === "Subtotale" ? { textAlign: "right" } : {},
+                            pdfStyles.tableHeaderText,
+                            { width: columnWidths[idx] },
+                            header.toLowerCase().includes("prezzo") ||
+                                header.toLowerCase().includes("subtotale") ||
+                                header.toLowerCase().includes("iva") ||
+                                header === "Totale" ? { textAlign: "right" } : {},
                         ]}
                     >
-                        {header.label}
+                        {header}
                     </Text>
                 ))}
             </View>
@@ -209,18 +121,18 @@ export function PDFTable({ headers, rows }: PDFTableProps) {
             {rows.map((row, rowIdx) => (
                 <View
                     key={rowIdx}
-                    style={[
-                        sharedStyles.tableRow,
-                        rowIdx % 2 === 1 && sharedStyles.tableRowAlt,
-                    ]}
+                    style={pdfStyles.tableRow}
                 >
                     {row.map((cell, cellIdx) => (
                         <Text
                             key={cellIdx}
                             style={[
-                                sharedStyles.tableCell,
-                                { width: headers[cellIdx].width },
-                                headers[cellIdx].label === "Importo" || headers[cellIdx].label === "Subtotale" ? { textAlign: "right" } : {},
+                                pdfStyles.tableCell,
+                                { width: columnWidths[cellIdx] },
+                                headers[cellIdx].toLowerCase().includes("prezzo") ||
+                                    headers[cellIdx].toLowerCase().includes("subtotale") ||
+                                    headers[cellIdx].toLowerCase().includes("iva") ||
+                                    headers[cellIdx] === "Totale" ? { textAlign: "right" } : {},
                             ]}
                         >
                             {cell}
@@ -232,20 +144,23 @@ export function PDFTable({ headers, rows }: PDFTableProps) {
     );
 }
 
-interface PDFSignatureBoxProps {
-    label: string;
-    date?: string;
-}
-
-export function PDFSignatureBox({ label, date }: PDFSignatureBoxProps) {
+/**
+ * Signature section with date
+ */
+export function PDFSignatureBox({ label, date }: { label: string; date?: string }) {
     return (
-        <View style={sharedStyles.signatureContainer}>
-            {date && <Text style={{ fontSize: 9, marginBottom: 5 }}>Data: {date}</Text>}
-            <View style={sharedStyles.signatureBox}>
-                <View style={sharedStyles.signatureLine} />
-                <Text style={sharedStyles.signatureLabel}>{label}</Text>
-                <Text style={sharedStyles.signatureSubLabel}>Authorized Sign</Text>
+        <View style={[pdfStyles.signatureSection, { marginBottom: 15 }]}>
+            <View style={pdfStyles.signatureBox}>
+                <Text style={pdfStyles.signatureLabel}>{label}</Text>
+                <View style={[pdfStyles.signatureLine, { width: 180 }]}>
+                    <Text style={{ fontSize: 7, color: '#CBD5E0', paddingTop: 8 }}>Firma e Timbro</Text>
+                </View>
             </View>
+            {date && (
+                <View style={[pdfStyles.signatureBox, { justifyContent: 'flex-end', alignItems: 'flex-end' }]}>
+                    <Text style={{ fontSize: 8.5, color: '#4a5568' }}>Data: {date}</Text>
+                </View>
+            )}
         </View>
     );
 }

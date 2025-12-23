@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { pdf, BlobProvider } from "@react-pdf/renderer";
-import { Download, Printer, Save, Loader2 } from "lucide-react";
+import { pdf } from "@react-pdf/renderer";
+import { Download, Printer, Save, Loader2, AlertTriangle } from "lucide-react";
 import { ContrattoPDF, DatiCliente, DatiMezzo, DatiContratto } from "./ContrattoPDF";
 import { DatiAziendaOwner } from "@/components/pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { mergePdfs } from "@/utils/pdf-merger";
 
 interface ContrattoPreviewDialogProps {
   open: boolean;
@@ -44,6 +45,10 @@ export function ContrattoPreviewDialog({
   existingContract,
 }: ContrattoPreviewDialogProps) {
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [mergedPdfUrl, setMergedPdfUrl] = useState<string | null>(null);
+  const [mergedPdfBlob, setMergedPdfBlob] = useState<Blob | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const datiContrattoPreview: DatiContratto = {
     codice_contratto: existingContract?.codice_contratto || "ANTEPRIMA",
@@ -60,29 +65,73 @@ export function ContrattoPreviewDialog({
     data_creazione: existingContract?.data_creazione || new Date().toISOString(),
   };
 
-  const pdfDocument = (
-    <ContrattoPDF
-      datiOwner={datiOwner}
-      datiCliente={datiCliente}
-      datiMezzo={datiMezzo}
-      datiContratto={datiContrattoPreview}
-    />
-  );
+  const generateFullPdf = async () => {
+    setGenerating(true);
+    setError(null);
+    try {
+      // 1. Genera la pagina dinamica (Contratto)
+      const dynamicBlob = await pdf(
+        <ContrattoPDF
+          datiOwner={datiOwner}
+          datiCliente={datiCliente}
+          datiMezzo={datiMezzo}
+          datiContratto={datiContrattoPreview}
+        />
+      ).toBlob();
 
-  const handleDownload = async () => {
-    const blob = await pdf(pdfDocument).toBlob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `contratto_anteprima.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const dynamicBuffer = await dynamicBlob.arrayBuffer();
+
+      // 2. Scarica il PDF statico (Condizioni Generali)
+      const { data: staticFile, error: storageError } = await supabase.storage
+        .from("contratti")
+        .download("static/condizioni_generali_noleggio.pdf");
+
+      if (storageError) {
+        console.error("❌ Errore download PDF statico:", storageError);
+        console.warn("Dettagli errore:", JSON.stringify(storageError, null, 2));
+        // Fallback: se manca lo statico, mostriamo solo il dinamico
+        const url = URL.createObjectURL(dynamicBlob);
+        setMergedPdfUrl(url);
+        setMergedPdfBlob(dynamicBlob);
+        return;
+      }
+
+      const staticBuffer = await staticFile.arrayBuffer();
+
+      // 3. Merge
+      const mergedBlob = await mergePdfs([dynamicBuffer, staticBuffer]);
+      const url = URL.createObjectURL(mergedBlob);
+
+      setMergedPdfUrl(url);
+      setMergedPdfBlob(mergedBlob);
+    } catch (err: any) {
+      console.error("Error merging PDFs:", err);
+      setError("Impossibile generare il PDF completo: " + err.message);
+    } finally {
+      setGenerating(false);
+    }
   };
 
-  const handlePrint = async () => {
-    const blob = await pdf(pdfDocument).toBlob();
-    const url = URL.createObjectURL(blob);
-    const printWindow = window.open(url, "_blank");
+  useEffect(() => {
+    if (open) {
+      generateFullPdf();
+    }
+    return () => {
+      if (mergedPdfUrl) URL.revokeObjectURL(mergedPdfUrl);
+    };
+  }, [open]);
+
+  const handleDownload = () => {
+    if (!mergedPdfUrl) return;
+    const a = document.createElement("a");
+    a.href = mergedPdfUrl;
+    a.download = `contratto_${datiContrattoPreview.codice_contratto.replace(/\//g, "-")}.pdf`;
+    a.click();
+  };
+
+  const handlePrint = () => {
+    if (!mergedPdfUrl) return;
+    const printWindow = window.open(mergedPdfUrl, "_blank");
     if (printWindow) {
       printWindow.onload = () => {
         printWindow.print();
@@ -91,6 +140,15 @@ export function ContrattoPreviewDialog({
   };
 
   const handleSaveAndRegister = async () => {
+    if (!mergedPdfBlob) {
+      toast({
+        title: "Errore",
+        description: "PDF non ancora generato",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       let noleggioId = existingNoleggioId;
@@ -122,7 +180,7 @@ export function ContrattoPreviewDialog({
 
       if (!noleggioId) throw new Error("ID Noleggio mancante");
 
-      // 2. Crea il contratto (il codice_contratto viene generato dal DB)
+      // 2. Crea il contratto
       const contrattoInsert = {
         id_noleggio: noleggioId,
         id_anagrafica_cliente: noleggioData.id_anagrafica,
@@ -146,34 +204,18 @@ export function ContrattoPreviewDialog({
 
       if (contrattoError) throw contrattoError;
 
-      // 3. Genera PDF finale
-      const datiContrattoFinale: DatiContratto = {
-        ...datiContrattoPreview,
-        codice_contratto: contratto.codice_contratto,
-        data_creazione: contratto.data_creazione || new Date().toISOString(),
-      };
-
-      const pdfBlob = await pdf(
-        <ContrattoPDF
-          datiOwner={datiOwner}
-          datiCliente={datiCliente}
-          datiMezzo={datiMezzo}
-          datiContratto={datiContrattoFinale}
-        />
-      ).toBlob();
-
-      // 4. Upload PDF nell'area 'generati' con il nome ufficiale
+      // 3. Upload PDF MERGED nell'area 'generati'
       const fileName = `generati/${contratto.codice_contratto.replace(/\//g, "-")}.pdf`;
       const { error: uploadError } = await supabase.storage
         .from("contratti")
-        .upload(fileName, pdfBlob, {
+        .upload(fileName, mergedPdfBlob, {
           upsert: true,
           contentType: 'application/pdf'
         });
 
       if (uploadError) throw uploadError;
 
-      // 5. Aggiorna path
+      // 4. Aggiorna path
       await supabase
         .from("contratti_noleggio")
         .update({ pdf_bozza_path: fileName })
@@ -181,7 +223,7 @@ export function ContrattoPreviewDialog({
 
       toast({
         title: "Successo",
-        description: "Contratto registrato con successo",
+        description: "Contratto registrato con successo (completo di condizioni)",
       });
 
       onOpenChange(false);
@@ -202,18 +244,18 @@ export function ContrattoPreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-6 py-4 border-b flex-row items-center justify-between">
-          <DialogTitle>{existingContract ? "Visualizza Bozza Contratto" : "Anteprima Contratto"}</DialogTitle>
+          <DialogTitle>{existingContract ? "Visualizza Contratto" : "Anteprima Contratto"}</DialogTitle>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleDownload}>
+            <Button variant="outline" size="sm" onClick={handleDownload} disabled={generating || !!error}>
               <Download className="h-4 w-4 mr-1" />
               Download
             </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={generating || !!error}>
               <Printer className="h-4 w-4 mr-1" />
               Stampa
             </Button>
             {!existingContract && (
-              <Button size="sm" onClick={handleSaveAndRegister} disabled={saving}>
+              <Button size="sm" onClick={handleSaveAndRegister} disabled={saving || generating || !!error}>
                 {saving ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
@@ -225,36 +267,30 @@ export function ContrattoPreviewDialog({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 p-4 bg-muted/30 overflow-hidden">
-          <BlobProvider document={pdfDocument}>
-            {({ blob, url, loading, error }) => {
-              if (loading) {
-                return (
-                  <div className="h-full flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    <span className="ml-2 text-muted-foreground">Generazione PDF...</span>
-                  </div>
-                );
-              }
-              if (error) {
-                return (
-                  <div className="h-full flex items-center justify-center text-destructive">
-                    Errore nella generazione del PDF: {error.message}
-                  </div>
-                );
-              }
-              if (url) {
-                return (
-                  <iframe
-                    src={url}
-                    className="w-full h-full rounded-md border bg-white"
-                    title="Anteprima Contratto"
-                  />
-                );
-              }
-              return null;
-            }}
-          </BlobProvider>
+        <div className="flex-1 p-4 bg-muted/30 overflow-hidden relative">
+          {generating ? (
+            <div className="h-full flex flex-col items-center justify-center bg-white rounded-md border">
+              <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+              <p className="text-sm font-medium text-muted-foreground animate-pulse">
+                Unione documenti in corso...
+              </p>
+            </div>
+          ) : error ? (
+            <div className="h-full flex flex-col items-center justify-center bg-destructive/5 rounded-md border border-destructive/20 p-8 text-center">
+              <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+              <h3 className="text-lg font-semibold text-destructive mb-2">Errore Generazione PDF</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-md">{error}</p>
+              <Button variant="outline" onClick={generateFullPdf}>
+                Riprova
+              </Button>
+            </div>
+          ) : mergedPdfUrl ? (
+            <iframe
+              src={mergedPdfUrl}
+              className="w-full h-full rounded-md border bg-white shadow-sm"
+              title="Anteprima Contratto Completo"
+            />
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
