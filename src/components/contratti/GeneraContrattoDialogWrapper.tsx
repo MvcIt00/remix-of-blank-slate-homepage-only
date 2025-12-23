@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ContrattoPreviewDialog } from "./ContrattoPreviewDialog";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AnagraficaComplete, OwnerInfo } from "@/types/database_views";
 
 interface GeneraContrattoDialogWrapperProps {
@@ -183,9 +183,15 @@ export function GeneraContrattoDialogWrapper({
     if (loading || !data) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="flex items-center justify-center h-40">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mr-2" />
-                    <p className="text-sm text-muted-foreground">Caricamento dati contratto...</p>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Generazione contratto</DialogTitle>
+                        <DialogDescription>Recupero dati per l’anteprima PDF…</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center gap-3 py-4">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Caricamento dati contratto...</p>
+                    </div>
                 </DialogContent>
             </Dialog>
         );
