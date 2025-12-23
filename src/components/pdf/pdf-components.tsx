@@ -22,14 +22,23 @@ export const sharedStyles = StyleSheet.create({
 interface PDFSectionProps {
     title: string;
     children: React.ReactNode;
+    spacing?: 'tight' | 'normal' | 'section' | 'break';
 }
 
+// Spacing scale based on visual hierarchy
+const SPACING_MAP = {
+    tight: 8,      // Within related content
+    normal: 15,    // Default between sections
+    section: 25,   // Between major data sections
+    break: 40,     // Before major visual breaks
+};
+
 /**
- * Standard section with title and bottom border
+ * Section with hierarchical spacing control
  */
-export function PDFSection({ title, children }: PDFSectionProps) {
+export function PDFSection({ title, children, spacing = 'section' }: PDFSectionProps) {
     return (
-        <View style={{ marginBottom: 25 }}>
+        <View style={{ paddingTop: SPACING_MAP[spacing], marginBottom: 15 }}>
             <Text style={pdfStyles.sectionHeader}>{title}</Text>
             <View style={{ marginTop: 5 }}>
                 {children}
@@ -50,7 +59,7 @@ interface PDFKeyValueProps {
  */
 export function PDFKeyValue({ label, value, flex = 1 }: PDFKeyValueProps) {
     return (
-        <View style={{ flexDirection: 'row', marginBottom: 4, flex, minHeight: 12 }}>
+        <View style={{ flexDirection: 'row', marginBottom: 8, flex, minHeight: 14 }}>
             <View style={{ width: 85 }}>
                 <Text style={{ fontSize: 8, color: "#718096" }}>{label}</Text>
             </View>
@@ -136,22 +145,37 @@ export function PDFTable({ headers, rows, columnWidths }: PDFTableProps) {
 }
 
 /**
- * Signature section with date
+ * Signature Group - Minimal layout
+ */
+export function PDFSignatureGroup({ children }: { children: React.ReactNode }) {
+    return (
+        <View style={{ marginTop: 35, flexDirection: "row", justifyContent: "space-between", gap: 60 }} wrap={false}>
+            {children}
+        </View>
+    );
+}
+
+/**
+ * Single Signature Box - Minimal style
  */
 export function PDFSignatureBox({ label, date }: { label: string; date?: string }) {
     return (
-        <View style={[pdfStyles.signatureSection, { marginBottom: 15 }]}>
-            <View style={pdfStyles.signatureBox}>
-                <Text style={pdfStyles.signatureLabel}>{label}</Text>
-                <View style={[pdfStyles.signatureLine, { width: 180 }]}>
-                    <Text style={{ fontSize: 7, color: '#CBD5E0', paddingTop: 8 }}>Firma e Timbro</Text>
-                </View>
+        <View style={{ flex: 1 }}>
+            <Text style={{
+                fontSize: 7,
+                color: "#718096",
+                textTransform: "uppercase",
+                marginBottom: 30
+            }}>
+                {label}
+            </Text>
+            <View style={{
+                borderTopWidth: 0.5,
+                borderTopColor: "#000000",
+                paddingTop: 2
+            }}>
+                <Text style={{ fontSize: 6, color: "#718096", textAlign: 'center' }}>Firma e Timbro</Text>
             </View>
-            {date && (
-                <View style={[pdfStyles.signatureBox, { justifyContent: 'flex-end', alignItems: 'flex-end' }]}>
-                    <Text style={{ fontSize: 8.5, color: '#4a5568' }}>Data: {date}</Text>
-                </View>
-            )}
         </View>
     );
 }

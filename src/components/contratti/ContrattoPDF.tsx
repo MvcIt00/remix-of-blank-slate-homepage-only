@@ -13,6 +13,7 @@ import {
   PDFTable,
   PDFGrid,
   PDFGridCol,
+  PDFSignatureGroup,
   PDFSignatureBox
 } from "../pdf/pdf-components";
 import { pdfStyles } from "../pdf/LetterheadPDF";
@@ -88,48 +89,32 @@ export function ContrattoPDF({ datiOwner, datiCliente, datiMezzo, datiContratto 
         sottoTitolo={datiContratto.codice_contratto}
         datiOwner={datiOwner}
       >
-        {/* 1. Cliente e Mezzo - Deterministic Grid */}
-        <PDFGrid>
-          <PDFGridCol width="50%">
-            <PDFSection title="Dati Cliente">
-              <PDFKeyValue label="Ragione Sociale" value={datiCliente.ragione_sociale} />
-              <PDFKeyValue label="Partita IVA" value={datiCliente.p_iva} />
-              <PDFKeyValue
-                label="Sede Operativa"
-                value={`${datiCliente.indirizzo}\n${datiCliente.cap} ${datiCliente.citta} (${datiCliente.provincia})`}
-              />
-              <PDFKeyValue label="Email / PEC" value={datiCliente.pec || datiCliente.email} />
-            </PDFSection>
-          </PDFGridCol>
-          <PDFGridCol width="45%">
-            <PDFSection title="Dettaglio Mezzo">
-              <PDFKeyValue label="Marca / Modello" value={`${datiMezzo.marca} ${datiMezzo.modello}`} />
-              <PDFKeyValue label="Matricola" value={datiMezzo.matricola} />
-              <PDFKeyValue label="Anno / Ore" value={`${datiMezzo.anno || "-"} / ${datiMezzo.ore_moto || "-"}`} />
-              <PDFKeyValue label="Targa" value={datiMezzo.targa} />
-            </PDFSection>
-          </PDFGridCol>
-        </PDFGrid>
-
-        {/* 2. Dettagli Noleggio */}
-        <PDFSection title="Condizioni del Servizio">
-          <PDFGrid>
-            <PDFGridCol width="50%">
-              <PDFKeyValue label="Data Inizio" value={formatDataItaliana(datiContratto.data_inizio)} />
-              <PDFKeyValue
-                label="Data Scadenza"
-                value={datiContratto.tempo_indeterminato ? "Tempo Indeterminato" : formatDataItaliana(datiContratto.data_fine)}
-              />
-            </PDFGridCol>
-            <PDFGridCol width="45%">
-              <PDFKeyValue label="Pagamento" value={getModalitaPagamentoLabel(datiContratto.modalita_pagamento)} />
-              <PDFKeyValue label="Cauzione" value={formatEuro(datiContratto.deposito_cauzionale)} />
-            </PDFGridCol>
-          </PDFGrid>
+        {/* 1. Dati Cliente - spacing='section' (25pt) */}
+        <PDFSection title="Dati Cliente" spacing="section">
+          <PDFKeyValue label="Ragione Sociale" value={datiCliente.ragione_sociale} />
+          <PDFKeyValue label="Partita IVA" value={datiCliente.p_iva} />
+          <PDFKeyValue label="Sede Operativa" value={`${datiCliente.indirizzo}, ${datiCliente.cap} ${datiCliente.citta} (${datiCliente.provincia})`} />
+          <PDFKeyValue label="Email / PEC" value={datiCliente.pec || datiCliente.email} />
         </PDFSection>
 
-        {/* 3. Riepilogo Economico */}
-        <PDFSection title="Proposta Economica">
+        {/* 2. Dettaglio Mezzo - spacing='section' (25pt) */}
+        <PDFSection title="Dettaglio Mezzo" spacing="section">
+          <PDFKeyValue label="Marca / Modello" value={`${datiMezzo.marca} ${datiMezzo.modello}`} />
+          <PDFKeyValue label="Matricola" value={datiMezzo.matricola} />
+          <PDFKeyValue label="Anno / Ore" value={`${datiMezzo.anno || "-"} / ${datiMezzo.ore_moto || "-"}`} />
+          <PDFKeyValue label="Targa" value={datiMezzo.targa} />
+        </PDFSection>
+
+        {/* 3. Condizioni del Servizio - spacing='section' (25pt) */}
+        <PDFSection title="Condizioni del Servizio" spacing="section">
+          <PDFKeyValue label="Data Inizio" value={formatDataItaliana(datiContratto.data_inizio)} />
+          <PDFKeyValue label="Data Scadenza" value={datiContratto.tempo_indeterminato ? "Tempo Indeterminato" : formatDataItaliana(datiContratto.data_fine)} />
+          <PDFKeyValue label="Pagamento" value={getModalitaPagamentoLabel(datiContratto.modalita_pagamento)} />
+          <PDFKeyValue label="Cauzione" value={formatEuro(datiContratto.deposito_cauzionale)} />
+        </PDFSection>
+
+        {/* 4. Tabella Economica - VISUAL BREAK (40pt) */}
+        <View style={{ marginTop: 40 }}>
           <PDFTable
             headers={["Descrizione", "Importo (IVA escl.)", "Note"]}
             columnWidths={["55%", "20%", "25%"]}
@@ -144,19 +129,21 @@ export function ContrattoPDF({ datiOwner, datiCliente, datiMezzo, datiContratto 
               </View>
             </View>
           </View>
-        </PDFSection>
+        </View>
 
-        {/* 4. Note / Clausole */}
+        {/* 5. Note / Clausole - spacing='normal' (15pt) */}
         {datiContratto.clausole_speciali && (
-          <PDFSection title="Note e Clausole Speciali">
+          <PDFSection title="Note e Clausole Speciali" spacing="normal">
             <Text style={pdfStyles.text}>{datiContratto.clausole_speciali}</Text>
           </PDFSection>
         )}
 
-        {/* 5. Firme - Grouped and Protected */}
-        <View style={{ marginTop: 30 }} wrap={false}>
-          <PDFSignatureBox label="Per Accettazione (Il Cliente)" date={formatDataItaliana(new Date().toISOString())} />
-          <PDFSignatureBox label="Il Locatore (Toscana Carrelli S.r.l.)" date={formatDataItaliana(new Date().toISOString())} />
+        {/* 6. Firme - FINAL BREAK (50pt) */}
+        <View style={{ marginTop: 50 }}>
+          <PDFSignatureGroup>
+            <PDFSignatureBox label="Il Cliente" />
+            <PDFSignatureBox label="Toscana Carrelli S.r.l." />
+          </PDFSignatureGroup>
         </View>
 
       </PageShell>

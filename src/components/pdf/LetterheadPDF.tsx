@@ -7,10 +7,10 @@
 import { Page, View, Text, Image, StyleSheet, Document } from "@react-pdf/renderer";
 import logoMvc from "@/assets/logo_mvc.png";
 
-// Costanti per margini standard (Equilibrati per enterprise look)
+// Costanti per margini standard (COMPATTI)
 export const PDF_MARGINS = {
-  top: 35,
-  bottom: 70, // Spazio per footer fisso
+  top: 25,
+  bottom: 70,
   horizontal: 35,
   footerPosition: 25,
 };
@@ -36,15 +36,15 @@ export const pdfStyles = StyleSheet.create({
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
   },
-  // Header Premium con logo e dati aziendali
+  // Header Premium con logo e dati aziendali (COMPATTO)
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 25,
-    paddingBottom: 15,
-    borderBottomWidth: 1.5,
-    borderBottomColor: "#1a365d",
+    marginBottom: 15,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#e2e8f0",
+    paddingBottom: 10,
   },
   logoContainer: {
     width: 150,
@@ -55,35 +55,39 @@ export const pdfStyles = StyleSheet.create({
   },
   companyInfo: {
     textAlign: "right",
+    alignItems: "flex-end",
     maxWidth: 250,
   },
   companyName: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Helvetica-Bold",
-    color: "#1a365d",
-    marginBottom: 4,
+    color: "#000000",
+    marginBottom: 6,
     textTransform: "uppercase",
+    textAlign: "right",
   },
   companyDetails: {
     fontSize: 7.5,
-    color: "#4a5568",
-    lineHeight: 1.4,
+    color: "#000000",
+    lineHeight: 1.5,
+    textAlign: "right",
   },
-  // Titolo documento (Dimensioni enterprise ultra-sobrie)
+  // Titolo documento (COMPATTO)
   documentTitle: {
     fontSize: 11,
     fontFamily: "Helvetica-Bold",
     textAlign: "center",
-    marginBottom: 4,
+    marginTop: 5,
+    marginBottom: 3,
     color: "#1a365d",
     textTransform: "uppercase",
-    letterSpacing: 1.2,
+    letterSpacing: 1,
   },
   documentCode: {
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
     textAlign: "center",
-    marginBottom: 15,
+    marginBottom: 3,
     color: "#718096",
   },
   // Griglia Layout
@@ -95,20 +99,24 @@ export const pdfStyles = StyleSheet.create({
   gridColumn: {
     flex: 1,
   },
-  // Sezioni
+  // Sezioni (PIÙ SPAZIO SOPRA)
   section: {
-    marginBottom: 15,
+    marginTop: 8,
+    marginBottom: 20,
   },
+  // Sezione Header (SPAZIO CHIARO)
   sectionHeader: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica-Bold",
     color: "#1a365d",
-    marginBottom: 8,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
+    marginBottom: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: "#f8fafc",
     borderLeftWidth: 3,
-    borderLeftColor: "#FBBF24", // Accent gold Toscana Carrelli
-    paddingLeft: 6,
+    borderLeftColor: "#FBBF24",
   },
   content: {
     paddingTop: 5,
