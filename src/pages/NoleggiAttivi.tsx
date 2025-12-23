@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Truck, Edit, Check, Trash2, History, FileText, Archive } from "lucide-react";
-import { TableActions } from "@/components/ui/table-actions";
+import { ArrowLeft, Edit, Trash2, Archive, MoreHorizontal, Eye, FileText, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -23,61 +22,82 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DataTable, DataTableColumn } from "@/components/ui/data-table";
 import { TerminaNoleggioDialog } from "@/components/noleggi/termina_noleggio_dialog";
-import { ContrattoStatusButton } from "@/components/contratti";
+import { RentalDetailSheet } from "@/components/noleggi/RentalDetailSheet";
+import { ContrattoStatusButton } from "@/components/contratti/ContrattoStatusButton";
+import { PreventivoPreviewDialog } from "@/components/preventivi/PreventivoPreviewDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { startOfDay } from "date-fns";
 
-
-interface ContrattoFirmato {
-  id_documento: string;
-  file_path: string;
-  nome_file_originale: string | null;
-  created_at: string;
-}
-
-interface Noleggio {
+// Interfaccia basata sulla VIEW vw_noleggi_completi
+interface NoleggioView {
   id_noleggio: string;
-  id_mezzo: string;
-  id_anagrafica: string;
-  sede_operativa: string | null;
+  created_at: string;
   data_inizio: string | null;
   data_fine: string | null;
   tempo_indeterminato: boolean | null;
   prezzo_noleggio: number | null;
   prezzo_trasporto: number | null;
   tipo_canone: "giornaliero" | "mensile" | null;
-  is_terminato: boolean;
   stato_noleggio: "futuro" | "attivo" | "scaduto" | "archiviato" | "terminato" | null;
+  is_terminato: boolean;
   note: string | null;
-  Mezzi: {
-    marca: string | null;
-    modello: string | null;
-    matricola: string | null;
-  } | null;
-  Anagrafiche: {
-    ragione_sociale: string | null;
-    richiede_contratto_noleggio: boolean | null;
-  } | null;
-  Sedi: {
-    nome_sede: string | null;
-    indirizzo: string | null;
-    citta: string | null;
-  } | null;
-  contratti_noleggio: { id_contratto: string; created_at: string }[] | null;
-  documenti_noleggio: ContrattoFirmato[] | null;
+  codice_noleggio: string | null;
+
+  // Dati Mezzo
+  id_mezzo: string;
+  mezzo_marca: string | null;
+  mezzo_modello: string | null;
+  mezzo_matricola: string | null;
+
+  // Dati Cliente
+  id_anagrafica: string;
+  cliente_ragione_sociale: string | null;
+  cliente_piva: string | null;
+  richiede_contratto_noleggio: boolean | null;
+
+  // Dati Sede
+  id_sede_operativa: string | null;
+  sede_nome: string | null;
+  sede_indirizzo: string | null;
+  sede_citta: string | null;
+  sede_provincia: string | null;
+
+  // Link Preventivo
+  id_preventivo: string | null;
+
+  // Stato Contratto (JSON Objects from View)
+  contratto_firmato_info: { id_documento: string; file_path: string; nome_file_originale: string | null; created_at: string } | null;
+  contratto_bozza_info: { id_contratto: string; created_at: string } | null;
 }
 
 export default function NoleggiAttivi() {
   const navigate = useNavigate();
+
+  // Stati Dialog/Sheet
   const [showModificaForm, setShowModificaForm] = useState(false);
-  const [noleggioSelezionato, setNoleggioSelezionato] = useState<Noleggio | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [noleggioSelezionato, setNoleggioSelezionato] = useState<any | null>(null);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [noleggioToDelete, setNoleggioToDelete] = useState<string | null>(null);
   const [terminaDialogOpen, setTerminaDialogOpen] = useState(false);
-  const [noleggioToTerminate, setNoleggioToTerminate] = useState<Noleggio | null>(null);
+  const [noleggioToTerminate, setNoleggioToTerminate] = useState<any | null>(null);
+
+  // Stati per Preview Preventivo
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [preventivoPreviewData, setPreventivoPreviewData] = useState<any | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   const { data: noleggi = [], isLoading: loading, refetch } = useQuery({
-    queryKey: ["noleggi-attivi"],
+    queryKey: ["noleggi-attivi-view"],
     queryFn: async () => {
-      // Fetch optimized view directly
       const { data, error } = await supabase
         .from("vw_noleggi_completi" as any)
         .select("*")
@@ -86,156 +106,270 @@ export default function NoleggiAttivi() {
 
       if (error) {
         console.error("Error loading noleggi:", error);
-        toast({
-          title: "Errore",
-          description: "Impossibile caricare i noleggi",
-          variant: "destructive",
-        });
+        toast({ title: "Errore", description: "Impossibile caricare i noleggi", variant: "destructive" });
         throw error;
       }
-
-      // Map view fields to internal Noleggio interface structure if needed
-      // or adjust the Noleggio interface to match the view. 
-      // For now, we map manually to preserve existing component structure.
-      return (data || []).map((row: any) => ({
-        id_noleggio: row.id_noleggio,
-        id_mezzo: row.id_mezzo,
-        id_anagrafica: row.id_anagrafica,
-        sede_operativa: row.sede_operativa,
-        data_inizio: row.data_inizio,
-        data_fine: row.data_fine,
-        tempo_indeterminato: row.tempo_indeterminato,
-        prezzo_noleggio: row.prezzo_noleggio,
-        prezzo_trasporto: row.prezzo_trasporto,
-        tipo_canone: row.tipo_canone,
-        is_terminato: row.is_terminato,
-        stato_noleggio: row.stato_noleggio,
-        note: row.note,
-        Mezzi: {
-          marca: row.marca,
-          modello: row.modello,
-          matricola: row.matricola
-        },
-        Anagrafiche: {
-          ragione_sociale: row.cliente_ragione_sociale,
-          richiede_contratto_noleggio: row.richiede_contratto_noleggio
-        },
-        Sedi: row.nome_sede ? {
-          nome_sede: row.nome_sede,
-          indirizzo: row.sede_indirizzo,
-          citta: row.sede_citta
-        } : null,
-        contratti_noleggio: row.contratti || [],
-        documenti_noleggio: row.documenti_firmati || []
-      })) as Noleggio[];
+      return data as NoleggioView[];
     },
-    staleTime: 1000 * 60 * 5, // Cache valid for 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
-  function calcolaStato(noleggio: Noleggio): {
+  // Funzione per caricare il preventivo al volo e aprire il Dialog
+  async function handleOpenPreventivo(id_preventivo: string) {
+    try {
+      setLoadingPreview(true);
+      // Fetch preventivo completo (usiamo la tabella o la view preventivi)
+      // Per la preview serve un oggetto compatibile con PreventivoCompletoView
+      // Proviamo a fetchare dalla tabella preventivi + join manuali o view se esiste
+      // Assumiamo che vw_preventivi_completi esista o costruiamolo
+      const { data, error } = await supabase
+        .from("vw_preventivi_completi" as any) // Spero esista, altrimenti fallback
+        .select("*")
+        .eq("id_preventivo", id_preventivo)
+        .single();
+
+      if (error) throw error;
+
+      setPreventivoPreviewData(data);
+      setPreviewOpen(true);
+    } catch (err) {
+      console.error("Errore caricamento preventivo preview:", err);
+      toast({
+        title: "Impossibile aprire anteprima",
+        description: "Errore nel recupero dei dati del preventivo.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingPreview(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!noleggioToDelete) return;
+    try {
+      const { error } = await supabase.from("Noleggi").delete().eq("id_noleggio", noleggioToDelete);
+      if (error) throw error;
+      toast({ title: "Successo", description: "Noleggio eliminato con successo" });
+      setDeleteDialogOpen(false);
+      setNoleggioToDelete(null);
+      refetch();
+    } catch (error) {
+      console.error("Error deleting noleggio:", error);
+      toast({ title: "Errore", description: "Errore nell'eliminazione del noleggio", variant: "destructive" });
+    }
+  }
+
+  // Adapter per passare i dati al Form e allo Sheet
+  function adaptToNestedStructure(row: NoleggioView): any {
+    return {
+      ...row,
+      Mezzi: {
+        marca: row.mezzo_marca,
+        modello: row.mezzo_modello,
+        matricola: row.mezzo_matricola
+      },
+      Anagrafiche: {
+        ragione_sociale: row.cliente_ragione_sociale,
+        richiede_contratto_noleggio: row.richiede_contratto_noleggio
+      },
+      Sedi: row.id_sede_operativa ? {
+        nome_sede: row.sede_nome,
+        indirizzo: row.sede_indirizzo,
+        citta: row.sede_citta
+      } : null,
+      documenti_noleggio: row.contratto_firmato_info ? [row.contratto_firmato_info] : [],
+      contratti_noleggio: row.contratto_bozza_info ? [row.contratto_bozza_info] : []
+    };
+  }
+
+  function calcolaStato(noleggio: NoleggioView): {
     label: string;
     variant: "default" | "secondary" | "destructive" | "outline";
   } {
     if (noleggio.stato_noleggio === "terminato" || noleggio.is_terminato) {
       return { label: "Terminato", variant: "secondary" };
     }
-
     if (noleggio.stato_noleggio === "archiviato") {
       return { label: "Archiviato", variant: "outline" };
     }
-
     if (!noleggio.data_inizio) {
       return { label: "Futuro", variant: "secondary" };
     }
-
-    const oggi = new Date();
-    oggi.setHours(0, 0, 0, 0);
-    const dataInizio = new Date(noleggio.data_inizio);
-    dataInizio.setHours(0, 0, 0, 0);
-
+    const oggi = startOfDay(new Date());
+    const dataInizio = startOfDay(new Date(noleggio.data_inizio));
     if (dataInizio > oggi) {
       return { label: "Futuro", variant: "secondary" };
     }
-
     if (noleggio.tempo_indeterminato || !noleggio.data_fine) {
       return { label: "Attivo", variant: "default" };
     }
-
-    const dataFine = new Date(noleggio.data_fine);
-    dataFine.setHours(0, 0, 0, 0);
-
+    const dataFine = startOfDay(new Date(noleggio.data_fine));
     if (dataFine < oggi) {
       return { label: "Scaduto", variant: "destructive" };
     }
-
     return { label: "Attivo", variant: "default" };
   }
 
-  function handleModifica(noleggio: Noleggio) {
-    setNoleggioSelezionato(noleggio);
-    setShowModificaForm(true);
-  }
+  // DEFINIZIONE COLONNE 
+  const columns: DataTableColumn<NoleggioView>[] = [
+    {
+      key: "cliente_ragione_sociale",
+      label: "Cliente",
+      sortable: true,
+      render: (_, row) => (
+        <div className="font-semibold text-base min-w-[200px]" title={row.cliente_ragione_sociale || ""}>
+          {row.cliente_ragione_sociale || "-"}
+        </div>
+      ),
+    },
+    {
+      key: "mezzo_marca",
+      label: "Mezzo",
+      sortable: true,
+      render: (_, row) => (
+        <MezzoClickable mezzoId={row.id_mezzo} className="font-medium">
+          {row.mezzo_marca} {row.mezzo_modello}
+          <div className="text-xs text-muted-foreground">{row.mezzo_matricola}</div>
+        </MezzoClickable>
+      ),
+    },
+    {
+      key: "sede_nome",
+      label: "Sede Operativa",
+      sortable: true,
+      render: (_, row) => {
+        if (!row.sede_nome && !row.sede_citta) return "-";
+        return (
+          <div className="text-sm max-w-[200px]">
+            <div className="font-medium truncate">{row.sede_nome}</div>
+            <div className="text-xs text-muted-foreground truncate">{row.sede_indirizzo}, {row.sede_citta}</div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "data_inizio",
+      label: "Periodo",
+      sortable: true,
+      render: (_, row) => (
+        <div className="text-xs">
+          <span className="text-slate-500">Dal:</span> {formatDate(row.data_inizio)}<br />
+          <span className="text-slate-500">Al:</span> {row.tempo_indeterminato ? <strong>Indet.</strong> : formatDate(row.data_fine)}
+        </div>
+      ),
+    },
+    {
+      key: "prezzo_noleggio",
+      label: "Canone",
+      sortable: true,
+      render: (value, row) => formatPrezzo(value, row.tipo_canone),
+    },
+    {
+      key: "is_terminato",
+      label: "Stato",
+      sortable: true,
+      render: (_, row) => {
+        const stato = calcolaStato(row);
+        return <Badge variant={stato.variant} className="text-[10px] px-2 py-0.5">{stato.label}</Badge>;
+      },
+    },
+    // COLONNA CONTRATTO INTERATTIVA
+    {
+      key: "contratto_firmato_info",
+      label: "Contratto",
+      sortable: false,
+      render: (_, row) => {
+        // Safe access to contract info
+        const firmato = row.contratto_firmato_info && typeof row.contratto_firmato_info === 'object'
+          ? row.contratto_firmato_info
+          : null;
 
-  function handleTermina(noleggio: Noleggio) {
-    setNoleggioToTerminate(noleggio);
-    setTerminaDialogOpen(true);
-  }
+        return (
+          <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+            <ContrattoStatusButton
+              noleggioId={row.id_noleggio}
+              richiedeContratto={row.richiede_contratto_noleggio !== false}
+              contrattoFirmato={firmato as any}
+              hasDraftContract={!!row.contratto_bozza_info}
+              onUploadSuccess={() => refetch()}
+            />
+          </div>
+        );
+      },
+    },
+    // RIF PREVENTIVO (Link Interattivo che apre Dialog)
+    {
+      key: "id_preventivo",
+      label: "Rif.",
+      render: (_, row) => {
+        if (!row.id_preventivo) return null;
+        return (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-[10px] text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-mono underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenPreventivo(row.id_preventivo!);
+            }}
+          >
+            {loadingPreview ? <Loader2 className="h-3 w-3 animate-spin" /> : <><FileText className="h-3 w-3 mr-1" /> PREV</>}
+          </Button>
+        );
+      }
+    },
+  ];
 
-  function confirmDelete(id_noleggio: string) {
-    setNoleggioToDelete(id_noleggio);
-    setDeleteDialogOpen(true);
-  }
-
-  async function handleArchivia(id_noleggio: string) {
+  const renderActions = (row: NoleggioView) => {
     try {
-      const { error } = await supabase
-        .from("Noleggi")
-        .update({ stato_noleggio: "archiviato" })
-        .eq("id_noleggio", id_noleggio);
-
-      if (error) throw error;
-
-      toast({
-        title: "Successo",
-        description: "Noleggio archiviato con successo",
-      });
-
-      refetch();
-    } catch (error) {
-      console.error("Error archiving noleggio:", error);
-      toast({
-        title: "Errore",
-        description: "Errore nell'archiviazione del noleggio",
-        variant: "destructive",
-      });
+      const adapted = adaptToNestedStructure(row);
+      return (
+        <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Azioni Noleggio</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => {
+                setNoleggioSelezionato(adapted);
+                setSheetOpen(true);
+              }}>
+                <Eye className="mr-2 h-4 w-4" /> Vedi Dettagli Completi
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                setNoleggioSelezionato(adapted);
+                setShowModificaForm(true);
+              }}>
+                <Edit className="mr-2 h-4 w-4" /> Modifica Dati
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {!row.is_terminato && (
+                <DropdownMenuItem onClick={() => {
+                  setNoleggioSelezionato(adapted);
+                  setNoleggioToTerminate(adapted);
+                  setTerminaDialogOpen(true);
+                }}>
+                  <Archive className="mr-2 h-4 w-4" /> Termina Noleggio
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => {
+                setNoleggioToDelete(row.id_noleggio);
+                setDeleteDialogOpen(true);
+              }} className="text-red-600 focus:text-red-600">
+                <Trash2 className="mr-2 h-4 w-4" /> Elimina
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    } catch (e) {
+      console.error("Render error", e);
+      return null;
     }
-  }
-
-  async function handleDelete() {
-    if (!noleggioToDelete) return;
-
-    try {
-      const { error } = await supabase.from("Noleggi").delete().eq("id_noleggio", noleggioToDelete);
-
-      if (error) throw error;
-
-      toast({
-        title: "Successo",
-        description: "Noleggio eliminato con successo",
-      });
-
-      setDeleteDialogOpen(false);
-      setNoleggioToDelete(null);
-      refetch();
-    } catch (error) {
-      console.error("Error deleting noleggio:", error);
-      toast({
-        title: "Errore",
-        description: "Errore nell'eliminazione del noleggio",
-        variant: "destructive",
-      });
-    }
-  }
+  };
 
   function formatDate(date: string | null): string {
     if (!date) return "-";
@@ -248,116 +382,9 @@ export default function NoleggiAttivi() {
     return `€ ${prezzo.toFixed(2)}${suffix}`;
   }
 
-  const columns: DataTableColumn<Noleggio>[] = [
-    {
-      key: "Mezzi.marca",
-      label: "Mezzo",
-      sortable: true,
-      render: (_, row) => (
-        <MezzoClickable mezzoId={row.id_mezzo} className="font-medium">
-          {row.Mezzi?.marca} {row.Mezzi?.modello}
-          <br />
-          <span className="text-xs text-muted-foreground">{row.Mezzi?.matricola}</span>
-        </MezzoClickable>
-      ),
-    },
-    {
-      key: "Anagrafiche.ragione_sociale",
-      label: "Cliente",
-      sortable: true,
-      render: (_, row) => row.Anagrafiche?.ragione_sociale || "-",
-    },
-    {
-      key: "Sedi.nome_sede",
-      label: "Sede Operativa",
-      sortable: true,
-      render: (_, row) => {
-        const nomeSede = row.Sedi?.nome_sede || "-";
-        const indirizzo = row.Sedi?.indirizzo?.trim();
-        const citta = row.Sedi?.citta?.trim();
-        const secondaRiga = indirizzo && citta ? `${indirizzo} - ${citta}` : indirizzo || citta || null;
-
-        return (
-          <>
-            {nomeSede}
-            <br />
-            <span className="text-xs text-muted-foreground">{secondaRiga || "-"}</span>
-          </>
-        );
-      },
-    },
-    {
-      key: "data_inizio",
-      label: "Data Inizio",
-      sortable: true,
-      render: (value) => formatDate(value),
-    },
-    {
-      key: "data_fine",
-      label: "Data Fine",
-      sortable: true,
-      render: (value, row) => {
-        if (row.tempo_indeterminato) {
-          return <Badge variant="outline">Indeterminato</Badge>;
-        }
-        return formatDate(value);
-      },
-    },
-    {
-      key: "prezzo_noleggio",
-      label: "Canone",
-      sortable: true,
-      render: (value, row) => formatPrezzo(value, row.tipo_canone),
-    },
-    {
-      key: "prezzo_trasporto",
-      label: "Trasporto",
-      sortable: true,
-      render: (value) => (value ? `€ ${value.toFixed(2)}` : "-"),
-    },
-    {
-      key: "is_terminato",
-      label: "Stato",
-      sortable: true,
-      render: (_, row) => {
-        const stato = calcolaStato(row);
-        return <Badge variant={stato.variant}>{stato.label}</Badge>;
-      },
-    },
-    {
-      key: "documenti_noleggio",
-      label: "Contratto",
-      sortable: false,
-      render: (_, row) => {
-        const contrattoFirmato = row.documenti_noleggio?.[0] || null;
-        const richiedeContratto = row.Anagrafiche?.richiede_contratto_noleggio !== false;
-        const hasDraft = (row.contratti_noleggio && row.contratti_noleggio.length > 0) || false;
-
-        return (
-          <ContrattoStatusButton
-            noleggioId={row.id_noleggio}
-            contrattoFirmato={contrattoFirmato}
-            richiedeContratto={richiedeContratto}
-            hasDraftContract={hasDraft}
-            onUploadSuccess={() => refetch()}
-          />
-        );
-      },
-    },
-  ];
-
-  const renderActions = (noleggio: Noleggio) => (
-    <TableActions
-      onEdit={() => handleModifica(noleggio)}
-      onComplete={!noleggio.is_terminato ? () => handleTermina(noleggio) : undefined}
-      onArchive={noleggio.is_terminato ? () => handleArchivia(noleggio.id_noleggio) : undefined}
-      onDelete={() => confirmDelete(noleggio.id_noleggio)}
-    />
-  );
-
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-[1600px] mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
@@ -365,14 +392,14 @@ export default function NoleggiAttivi() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Gestione Noleggi</h1>
-              <p className="text-muted-foreground">Visualizza e gestisci i contratti di noleggio</p>
+              <p className="text-muted-foreground">Monitoraggio attivo della flotta a noleggio</p>
             </div>
           </div>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Noleggi Registrati</CardTitle>
+            <CardTitle>Flotta Noleggiata</CardTitle>
           </CardHeader>
           <CardContent>
             <DataTable
@@ -380,26 +407,40 @@ export default function NoleggiAttivi() {
               columns={columns}
               actions={renderActions}
               loading={loading}
-              searchPlaceholder="Cerca noleggi..."
-              emptyMessage="Nessun noleggio registrato"
-              rowClassName={(row) => (row.is_terminato ? "opacity-60 bg-muted/30" : "")}
+              searchPlaceholder="Cerca cliente, mezzo o matricola..."
+              emptyMessage="Nessun noleggio attivo trovato."
+              rowClassName={(row) => (row.is_terminato ? "opacity-60 bg-muted/30 cursor-pointer hover:bg-muted/50" : "cursor-pointer hover:bg-muted/10 transition-colors")}
             />
           </CardContent>
         </Card>
       </div>
+
+      <RentalDetailSheet
+        noleggio={noleggioSelezionato}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onEdit={() => noleggioSelezionato && setShowModificaForm(true)}
+        onTerminate={() => {
+          setSheetOpen(false);
+          setNoleggioToTerminate(noleggioSelezionato);
+          setTerminaDialogOpen(true);
+        }}
+        onDelete={() => {
+          setSheetOpen(false);
+          setNoleggioToDelete(noleggioSelezionato?.id_noleggio);
+          setDeleteDialogOpen(true);
+        }}
+        onRefetch={refetch}
+      />
 
       <Dialog open={showModificaForm} onOpenChange={setShowModificaForm}>
         <DialogContent className="max-w-4xl">
           {noleggioSelezionato && (
             <ModificaNoleggioForm
               noleggio={noleggioSelezionato}
-              onClose={() => {
-                setShowModificaForm(false);
-                setNoleggioSelezionato(null);
-              }}
+              onClose={() => setShowModificaForm(false)}
               onSuccess={() => {
                 setShowModificaForm(false);
-                setNoleggioSelezionato(null);
                 refetch();
               }}
             />
@@ -418,17 +459,31 @@ export default function NoleggiAttivi() {
         }}
       />
 
+      {/* PREVENTIVO PREVIEW DIALOG */}
+      <PreventivoPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        preventivo={preventivoPreviewData}
+        onSuccess={() => {
+          // Opzionale: aggiorna stato se necessario
+        }}
+      />
+
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Conferma Eliminazione</AlertDialogTitle>
+            <AlertDialogTitle>Eliminazione Definitiva</AlertDialogTitle>
             <AlertDialogDescription>
-              Sei sicuro di voler eliminare questo noleggio? Questa azione non può essere annullata.
+              Stai per eliminare definitivamente questo noleggio.
+              <br />
+              Questa operazione è irreversibile e rimuoverà anche lo storico associato.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setNoleggioToDelete(null)}>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Elimina
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

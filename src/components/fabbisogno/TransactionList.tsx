@@ -3,6 +3,17 @@ import { Transaction } from '@/types/cashflow';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Check, Calendar, Pencil, Trash2, Undo2, ChevronDown, ChevronRight } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
@@ -32,15 +43,6 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   emptyMessage
 }) => {
   const headerColor = type === 'ENTRATA' ? 'text-green-600' : 'text-red-500';
-
-  const handleDelete = (tx: Transaction) => {
-    const confirmation = window.confirm(
-      `Sei sicuro di voler eliminare la transazione "${tx.descrizione}"?${tx.pagato ? '\n\nATTENZIONE: Questa operazione stornerà anche l\'importo dal saldo del conto.' : ''}`
-    );
-    if (confirmation) {
-      onDelete(tx.id);
-    }
-  };
 
   return (
     <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
@@ -100,13 +102,39 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => handleDelete(tx)}
-                      title="Elimina"
-                      className="p-1.5 text-red-500 hover:text-red-700 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button
+                          title="Elimina"
+                          className="p-1.5 text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Elimina Transazione</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Sei sicuro di voler eliminare la transazione "{tx.descrizione}"?
+                            {tx.pagato && (
+                              <span className="block mt-2 font-medium text-destructive">
+                                ATTENZIONE: Questa operazione stornerà anche l'importo dal saldo del conto.
+                              </span>
+                            )}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annulla</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onDelete(tx.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Elimina
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </td>
               </tr>
@@ -135,15 +163,6 @@ const PaidTransactionsSection: React.FC<{
 
   const total = transactions.reduce((sum, tx) => sum + Number(tx.importo), 0);
   const textColor = type === 'ENTRATA' ? 'text-green-600' : 'text-red-500';
-
-  const handleDelete = (tx: Transaction) => {
-    const confirmation = window.confirm(
-      `Sei sicuro di voler eliminare la transazione "${tx.descrizione}"?\n\nATTENZIONE: Questa operazione stornerà l'importo dal saldo del conto.`
-    );
-    if (confirmation) {
-      onDelete(tx.id);
-    }
-  };
 
   return (
     <div className="mt-2">
@@ -177,13 +196,37 @@ const PaidTransactionsSection: React.FC<{
                 >
                   <Undo2 className="w-4 h-4" />
                 </button>
-                <button
-                  onClick={() => handleDelete(tx)}
-                  title="Elimina"
-                  className="p-1 text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      title="Elimina"
+                      className="p-1 text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Elimina Transazione</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Sei sicuro di voler eliminare la transazione "{tx.descrizione}"?
+                        <span className="block mt-2 font-medium text-destructive">
+                          ATTENZIONE: Questa operazione stornerà l'importo dal saldo del conto.
+                        </span>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annulla</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onDelete(tx.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Elimina
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           ))}
@@ -208,12 +251,17 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   onDelete,
   onEdit
 }) => {
-  const incomes = transactions.filter(t => t.tipo === 'ENTRATA').sort((a, b) =>
-    new Date(a.data_scadenza_mese).getTime() - new Date(b.data_scadenza_mese).getTime()
-  );
-  const expenses = transactions.filter(t => t.tipo === 'USCITA').sort((a, b) =>
-    new Date(a.data_scadenza_mese).getTime() - new Date(b.data_scadenza_mese).getTime()
-  );
+  const incomes = transactions.filter(t => t.tipo === 'ENTRATA').sort((a, b) => {
+    const dateCompare = new Date(a.data_scadenza_mese).getTime() - new Date(b.data_scadenza_mese).getTime();
+    if (dateCompare !== 0) return dateCompare;
+    return new Date(a.creato_il).getTime() - new Date(b.creato_il).getTime();
+  });
+
+  const expenses = transactions.filter(t => t.tipo === 'USCITA').sort((a, b) => {
+    const dateCompare = new Date(a.data_scadenza_mese).getTime() - new Date(b.data_scadenza_mese).getTime();
+    if (dateCompare !== 0) return dateCompare;
+    return new Date(a.creato_il).getTime() - new Date(b.creato_il).getTime();
+  });
 
   const unpaidIncomes = incomes.filter(t => !t.pagato);
   const paidIncomes = incomes.filter(t => t.pagato);

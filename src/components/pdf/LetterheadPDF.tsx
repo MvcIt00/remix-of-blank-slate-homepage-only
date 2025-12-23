@@ -1,7 +1,7 @@
 /**
  * PATTERN CENTRALIZZATO CARTA INTESTATA PDF
  * 
- * Versione 3.0 - Enterprise Design System
+ * Versione 3.1 - Enterprise Design System (Fixed Header & Static Owner Data)
  */
 
 import { Page, View, Text, Image, StyleSheet, Document } from "@react-pdf/renderer";
@@ -27,24 +27,45 @@ export const PDF_COLORS = {
   white: "#ffffff",
 };
 
+// Dati Aziendali STATIC (Hardcoded per massima stabilità)
+// Evita dipendenze dal DB per i dati dell'intestazione
+export const CONST_OWNER_DATA: DatiAziendaOwner = {
+  ragione_sociale: "MVC TOSCANA CARRELLI",
+  partita_iva: "00000000001",
+  indirizzo: "Viale Magri 115",
+  citta: "Livorno",
+  cap: "57100",
+  provincia: "LI",
+  telefono: "0586 000000",
+  email: "info@toscanacarrelli.it",
+  pec: "pec@toscanacarrelli.it",
+  codice_univoco: "0000000",
+  iban: "IT00000000000000001"
+};
+
 export const pdfStyles = StyleSheet.create({
   page: {
-    paddingTop: PDF_MARGINS.top,
-    paddingBottom: PDF_MARGINS.bottom,
+    paddingTop: 115, // Aumentato per l'header fisso (70 header + 25 margine + 20 buffer)
+    paddingBottom: 70,
     paddingHorizontal: PDF_MARGINS.horizontal,
     fontSize: 10,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
   },
-  // Header Premium con logo e dati aziendali (COMPATTO)
+  // Header Premium con logo e dati aziendali (COMPATTO & FISSO)
   header: {
+    position: 'absolute',
+    top: 25,
+    left: PDF_MARGINS.horizontal,
+    right: PDF_MARGINS.horizontal,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 15,
+    marginBottom: 0,
     borderBottomWidth: 0.5,
     borderBottomColor: "#e2e8f0",
     paddingBottom: 10,
+    height: 70, // Altezza fissa
   },
   logoContainer: {
     width: 150,
@@ -148,6 +169,10 @@ export const pdfStyles = StyleSheet.create({
     marginBottom: 4,
   },
   // Tabelle
+  table: {
+    width: "100%",
+    marginBottom: 10,
+  },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#1a365d",
@@ -167,7 +192,14 @@ export const pdfStyles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
   },
+  tableRowAlt: {
+    backgroundColor: "#f7fafc",
+  },
   tableCell: {
+    fontSize: 8.5,
+    color: "#2d3748",
+  },
+  tableCellText: {
     fontSize: 8.5,
     color: "#2d3748",
   },
@@ -240,46 +272,21 @@ interface PageShellProps {
  * Enforces standardized margins, header, and footer.
  */
 export function PageShell({ children, titolo, sottoTitolo, datiOwner }: PageShellProps) {
-  if (!datiOwner) return null;
+  // Usa i dati passati o il fallback statico
+  const effectiveOwner = datiOwner || CONST_OWNER_DATA;
 
-  return (
-    <Page size="A4" style={pdfStyles.page}>
-      <LetterheadHeader
-        titolo={titolo}
-        sottoTitolo={sottoTitolo}
-        datiOwner={datiOwner}
-      />
-
-      <View style={{ marginTop: 10, paddingBottom: 40 }}>
-        {children}
-      </View>
-
-      <LetterheadFooter datiOwner={datiOwner} />
-    </Page>
-  );
-}
-
-interface LetterheadHeaderProps {
-  datiOwner: DatiAziendaOwner;
-  titolo?: string;
-  sottoTitolo?: string;
-}
-
-/**
- * Componente Header della carta intestata
- */
-export function LetterheadHeader({ datiOwner, titolo, sottoTitolo }: LetterheadHeaderProps) {
   const indirizzoCompleto = [
-    datiOwner.indirizzo,
-    `${datiOwner.cap || ""} ${datiOwner.citta || ""}`.trim(),
-    datiOwner.provincia ? `(${datiOwner.provincia})` : "",
+    effectiveOwner.indirizzo,
+    `${effectiveOwner.cap || ""} ${effectiveOwner.citta || ""}`.trim(),
+    effectiveOwner.provincia ? `(${effectiveOwner.provincia})` : "",
   ]
     .filter(Boolean)
     .join(" - ");
 
   return (
-    <View>
-      <View style={pdfStyles.header}>
+    <Page size="A4" style={pdfStyles.page}>
+      {/* HEADER FISSO SU OGNI PAGINA */}
+      <View fixed style={pdfStyles.header}>
         {/* Logo a sinistra */}
         <View style={pdfStyles.logoContainer}>
           <Image style={pdfStyles.logo} src={logoMvc} />
@@ -287,33 +294,42 @@ export function LetterheadHeader({ datiOwner, titolo, sottoTitolo }: LetterheadH
 
         {/* Dati aziendali a destra */}
         <View style={pdfStyles.companyInfo}>
-          <Text style={pdfStyles.companyName}>{datiOwner.ragione_sociale}</Text>
+          <Text style={pdfStyles.companyName}>{effectiveOwner.ragione_sociale}</Text>
           <Text style={pdfStyles.companyDetails}>
-            {datiOwner.partita_iva && `P.IVA: ${datiOwner.partita_iva}`}
+            {effectiveOwner.partita_iva && `P.IVA: ${effectiveOwner.partita_iva}`}
             {"\n"}
             {indirizzoCompleto}
             {"\n"}
-            {datiOwner.telefono && `Tel: ${datiOwner.telefono}`}
-            {datiOwner.telefono && datiOwner.email && " - "}
-            {datiOwner.email && `Email: ${datiOwner.email}`}
+            {effectiveOwner.telefono && `Tel: ${effectiveOwner.telefono}`}
+            {effectiveOwner.telefono && effectiveOwner.email && " - "}
+            {effectiveOwner.email && `Email: ${effectiveOwner.email}`}
             {"\n"}
-            {datiOwner.pec && `PEC: ${datiOwner.pec}`}
+            {effectiveOwner.pec && `PEC: ${effectiveOwner.pec}`}
             {"\n"}
-            {datiOwner.codice_univoco && `SDI: ${datiOwner.codice_univoco}`}
+            {effectiveOwner.codice_univoco && `SDI: ${effectiveOwner.codice_univoco}`}
           </Text>
         </View>
       </View>
 
-      {/* Titolo Documento centrato se presente */}
-      {(titolo || sottoTitolo) && (
-        <View style={{ marginBottom: 20 }}>
-          {titolo && <Text style={pdfStyles.documentTitle}>{titolo}</Text>}
-          {sottoTitolo && <Text style={pdfStyles.documentCode}>{sottoTitolo}</Text>}
-        </View>
-      )}
-    </View>
+      <View style={{ marginTop: 0, paddingBottom: 0 }}>
+        {/* TITOLO DEL DOCUMENTO (Non fisso, scorre col contenuto, ma solo a pag 1 di fatto) */}
+        {titolo && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={pdfStyles.documentTitle}>{titolo}</Text>
+            {sottoTitolo && <Text style={pdfStyles.documentCode}>{sottoTitolo}</Text>}
+          </View>
+        )}
+
+        {children}
+      </View>
+
+      <LetterheadFooter datiOwner={effectiveOwner} />
+    </Page>
   );
 }
+
+// LetterheadHeader rimossa/vuota perché integrata in PageShell
+export function LetterheadHeader({ datiOwner }: any) { return null; }
 
 interface LetterheadFooterProps {
   datiOwner: DatiAziendaOwner;

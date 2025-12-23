@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCashFlow } from '@/hooks/useCashFlow';
+import { useToast } from "@/hooks/use-toast";
 import { BankAccount, Transaction } from '@/types/cashflow';
 import { BankStatus } from './BankStatus';
 import { TransactionList } from './TransactionList';
@@ -8,7 +9,18 @@ import { EditTransactionModal } from './EditTransactionModal';
 import { EditBalanceModal } from './EditBalanceModal';
 import { format, endOfMonth, isAfter } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, ChevronDown, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, ChevronDown, Pencil, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
@@ -65,6 +77,8 @@ export const Dashboard: React.FC = () => {
     postponeTransaction,
     deleteTransaction,
   } = useCashFlow();
+
+  const { toast } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -138,9 +152,13 @@ export const Dashboard: React.FC = () => {
 
     const endOfCurrentMonth = endOfMonth(currentMonth);
 
-    const futureTransactions = allTransactions.filter(t =>
-      isAfter(new Date(t.data_scadenza_mese), endOfCurrentMonth) && !t.pagato && t.tipo !== 'TRASFERIMENTO'
-    );
+    const futureTransactions = allTransactions
+      .filter(t => isAfter(new Date(t.data_scadenza_mese), endOfCurrentMonth) && !t.pagato && t.tipo !== 'TRASFERIMENTO')
+      .sort((a, b) => {
+        const dateCompare = new Date(a.data_scadenza_mese).getTime() - new Date(b.data_scadenza_mese).getTime();
+        if (dateCompare !== 0) return dateCompare;
+        return new Date(a.creato_il).getTime() - new Date(b.creato_il).getTime();
+      });
 
     const futureExpenses = futureTransactions.filter(t => t.tipo === 'USCITA');
     const futureIncomes = futureTransactions.filter(t => t.tipo === 'ENTRATA');
@@ -183,6 +201,23 @@ export const Dashboard: React.FC = () => {
   }
 
   const formattedMonth = format(currentMonth, 'MMMM yyyy', { locale: it });
+
+  const handleDeleteTransaction = async (id: string) => {
+    try {
+      await deleteTransaction(id);
+      toast({
+        title: "Successo",
+        description: "Transazione eliminata correttamente.",
+      });
+    } catch (error) {
+      console.error("Errore durante l'eliminazione:", error);
+      toast({
+        variant: "destructive",
+        title: "Errore",
+        description: "Impossibile eliminare la transazione. Riprova o contatta l'assistenza.",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -251,6 +286,33 @@ export const Dashboard: React.FC = () => {
                                 <button onClick={() => setEditingTransaction(tx)} title="Modifica" className="p-1 text-muted-foreground hover:text-primary transition-colors">
                                   <Pencil className="w-4 h-4" />
                                 </button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <button
+                                      title="Elimina"
+                                      className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Elimina Transazione Futura</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Sei sicuro di voler eliminare la transazione futura "{tx.descrizione}"?
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteTransaction(tx.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Elimina
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </div>
                             </div>
                           ))}
@@ -286,6 +348,33 @@ export const Dashboard: React.FC = () => {
                           <button onClick={() => setEditingTransaction(tx)} title="Modifica" className="p-1 text-muted-foreground hover:text-primary transition-colors">
                             <Pencil className="w-4 h-4" />
                           </button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button
+                                title="Elimina"
+                                className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Elimina Transazione Futura</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Sei sicuro di voler eliminare la transazione futura "{tx.descrizione}"?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteTransaction(tx.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Elimina
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     ))}
@@ -305,7 +394,7 @@ export const Dashboard: React.FC = () => {
         transactions={transactions.filter(t => t.tipo !== 'TRASFERIMENTO')}
         onUpdateStatus={handleUpdateStatus}
         onPostpone={postponeTransaction}
-        onDelete={deleteTransaction}
+        onDelete={handleDeleteTransaction}
         onEdit={setEditingTransaction}
       />
 
