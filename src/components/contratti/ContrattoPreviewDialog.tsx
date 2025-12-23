@@ -122,13 +122,8 @@ export function ContrattoPreviewDialog({
 
       if (!noleggioId) throw new Error("ID Noleggio mancante");
 
-      // 2. Crea il contratto con codice univoco
-      const timestamp = Date.now();
-      const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const codiceContratto = `CNT-${timestamp}-${randomSuffix}`;
-      
+      // 2. Crea il contratto (il codice_contratto viene generato dal DB)
       const contrattoInsert = {
-        codice_contratto: codiceContratto,
         id_noleggio: noleggioId,
         id_anagrafica_cliente: noleggioData.id_anagrafica,
         id_anagrafica_fornitore: noleggioData.id_anagrafica_fornitore || "",
@@ -167,8 +162,8 @@ export function ContrattoPreviewDialog({
         />
       ).toBlob();
 
-      // 4. Upload PDF
-      const fileName = `bozze/${contratto.id_contratto}_bozza.pdf`;
+      // 4. Upload PDF nell'area 'generati' con il nome ufficiale
+      const fileName = `generati/${contratto.codice_contratto.replace(/\//g, "-")}.pdf`;
       const { error: uploadError } = await supabase.storage
         .from("contratti")
         .upload(fileName, pdfBlob, {

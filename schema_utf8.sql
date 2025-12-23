@@ -1,4 +1,4 @@
---
+﻿--
 -- PostgreSQL database dump
 --
 
@@ -2556,7 +2556,7 @@ BEGIN
         RETURN NULL;
     END IF;
 
-    -- 1) Compute NEW−OLD (added paths) and OLD−NEW (moved-away paths)
+    -- 1) Compute NEWâˆ’OLD (added paths) and OLDâˆ’NEW (moved-away paths)
     WITH added AS (
         SELECT n.bucket_id, n.name
         FROM new_rows n
@@ -2600,7 +2600,7 @@ BEGIN
         END IF;
     END;
 
-    -- 3) Create destination prefixes (NEW−OLD) BEFORE pruning sources
+    -- 3) Create destination prefixes (NEWâˆ’OLD) BEFORE pruning sources
     IF array_length(v_add_bucket_ids, 1) IS NOT NULL THEN
         WITH candidates AS (
             SELECT DISTINCT t.bucket_id, unnest(storage.get_prefixes(t.name)) AS name
@@ -2613,7 +2613,7 @@ BEGIN
         ON CONFLICT DO NOTHING;
     END IF;
 
-    -- 4) Prune source prefixes bottom-up for OLD−NEW
+    -- 4) Prune source prefixes bottom-up for OLDâˆ’NEW
     IF array_length(v_src_bucket_ids, 1) IS NOT NULL THEN
         -- re-entrancy guard so DELETE on prefixes won't recurse
         IF current_setting('storage.gc.prefixes', true) <> '1' THEN

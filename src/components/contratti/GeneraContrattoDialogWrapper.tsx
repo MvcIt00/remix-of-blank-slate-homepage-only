@@ -4,6 +4,7 @@ import { ContrattoPreviewDialog } from "./ContrattoPreviewDialog";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AnagraficaComplete, OwnerInfo } from "@/types/database_views";
 
 interface GeneraContrattoDialogWrapperProps {
     noleggioId: string;
@@ -51,44 +52,55 @@ export function GeneraContrattoDialogWrapper({
                 .maybeSingle();
 
             // 2. Fetch Owner completo (con fallback multipli)
-            let owner: any = null;
+            let owner: OwnerInfo | null = null;
+            let ownerFull: AnagraficaComplete | null = null;
 
             // Strategia A: Se abbiamo già un contratto, usiamo quell'ID fornitore
             if (existingContract?.id_anagrafica_fornitore) {
-                const { data } = await (supabase
+                const { data } = await supabase
                     .from("vw_anagrafiche_complete" as any)
                     .select("*")
                     .eq("id_anagrafica", existingContract.id_anagrafica_fornitore)
-                    .maybeSingle() as any);
-                owner = data;
+                    .maybeSingle();
+                ownerFull = data as unknown as AnagraficaComplete;
             }
 
             // Strategia B: Cerchiamo l'owner marcato (is_owner = true)
-            if (!owner) {
-                // 1. Fetch Owner Data (Using dedicated view)
-                const { data: fetchedOwner, error: ownerError } = await (supabase
+            if (!ownerFull) {
+                const { data: fetchedOwner, error: ownerError } = await supabase
                     .from("vw_owner_info" as any)
                     .select("*")
                     .limit(1)
-                    .maybeSingle() as any);
+                    .maybeSingle();
 
                 if (ownerError) {
                     console.error("Errore fetch owner:", ownerError);
-                    toast({
-                        title: "Errore",
-                        description: "Impossibile recuperare i dati del fornitore.",
-                        variant: "destructive",
-                    });
                 }
-                owner = fetchedOwner;
+                owner = fetchedOwner as unknown as OwnerInfo;
             }
 
+            // Se abbiamo l'owner in formato OwnerInfo, lo adattiamo
+            const normalizedOwner = ownerFull ? {
+                ragione_sociale: ownerFull.ragione_sociale,
+                partita_iva: ownerFull.partita_iva,
+                sede_legale_indirizzo: ownerFull.sede_legale?.indirizzo || "",
+                sede_legale_citta: ownerFull.sede_legale?.citta || "",
+                sede_legale_cap: ownerFull.sede_legale?.cap || "",
+                sede_legale_provincia: ownerFull.sede_legale?.provincia || "",
+                pec: ownerFull.pec,
+                iban: ownerFull.iban,
+                contatto_telefono: ownerFull.contatti?.[0]?.telefono || "",
+                contatto_email: ownerFull.contatti?.[0]?.email || "",
+            } : owner;
+
             // 2. Fetch Client Data (Using aggregated view)
-            const { data: cliente, error: clienteError } = await (supabase
+            const { data: clienteRaw, error: clienteError } = await supabase
                 .from("vw_anagrafiche_complete" as any)
                 .select("*")
                 .eq("id_anagrafica", noleggio.id_anagrafica)
-                .maybeSingle() as any);
+                .maybeSingle();
+
+            const cliente = clienteRaw as unknown as AnagraficaComplete;
 
             if (clienteError) {
                 console.error("Errore fetch cliente:", clienteError);
@@ -97,7 +109,7 @@ export function GeneraContrattoDialogWrapper({
             // Prepara i dati per il PDF
             const formattedData = {
                 existingContract: existingContract,
-                datiOwner: owner || {
+                datiOwner: normalizedOwner || {
                     ragione_sociale: "Azienda Owner",
                     sede_legale_indirizzo: "",
                     sede_legale_citta: "",
@@ -129,7 +141,7 @@ export function GeneraContrattoDialogWrapper({
                 noleggioData: {
                     id_mezzo: noleggio.id_mezzo,
                     id_anagrafica: noleggio.id_anagrafica,
-                    id_anagrafica_fornitore: (owner as any)?.id_anagrafica || null,
+                    id_anagrafica_fornitore: ownerFull?.id_anagrafica || owner?.id_anagrafica || null,
                     sede_operativa: noleggio.sede_operativa,
                     data_inizio: noleggio.data_inizio,
                     data_fine: noleggio.data_fine,

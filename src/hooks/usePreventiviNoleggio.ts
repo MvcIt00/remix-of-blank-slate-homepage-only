@@ -169,7 +169,6 @@ export function usePreventiviNoleggio() {
           id_anagrafica_cliente: preventivo.id_anagrafica,
           id_anagrafica_fornitore: preventivo.id_anagrafica_fornitore ?? preventivo.id_anagrafica,
           data_inizio: preventivo.data_inizio ?? new Date().toISOString().split('T')[0],
-          codice_contratto: `CNT-${Date.now()}`,
           dati_cliente: {},
           dati_fornitore: {},
           dati_mezzo: {},
@@ -178,7 +177,7 @@ export function usePreventiviNoleggio() {
           tipo_canone: preventivo.tipo_canone,
           costo_trasporto: preventivo.prezzo_trasporto,
           ...options.datiContratto,
-        });
+        } as any);
       if (contrattoError) throw contrattoError;
     }
 
