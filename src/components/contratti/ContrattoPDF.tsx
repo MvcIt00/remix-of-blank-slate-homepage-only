@@ -3,9 +3,11 @@ import { Document, View, Text } from "@react-pdf/renderer";
 import {
   PageShell,
   DatiAziendaOwner,
-  formatDataItaliana,
+  formatDataBreve,
   formatEuro,
-  getModalitaPagamentoLabel
+  getModalitaPagamentoLabel,
+  PDF_COLORS,
+  pdfStyles
 } from "../pdf/LetterheadPDF";
 import {
   PDFSection,
@@ -13,9 +15,10 @@ import {
   PDFTable,
   PDFGrid,
   PDFGridCol,
-  PDFSignatureBox
+  PDFTotalBox,
+  PDFSignatureRow,
+  PDFInlineKV
 } from "../pdf/pdf-components";
-import { pdfStyles } from "../pdf/LetterheadPDF";
 
 export interface DatiCliente {
   ragione_sociale: string;
@@ -63,23 +66,36 @@ interface ContrattoPDFProps {
 }
 
 export function ContrattoPDF({ datiOwner, datiCliente, datiMezzo, datiContratto }: ContrattoPDFProps) {
-  const canoneRow = [
-    "Canone di Noleggio (" + (datiContratto.tipo_canone || "mensile") + ")",
+  // Costruzione righe tabella economica
+  const rows: (string | number)[][] = [];
+  
+  const tipoCanoneLabel = datiContratto.tipo_canone === "giornaliero" ? "Giornaliero" : "Mensile";
+  rows.push([
+    `Canone Noleggio (${tipoCanoneLabel})`,
     formatEuro(datiContratto.canone_noleggio || 0),
-    datiContratto.tipo_canone || "Mese"
-  ];
-
-  const rows = [canoneRow];
+    tipoCanoneLabel
+  ]);
 
   if (datiContratto.costo_trasporto) {
     rows.push([
-      "Costi di Trasporto (Andata/Ritorno)",
+      "Trasporto A/R",
       formatEuro(datiContratto.costo_trasporto),
       "Una Tantum"
     ]);
   }
 
-  const totale = (datiContratto.canone_noleggio || 0) + (datiContratto.costo_trasporto || 0);
+  if (datiContratto.deposito_cauzionale) {
+    rows.push([
+      "Deposito Cauzionale",
+      formatEuro(datiContratto.deposito_cauzionale),
+      "Rimborsabile"
+    ]);
+  }
+
+  const totaleDocumento = (datiContratto.canone_noleggio || 0) + (datiContratto.costo_trasporto || 0);
+
+  // Indirizzo cliente compatto
+  const indirizzoCliente = `${datiCliente.indirizzo}, ${datiCliente.cap} ${datiCliente.citta} (${datiCliente.provincia})`;
 
   return (
     <Document title={`Contratto_${datiContratto.codice_contratto}`}>
@@ -88,75 +104,84 @@ export function ContrattoPDF({ datiOwner, datiCliente, datiMezzo, datiContratto 
         sottoTitolo={datiContratto.codice_contratto}
         datiOwner={datiOwner}
       >
-        {/* 1. Cliente e Mezzo - Deterministic Grid */}
-        <PDFGrid>
-          <PDFGridCol width="50%">
-            <PDFSection title="Dati Cliente">
-              <PDFKeyValue label="Ragione Sociale" value={datiCliente.ragione_sociale} />
-              <PDFKeyValue label="Partita IVA" value={datiCliente.p_iva} />
-              <PDFKeyValue
-                label="Sede Operativa"
-                value={`${datiCliente.indirizzo}\n${datiCliente.cap} ${datiCliente.citta} (${datiCliente.provincia})`}
-              />
-              <PDFKeyValue label="Email / PEC" value={datiCliente.pec || datiCliente.email} />
+        {/* SEZIONE 1: Cliente + Mezzo side-by-side */}
+        <PDFGrid gap={15}>
+          <PDFGridCol width="52%">
+            <PDFSection title="Conduttore">
+              <PDFKeyValue label="Rag. Sociale" value={datiCliente.ragione_sociale} labelWidth={65} />
+              <PDFKeyValue label="P.IVA" value={datiCliente.p_iva} labelWidth={65} />
+              <PDFKeyValue label="Indirizzo" value={indirizzoCliente} labelWidth={65} />
+              {datiCliente.pec && <PDFKeyValue label="PEC" value={datiCliente.pec} labelWidth={65} />}
+              {!datiCliente.pec && datiCliente.email && <PDFKeyValue label="Email" value={datiCliente.email} labelWidth={65} />}
+              {datiCliente.telefono && <PDFKeyValue label="Tel" value={datiCliente.telefono} labelWidth={65} />}
             </PDFSection>
           </PDFGridCol>
+
           <PDFGridCol width="45%">
-            <PDFSection title="Dettaglio Mezzo">
-              <PDFKeyValue label="Marca / Modello" value={`${datiMezzo.marca} ${datiMezzo.modello}`} />
-              <PDFKeyValue label="Matricola" value={datiMezzo.matricola} />
-              <PDFKeyValue label="Anno / Ore" value={`${datiMezzo.anno || "-"} / ${datiMezzo.ore_moto || "-"}`} />
-              <PDFKeyValue label="Targa" value={datiMezzo.targa} />
+            <PDFSection title="Bene Locato">
+              <PDFKeyValue label="Mezzo" value={`${datiMezzo.marca} ${datiMezzo.modello}`} labelWidth={55} />
+              <PDFKeyValue label="Matricola" value={datiMezzo.matricola} labelWidth={55} />
+              {datiMezzo.targa && <PDFKeyValue label="Targa" value={datiMezzo.targa} labelWidth={55} />}
+              {datiMezzo.telaio && <PDFKeyValue label="Telaio" value={datiMezzo.telaio} labelWidth={55} />}
+              <PDFKeyValue 
+                label="Anno/Ore" 
+                value={`${datiMezzo.anno || "-"} / ${datiMezzo.ore_moto || "-"} h`} 
+                labelWidth={55} 
+              />
             </PDFSection>
           </PDFGridCol>
         </PDFGrid>
 
-        {/* 2. Dettagli Noleggio */}
-        <PDFSection title="Condizioni del Servizio">
-          <PDFGrid>
+        {/* SEZIONE 2: Condizioni contrattuali */}
+        <PDFSection title="Condizioni Contrattuali">
+          <PDFGrid gap={10}>
             <PDFGridCol width="50%">
-              <PDFKeyValue label="Data Inizio" value={formatDataItaliana(datiContratto.data_inizio)} />
-              <PDFKeyValue
-                label="Data Scadenza"
-                value={datiContratto.tempo_indeterminato ? "Tempo Indeterminato" : formatDataItaliana(datiContratto.data_fine)}
+              <PDFInlineKV label="Data Inizio" value={formatDataBreve(datiContratto.data_inizio)} />
+              <PDFInlineKV 
+                label="Scadenza" 
+                value={datiContratto.tempo_indeterminato ? "Tempo Indeterminato" : formatDataBreve(datiContratto.data_fine)} 
               />
             </PDFGridCol>
-            <PDFGridCol width="45%">
-              <PDFKeyValue label="Pagamento" value={getModalitaPagamentoLabel(datiContratto.modalita_pagamento)} />
-              <PDFKeyValue label="Cauzione" value={formatEuro(datiContratto.deposito_cauzionale)} />
+            <PDFGridCol width="50%">
+              <PDFInlineKV label="Pagamento" value={getModalitaPagamentoLabel(datiContratto.modalita_pagamento)} />
+              {datiContratto.deposito_cauzionale && (
+                <PDFInlineKV label="Cauzione" value={formatEuro(datiContratto.deposito_cauzionale)} />
+              )}
             </PDFGridCol>
           </PDFGrid>
         </PDFSection>
 
-        {/* 3. Riepilogo Economico */}
-        <PDFSection title="Proposta Economica">
+        {/* SEZIONE 3: Riepilogo Economico */}
+        <PDFSection title="Corrispettivo">
           <PDFTable
-            headers={["Descrizione", "Importo (IVA escl.)", "Note"]}
-            columnWidths={["55%", "20%", "25%"]}
+            headers={["Descrizione", "Importo", "Frequenza"]}
+            columnWidths={["55%", "25%", "20%"]}
             rows={rows}
           />
-
-          <View style={{ marginTop: 5, alignItems: 'flex-end' }}>
-            <View style={{ width: 180, borderTopWidth: 1, borderTopColor: '#1a365d', paddingTop: 8 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold" }}>TOTALE DOC.</Text>
-                <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold" }}>{formatEuro(totale)}</Text>
-              </View>
-            </View>
-          </View>
+          <PDFTotalBox label="TOTALE DOCUMENTO" value={formatEuro(totaleDocumento)} />
+          <Text style={{ fontSize: 6.5, color: PDF_COLORS.textMuted, marginTop: 3 }}>
+            Importi IVA esclusa. IVA applicata secondo normativa vigente.
+          </Text>
         </PDFSection>
 
-        {/* 4. Note / Clausole */}
+        {/* SEZIONE 4: Clausole (opzionale) */}
         {datiContratto.clausole_speciali && (
-          <PDFSection title="Note e Clausole Speciali">
+          <PDFSection title="Clausole Speciali">
             <Text style={pdfStyles.text}>{datiContratto.clausole_speciali}</Text>
           </PDFSection>
         )}
 
-        {/* 5. Firme - Grouped and Protected */}
-        <View style={{ marginTop: 30 }} wrap={false}>
-          <PDFSignatureBox label="Per Accettazione (Il Cliente)" date={formatDataItaliana(new Date().toISOString())} />
-          <PDFSignatureBox label="Il Locatore (Toscana Carrelli S.r.l.)" date={formatDataItaliana(new Date().toISOString())} />
+        {/* SEZIONE 5: Firme affiancate */}
+        <View style={{ marginTop: 15 }}>
+          <PDFSignatureRow 
+            leftLabel="Il Conduttore" 
+            rightLabel="Il Locatore" 
+          />
+          <View style={{ marginTop: 8 }}>
+            <Text style={{ fontSize: 7, color: PDF_COLORS.textMuted, textAlign: "center" }}>
+              Luogo e Data: _________________________, {formatDataBreve(new Date().toISOString())}
+            </Text>
+          </View>
         </View>
 
       </PageShell>

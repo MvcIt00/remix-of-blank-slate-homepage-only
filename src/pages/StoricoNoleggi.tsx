@@ -179,7 +179,6 @@ export default function StoricoNoleggi() {
                             actions={renderActions}
                             searchPlaceholder="Cerca mezzo, cliente o note..."
                             emptyMessage="Nessun evento trovato nello storico."
-                            className="border-0 rounded-none shadow-none"
                         />
                     )}
                 </CardContent>

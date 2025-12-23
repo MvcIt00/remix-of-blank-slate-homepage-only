@@ -6,17 +6,15 @@ import { pdfStyles, PDF_COLORS } from "./LetterheadPDF";
    DESIGN TOKENS & LEGACY EXPORTS
    ========================================================================== */
 
-// Legacy export - use PDF_COLORS from LetterheadPDF instead
 export const PDFColors = PDF_COLORS;
 
-// Backward compatibility styles
 export const sharedStyles = StyleSheet.create({
-    text: { fontSize: 9, color: PDF_COLORS.textMain },
-    textBold: { fontSize: 9, fontFamily: "Helvetica-Bold", color: PDF_COLORS.primary },
+    text: { fontSize: 8, color: PDF_COLORS.textMain },
+    textBold: { fontSize: 8, fontFamily: "Helvetica-Bold", color: PDF_COLORS.primary },
 });
 
 /* ==========================================================================
-   REUSABLE COMPONENTS
+   REUSABLE COMPONENTS - Compact Design V4
    ========================================================================== */
 
 interface PDFSectionProps {
@@ -25,13 +23,13 @@ interface PDFSectionProps {
 }
 
 /**
- * Standard section with title and bottom border
+ * Section compatta con titolo underline
  */
 export function PDFSection({ title, children }: PDFSectionProps) {
     return (
-        <View style={{ marginBottom: 25 }}>
+        <View style={{ marginBottom: 10 }}>
             <Text style={pdfStyles.sectionHeader}>{title}</Text>
-            <View style={{ marginTop: 5 }}>
+            <View style={{ marginTop: 3 }}>
                 {children}
             </View>
         </View>
@@ -41,24 +39,20 @@ export function PDFSection({ title, children }: PDFSectionProps) {
 interface PDFKeyValueProps {
     label: string;
     value: string | number | null | undefined;
-    flex?: number;
+    labelWidth?: number;
 }
 
 /**
- * Key-Value row with optimized spacing for side-by-side grids.
- * Enforces a strict label width to prevent layout bleeding.
+ * Key-Value compatto ottimizzato per griglie strette
  */
-export function PDFKeyValue({ label, value, flex = 1 }: PDFKeyValueProps) {
+export function PDFKeyValue({ label, value, labelWidth = 70 }: PDFKeyValueProps) {
     return (
-        <View style={{ flexDirection: 'row', marginBottom: 4, flex, minHeight: 12 }}>
-            <View style={{ width: 85 }}>
-                <Text style={{ fontSize: 8, color: "#718096" }}>{label}</Text>
+        <View style={{ flexDirection: 'row', marginBottom: 2, minHeight: 10 }}>
+            <View style={{ width: labelWidth }}>
+                <Text style={{ fontSize: 7, color: PDF_COLORS.textMuted }}>{label}</Text>
             </View>
-            <View style={{ width: 10 }}>
-                <Text style={{ fontSize: 8, color: "#718096" }}>:</Text>
-            </View>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={{ fontSize: 8.5, color: "#1a365d", fontFamily: "Helvetica-Bold" }}>
+            <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 8, color: PDF_COLORS.primary, fontFamily: "Helvetica-Bold" }}>
                     {value || "-"}
                 </Text>
             </View>
@@ -67,10 +61,22 @@ export function PDFKeyValue({ label, value, flex = 1 }: PDFKeyValueProps) {
 }
 
 /**
- * Grid component with deterministic percentage based columns
+ * Inline Key-Value per layout ancora più compatto
  */
-export function PDFGrid({ children }: { children: React.ReactNode }) {
-    return <View style={[pdfStyles.contentGrid, { gap: 15 }]}>{children}</View>;
+export function PDFInlineKV({ label, value }: { label: string; value: string | number | null | undefined }) {
+    return (
+        <Text style={{ fontSize: 7.5, marginBottom: 1 }}>
+            <Text style={{ color: PDF_COLORS.textMuted }}>{label}: </Text>
+            <Text style={{ color: PDF_COLORS.primary, fontFamily: "Helvetica-Bold" }}>{value || "-"}</Text>
+        </Text>
+    );
+}
+
+/**
+ * Grid ottimizzata con gap ridotto
+ */
+export function PDFGrid({ children, gap = 10 }: { children: React.ReactNode; gap?: number }) {
+    return <View style={[pdfStyles.contentGrid, { gap }]}>{children}</View>;
 }
 
 export function PDFGridCol({ children, width = "48%" }: { children: React.ReactNode; width?: string | number }) {
@@ -84,12 +90,11 @@ interface PDFTableProps {
 }
 
 /**
- * Premium data table
+ * Tabella compatta enterprise
  */
 export function PDFTable({ headers, rows, columnWidths }: PDFTableProps) {
     return (
-        <View style={{ marginTop: 5, marginBottom: 15 }}>
-            {/* Header */}
+        <View style={{ marginTop: 3, marginBottom: 8 }}>
             <View style={pdfStyles.tableHeader}>
                 {headers.map((header, idx) => (
                     <Text
@@ -97,33 +102,22 @@ export function PDFTable({ headers, rows, columnWidths }: PDFTableProps) {
                         style={[
                             pdfStyles.tableHeaderText,
                             { width: columnWidths[idx] },
-                            header.toLowerCase().includes("prezzo") ||
-                                header.toLowerCase().includes("subtotale") ||
-                                header.toLowerCase().includes("iva") ||
-                                header === "Totale" ? { textAlign: "right" } : {},
+                            isNumericHeader(header) ? { textAlign: "right" } : {},
                         ]}
                     >
                         {header}
                     </Text>
                 ))}
             </View>
-
-            {/* Rows */}
             {rows.map((row, rowIdx) => (
-                <View
-                    key={rowIdx}
-                    style={pdfStyles.tableRow}
-                >
+                <View key={rowIdx} style={pdfStyles.tableRow}>
                     {row.map((cell, cellIdx) => (
                         <Text
                             key={cellIdx}
                             style={[
                                 pdfStyles.tableCell,
                                 { width: columnWidths[cellIdx] },
-                                headers[cellIdx].toLowerCase().includes("prezzo") ||
-                                    headers[cellIdx].toLowerCase().includes("subtotale") ||
-                                    headers[cellIdx].toLowerCase().includes("iva") ||
-                                    headers[cellIdx] === "Totale" ? { textAlign: "right" } : {},
+                                isNumericHeader(headers[cellIdx]) ? { textAlign: "right" } : {},
                             ]}
                         >
                             {cell}
@@ -135,22 +129,66 @@ export function PDFTable({ headers, rows, columnWidths }: PDFTableProps) {
     );
 }
 
+function isNumericHeader(header: string): boolean {
+    const numericKeywords = ["prezzo", "subtotale", "iva", "totale", "importo", "canone"];
+    return numericKeywords.some(k => header.toLowerCase().includes(k));
+}
+
 /**
- * Signature section with date
+ * Box totale evidenziato
+ */
+export function PDFTotalBox({ label, value }: { label: string; value: string }) {
+    return (
+        <View style={{ alignItems: 'flex-end', marginTop: 5 }}>
+            <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                width: 150,
+                borderTopWidth: 1,
+                borderTopColor: PDF_COLORS.primary,
+                paddingTop: 4,
+            }}>
+                <Text style={{ fontSize: 8, fontFamily: "Helvetica-Bold", color: PDF_COLORS.primary }}>{label}</Text>
+                <Text style={{ fontSize: 8, fontFamily: "Helvetica-Bold", color: PDF_COLORS.primary }}>{value}</Text>
+            </View>
+        </View>
+    );
+}
+
+/**
+ * Signature box compatto affiancato
+ */
+export function PDFSignatureRow({ leftLabel, rightLabel, date }: { leftLabel: string; rightLabel: string; date?: string }) {
+    return (
+        <View style={pdfStyles.signatureSection} wrap={false}>
+            <View style={pdfStyles.signatureBox}>
+                <Text style={pdfStyles.signatureLabel}>{leftLabel}</Text>
+                <View style={pdfStyles.signatureLine}>
+                    <Text>Firma e Timbro</Text>
+                </View>
+            </View>
+            <View style={pdfStyles.signatureBox}>
+                <Text style={pdfStyles.signatureLabel}>{rightLabel}</Text>
+                <View style={pdfStyles.signatureLine}>
+                    <Text>Firma e Timbro</Text>
+                </View>
+            </View>
+        </View>
+    );
+}
+
+/**
+ * Legacy signature box - backward compatibility
  */
 export function PDFSignatureBox({ label, date }: { label: string; date?: string }) {
     return (
-        <View style={[pdfStyles.signatureSection, { marginBottom: 15 }]}>
-            <View style={pdfStyles.signatureBox}>
-                <Text style={pdfStyles.signatureLabel}>{label}</Text>
-                <View style={[pdfStyles.signatureLine, { width: 180 }]}>
-                    <Text style={{ fontSize: 7, color: '#CBD5E0', paddingTop: 8 }}>Firma e Timbro</Text>
-                </View>
+        <View style={{ marginBottom: 12 }} wrap={false}>
+            <Text style={pdfStyles.signatureLabel}>{label}</Text>
+            <View style={[pdfStyles.signatureLine, { width: 180 }]}>
+                <Text style={{ fontSize: 6, color: PDF_COLORS.textMuted }}>Firma e Timbro</Text>
             </View>
             {date && (
-                <View style={[pdfStyles.signatureBox, { justifyContent: 'flex-end', alignItems: 'flex-end' }]}>
-                    <Text style={{ fontSize: 8.5, color: '#4a5568' }}>Data: {date}</Text>
-                </View>
+                <Text style={{ fontSize: 7, color: PDF_COLORS.textMuted, marginTop: 3 }}>Data: {date}</Text>
             )}
         </View>
     );
