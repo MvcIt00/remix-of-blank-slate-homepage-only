@@ -51,11 +51,11 @@ export function StoricoNoleggiDialog({
       const {
         data,
         error
-      } = await supabase.from("noleggi_storico").select("*").in("tipo_evento", ["terminazione", "cambio_sede", "cancellazione"]).order("data_evento", {
+      } = await supabase.from("vw_storico_noleggi" as any).select("*").order("data_evento", {
         ascending: false
       });
       if (error) throw error;
-      setStorico(data as StoricoRecord[] || []);
+      setStorico(data as unknown as StoricoRecord[] || []);
     } catch (error) {
       console.error("Error loading storico:", error);
       toast({
@@ -154,37 +154,37 @@ export function StoricoNoleggiDialog({
     render: value => {
       if (!value) return "-";
       return <span className="max-w-[200px] truncate block" title={value}>
-            {value}
-          </span>;
+        {value}
+      </span>;
     }
   }];
   const renderActions = (record: StoricoRecord) => {
     // Only show restore button for terminated rentals (not cancellations or sede changes)
     if (record.tipo_evento === "terminazione") {
       return <Button size="sm" variant="outline" onClick={() => handleRipristina(record)} title="Ripristina noleggio (annulla terminazione)">
-          <RotateCcw className="h-4 w-4" />
-        </Button>;
+        <RotateCcw className="h-4 w-4" />
+      </Button>;
     }
     return null;
   };
   return <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle>Storico Noleggi - Periodi Completati</DialogTitle>
-            
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <DialogTitle>Storico Noleggi - Periodi Completati</DialogTitle>
 
-          <div className="flex-1 overflow-auto">
-            <DataTable data={storico} columns={columns} actions={renderActions} loading={loading} searchPlaceholder="Cerca nello storico..." emptyMessage="Nessun periodo completato trovato" />
-          </div>
-        </DialogContent>
-      </Dialog>
+        </DialogHeader>
 
-      <RiattivaNoleggioDialog open={riattivaDialogOpen} onOpenChange={setRiattivaDialogOpen} noleggioId={selectedRecord?.id_noleggio || ""} storicoId={selectedRecord?.id_storico || ""} onSuccess={() => {
+        <div className="flex-1 overflow-auto">
+          <DataTable data={storico} columns={columns} actions={renderActions} loading={loading} searchPlaceholder="Cerca nello storico..." emptyMessage="Nessun periodo completato trovato" />
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <RiattivaNoleggioDialog open={riattivaDialogOpen} onOpenChange={setRiattivaDialogOpen} noleggioId={selectedRecord?.id_noleggio || ""} storicoId={selectedRecord?.id_storico || ""} onSuccess={() => {
       setSelectedRecord(null);
       loadStorico();
       onSuccess?.();
     }} />
-    </>;
+  </>;
 }

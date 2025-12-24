@@ -101,7 +101,6 @@ export default function NoleggiAttivi() {
       const { data, error } = await supabase
         .from("vw_noleggi_completi" as any)
         .select("*")
-        .neq("stato_noleggio", "archiviato")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -109,7 +108,7 @@ export default function NoleggiAttivi() {
         toast({ title: "Errore", description: "Impossibile caricare i noleggi", variant: "destructive" });
         throw error;
       }
-      return data as NoleggioView[];
+      return data as unknown as NoleggioView[];
     },
     staleTime: 1000 * 60 * 5,
   });

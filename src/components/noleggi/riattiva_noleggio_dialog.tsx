@@ -33,37 +33,21 @@ export function RiattivaNoleggioDialog({
 
     setLoading(true);
     try {
-      // 1. Get the original data from storico record
-      const { data: storicoRecord, error: fetchError } = await supabase
-        .from("noleggi_storico")
-        .select("data_inizio, data_fine, tempo_indeterminato, note")
-        .eq("id_storico", storicoId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // 2. Restore the noleggio to its original state
+      // 1. Ripristina il noleggio (Un-terminate)
       const { error: updateError } = await supabase
         .from("Noleggi")
         .update({
           is_terminato: false,
           data_terminazione_effettiva: null,
-          data_inizio: storicoRecord.data_inizio,
-          data_fine: storicoRecord.data_fine,
-          tempo_indeterminato: storicoRecord.tempo_indeterminato,
-          note: storicoRecord.note,
+          stato_noleggio: undefined, // Ensure we don't send this if type still has it, but column dropped. Safest to just omit.
         })
         .eq("id_noleggio", noleggioId);
 
       if (updateError) throw updateError;
 
-      // 3. Delete the storico record (it was a mistake, so remove it)
-      const { error: deleteError } = await supabase
-        .from("noleggi_storico")
-        .delete()
-        .eq("id_storico", storicoId);
+      // No need to delete from history table as we use a view now.
 
-      if (deleteError) throw deleteError;
+      // No need to delete from history table as we use a view now.
 
       toast({
         title: "Successo",
@@ -96,7 +80,7 @@ export function RiattivaNoleggioDialog({
 
         <div className="py-4">
           <p className="text-sm text-muted-foreground">
-            Questa operazione è pensata per correggere errori di terminazione. 
+            Questa operazione è pensata per correggere errori di terminazione.
             Il noleggio verrà ripristinato esattamente come era prima della terminazione.
           </p>
         </div>
