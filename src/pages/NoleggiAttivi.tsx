@@ -185,29 +185,28 @@ export default function NoleggiAttivi() {
   function calcolaStato(noleggio: NoleggioView): {
     label: string;
     variant: "default" | "secondary" | "destructive" | "outline";
+    className?: string;
   } {
-    if (noleggio.stato_noleggio === "terminato" || noleggio.is_terminato) {
+    // La logica è ora centralizzata nella VIEW del database.
+    // Il frontend deve solo mappare lo stato ricevuto allo stile corretto.
+
+    const stato = noleggio.stato_noleggio;
+
+    if (stato === "terminato" || noleggio.is_terminato) {
       return { label: "Terminato", variant: "secondary" };
     }
-    if (noleggio.stato_noleggio === "archiviato") {
+    if (stato === "archiviato") {
       return { label: "Archiviato", variant: "outline" };
     }
-    if (!noleggio.data_inizio) {
+    if (stato === "scaduto") {
+      return { label: "Scaduto", variant: "outline", className: "border-orange-500 text-orange-600 bg-orange-50" };
+    }
+    if (stato === "futuro") {
       return { label: "Futuro", variant: "secondary" };
     }
-    const oggi = startOfDay(new Date());
-    const dataInizio = startOfDay(new Date(noleggio.data_inizio));
-    if (dataInizio > oggi) {
-      return { label: "Futuro", variant: "secondary" };
-    }
-    if (noleggio.tempo_indeterminato || !noleggio.data_fine) {
-      return { label: "Attivo", variant: "default" };
-    }
-    const dataFine = startOfDay(new Date(noleggio.data_fine));
-    if (dataFine < oggi) {
-      return { label: "Scaduto", variant: "destructive" };
-    }
-    return { label: "Attivo", variant: "default" };
+
+    // Default / Attivo
+    return { label: "Attivo", variant: "default", className: "bg-green-600 hover:bg-green-700" };
   }
 
   // DEFINIZIONE COLONNE 
@@ -269,8 +268,8 @@ export default function NoleggiAttivi() {
       label: "Stato",
       sortable: true,
       render: (_, row) => {
-        const stato = calcolaStato(row);
-        return <Badge variant={stato.variant} className="text-[10px] px-2 py-0.5">{stato.label}</Badge>;
+        const { label, variant, className } = calcolaStato(row);
+        return <Badge variant={variant} className={className ? `${className} text-[10px] px-2 py-0.5` : "text-[10px] px-2 py-0.5"}>{label}</Badge>;
       },
     },
     // COLONNA CONTRATTO INTERATTIVA

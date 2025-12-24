@@ -157,7 +157,6 @@ export function usePreventiviNoleggio() {
           prezzo_trasporto: preventivo.prezzo_trasporto,
           tipo_canone: preventivo.tipo_canone,
           note: preventivo.note,
-          stato_noleggio: "attivo",
         })
         .select()
         .single();

@@ -49,7 +49,6 @@ export function TerminaNoleggioDialog({
         .from("Noleggi")
         .update({
           is_terminato: true,
-          stato_noleggio: "terminato",
           data_terminazione_effettiva: dataTerminazione,
           note: note || null,
         })
