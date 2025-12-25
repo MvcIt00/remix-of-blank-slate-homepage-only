@@ -14,8 +14,12 @@ interface ConvertiOptions {
   datiContratto?: Record<string, any>;
 }
 
-// Helper per mappare la View al tipo interno dell'app (se differiscono)
+// Helper per mappare la View al tipo interno dell'app
 function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleggio {
+  // Snapshot priority: if snapshot exists, use it for historical integrity
+  const cliente = view.snapshot_cliente || {};
+  const mezzo = view.snapshot_mezzo || {};
+
   return {
     id_preventivo: view.id_preventivo,
     id_anagrafica: view.id_anagrafica,
@@ -29,23 +33,37 @@ function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleg
     note: view.note || undefined,
     stato: view.stato || StatoPreventivo.BOZZA,
     codice: view.codice || null,
-    pdf_bozza_path: view.pdf_bozza_path || null,
     pdf_firmato_path: view.pdf_firmato_path || null,
     convertito_in_noleggio_id: view.convertito_in_noleggio_id || undefined,
     created_at: view.created_at,
-    // Relazioni espanse (simuliamo la struttura annidata attesa dai componenti vecchi)
+
+    // Snapshot-aware mapping
     Anagrafiche: {
-      ragione_sociale: view.cliente_ragione_sociale || "N/D"
+      ragione_sociale: cliente.ragione_sociale || view.cliente_ragione_sociale || "N/D",
+      partita_iva: cliente.partita_iva || view.cliente_partita_iva,
+      pec: cliente.pec || view.cliente_pec,
+      codice_univoco: cliente.codice_univoco || view.cliente_codice_univoco,
+      email: view.cliente_email,
+      telefono: view.cliente_telefono
     },
-    Mezzi: view.matricola ? {
-      matricola: view.matricola,
-      marca: view.marca,
-      modello: view.modello
+    Mezzi: (mezzo.matricola || view.matricola) ? {
+      matricola: mezzo.matricola || view.matricola,
+      marca: mezzo.marca || view.marca,
+      modello: mezzo.modello || view.modello,
+      anno: mezzo.anno || view.anno,
+      ore: mezzo.ore || view.ore
+    } : undefined,
+    Sedi: view.sede_nome || view.sede_indirizzo ? {
+      nome_sede: view.sede_nome,
+      indirizzo: view.sede_indirizzo,
+      citta: view.sede_citta,
+      cap: view.sede_cap,
+      provincia: view.sede_provincia
     } : undefined,
     Noleggi: view.noleggio_is_terminato !== null ? {
       is_terminato: view.noleggio_is_terminato
     } : undefined
-  } as PreventivoNoleggio; // Cast necessario finché non allineiamo i tipi al 100%
+  } as PreventivoNoleggio;
 }
 
 export function usePreventiviNoleggio() {
@@ -102,13 +120,24 @@ export function usePreventiviNoleggio() {
     }
   });
 
-  // 3. MUTATION: Aggiorna
+  // 3. MUTATION: Aggiorna (Atomica)
   const aggiornaMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<PreventivoNoleggioInput> }) => {
+      // Se l'anagrafica cambia nel form, dobbiamo aggiornare anche il record Padre per coerenza
+      if (updates.id_anagrafica) {
+        const { error: parentError } = await supabase
+          .from("Preventivi")
+          .update({ id_anagrafica: updates.id_anagrafica })
+          .eq("id_preventivo", id);
+
+        if (parentError) throw parentError;
+      }
+
       const { error } = await supabase
         .from("prev_noleggi" as any)
         .update(updates)
         .eq("id_preventivo", id);
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -172,9 +201,6 @@ export function usePreventiviNoleggio() {
             id_anagrafica_cliente: preventivo.id_anagrafica,
             id_anagrafica_fornitore: preventivo.id_anagrafica_fornitore ?? preventivo.id_anagrafica, // Fallback safe
             data_inizio: preventivo.data_inizio ?? new Date().toISOString().split('T')[0],
-            dati_cliente: {},
-            dati_fornitore: {},
-            dati_mezzo: {},
             tempo_indeterminato: preventivo.tempo_indeterminato,
             canone_noleggio: preventivo.prezzo_noleggio,
             tipo_canone: preventivo.tipo_canone,

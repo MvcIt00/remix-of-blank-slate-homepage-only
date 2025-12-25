@@ -2,6 +2,7 @@
 export enum StatoPreventivo {
   BOZZA = "bozza",
   INVIATO = "inviato",
+  IN_REVISIONE = "in_revisione",
   APPROVATO = "approvato",
   RIFIUTATO = "rifiutato",
   CONCLUSO = "concluso",
@@ -23,21 +24,39 @@ export interface PreventivoNoleggio {
   sede_operativa: string | null;
   stato: StatoPreventivo; // Use Enum
   codice: string | null;
-  pdf_bozza_path: string | null;
   pdf_firmato_path: string | null;
   convertito_in_noleggio_id?: string | null;
   created_at: string;
   updated_at: string | null;
   Anagrafiche?: {
     ragione_sociale?: string | null;
+    partita_iva?: string | null;
+    cod_fiscale?: string | null;
+    email?: string | null;
+    telefono?: string | null;
+    pec?: string | null;
+    codice_univoco?: string | null;
+    indirizzo?: string | null;
+    citta?: string | null;
+    cap?: string | null;
+    provincia?: string | null;
   } | null;
   Mezzi?: {
     matricola?: string | null;
     marca?: string | null;
     modello?: string | null;
+    anno?: number | string | null;
+    ore?: number | null;
   } | null;
   Noleggi?: {
     is_terminato: boolean;
+  } | null;
+  Sedi?: {
+    nome_sede?: string | null;
+    indirizzo?: string | null;
+    citta?: string | null;
+    cap?: string | null;
+    provincia?: string | null;
   } | null;
 }
 

@@ -8,6 +8,7 @@ import { DatiAziendaOwner } from "@/components/pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { mergePdfs } from "@/utils/pdf-merger";
+import { NOLEGGIO_BUCKET, getNoleggioPath } from "@/utils/noleggioStorage";
 
 interface ContrattoPreviewDialogProps {
   open: boolean;
@@ -63,6 +64,8 @@ export function ContrattoPreviewDialog({
     termini_pagamento: existingContract?.termini_pagamento ?? null,
     clausole_speciali: existingContract?.clausole_speciali ?? null,
     data_creazione: existingContract?.data_creazione || new Date().toISOString(),
+    tipo_tariffa: existingContract?.tipo_tariffa || noleggioData.tipo_canone || "mensile",
+    canone_mensile: existingContract?.canone_mensile || noleggioData.prezzo_noleggio || 0,
   };
 
   const revokeMergedUrl = () => {
@@ -91,10 +94,10 @@ export function ContrattoPreviewDialog({
 
       const dynamicBuffer = await dynamicBlob.arrayBuffer();
 
-      // 2. Scarica il PDF statico (Condizioni Generali)
+      // 2. Scarica il PDF statico (Condizioni Generali) dal silo noleggio via Facade
       const { data: staticFile, error: storageError } = await supabase.storage
-        .from("contratti")
-        .download("static/condizioni_generali_noleggio.pdf");
+        .from(NOLEGGIO_BUCKET)
+        .download(getNoleggioPath("STATIC_ASSETS", "condizioni_generali_noleggio.pdf"));
 
       if (storageError) {
         console.error("❌ Errore download PDF statico:", storageError);
@@ -216,26 +219,12 @@ export function ContrattoPreviewDialog({
 
       if (contrattoError) throw contrattoError;
 
-      // 3. Upload PDF MERGED nell'area 'generati'
-      const fileName = `generati/${contratto.codice_contratto.replace(/\//g, "-")}.pdf`;
-      const { error: uploadError } = await supabase.storage
-        .from("contratti")
-        .upload(fileName, mergedPdfBlob, {
-          upsert: true,
-          contentType: 'application/pdf'
-        });
-
-      if (uploadError) throw uploadError;
-
-      // 4. Aggiorna path
-      await supabase
-        .from("contratti_noleggio")
-        .update({ pdf_bozza_path: fileName })
-        .eq("id_contratto", contratto.id_contratto);
+      // 3. LOGICA 'ZERO-DRAFT': NON salviamo più il PDF fisico della bozza.
+      // Il PDF verrà rigenerato on-the-fly ogni volta partendo dai dati del contratto nel DB.
 
       toast({
         title: "Successo",
-        description: "Contratto registrato con successo (completo di condizioni)",
+        description: "Dati contratto registrati con successo. La bozza sarà disponibile per l'anteprima.",
       });
 
       onOpenChange(false);

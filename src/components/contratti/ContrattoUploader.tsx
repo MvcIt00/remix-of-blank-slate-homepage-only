@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Upload, X, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { NOLEGGIO_BUCKET, getNoleggioPath } from "@/utils/noleggioStorage";
 
 interface ContrattoUploaderProps {
   contrattoId: string;
@@ -46,13 +47,12 @@ export function ContrattoUploader({
 
     setUploading(true);
     try {
-      // Nome file: codice_contratto_firmato_timestamp.pdf
-      const fileName = `${codiceContratto}_firmato_${Date.now()}.pdf`;
-      const filePath = `firmati/${fileName}`;
+      // Use Facade for path
+      const filePath = getNoleggioPath("CONTRATTO_FIRMATO", codiceContratto);
 
-      // Upload file
+      // Upload file al silo noleggio
       const { error: uploadError } = await supabase.storage
-        .from("contratti")
+        .from(NOLEGGIO_BUCKET)
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;

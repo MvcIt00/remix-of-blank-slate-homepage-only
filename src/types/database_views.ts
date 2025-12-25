@@ -105,19 +105,36 @@ export interface PreventivoCompletoView {
     note: string | null;
     stato: "bozza" | "inviato" | "approvato" | "rifiutato" | "concluso" | "archiviato";
     codice: string | null;
-    pdf_bozza_path: string | null;
     pdf_firmato_path: string | null;
     convertito_in_noleggio_id: string | null;
     created_at: string;
     // Dati Cliente
     cliente_ragione_sociale: string | null;
-    cliente_piva: string | null;
+    cliente_partita_iva: string | null;
+    cliente_pec: string | null;
+    cliente_codice_univoco: string | null;
     cliente_email: string | null;
     cliente_telefono: string | null;
     // Dati Mezzo
     marca: string | null;
     modello: string | null;
     matricola: string | null;
+    anno: number | string | null;
+    ore: number | null;
+    // Dati Sede Operativa
+    id_sede_operativa: string | null;
+    sede_operativa_nome: string | null;
+    sede_nome: string | null;
+    sede_operativa_ubicazione: string | null;
+    sede_indirizzo: string | null;
+    sede_citta: string | null;
+    sede_cap: string | null;
+    sede_provincia: string | null;
     // Noleggio Correlato
     noleggio_is_terminato: boolean | null;
+
+    // Snapshots (JSONB)
+    snapshot_cliente: any | null;
+    snapshot_mezzo: any | null;
+    snapshot_azienda: any | null;
 }

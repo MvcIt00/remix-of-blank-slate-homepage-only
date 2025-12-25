@@ -4,18 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, DataTableColumn } from "@/components/ui/data-table";
-import { ModificaPreventivoDialog, StatoPreventivoNoleggioPopover, ConfermaPreventivoDialog } from "@/components/preventivi-noleggio";
+import { ModificaPreventivoDialog, PreventivoStatusButton, ConfermaPreventivoDialog, PreventivoPreviewDialog } from "@/components/preventivi-noleggio";
 import { usePreventiviNoleggio } from "@/hooks/usePreventiviNoleggio";
 import { PreventivoNoleggio, PreventivoNoleggioInput, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { toast } from "@/hooks/use-toast";
 import { TableActions } from "@/components/ui/table-actions";
-import { PreventivoPreviewDialog } from "@/components/preventivi/PreventivoPreviewDialog";
 import { FileText, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const statoBadgeVariant: Record<StatoPreventivo, "secondary" | "default" | "destructive" | "outline"> = {
   bozza: "secondary",
   inviato: "secondary",
+  in_revisione: "outline",
   approvato: "default",
   rifiutato: "destructive",
   concluso: "outline",
@@ -57,6 +57,20 @@ export default function PreventiviNoleggio() {
       render: (_value, row) => row.Anagrafiche?.ragione_sociale ?? row.id_anagrafica,
     },
     {
+      key: "sede_operativa",
+      label: "Sede Operativa",
+      render: (_value, row) => (
+        <div className="flex flex-col text-sm max-w-[200px]">
+          <span className="font-medium truncate" title={row.Sedi?.indirizzo || "-"}>
+            {row.Sedi?.indirizzo || "-"}
+          </span>
+          <span className="text-xs text-muted-foreground truncate" title={`${row.Sedi?.citta || ""} ${row.Sedi?.cap || ""}`}>
+            {row.Sedi?.citta || row.sede_operativa || "-"} {row.Sedi?.cap || ""}
+          </span>
+        </div>
+      ),
+    },
+    {
       key: "mezzo",
       label: "Mezzo",
       render: (_value, row) =>
@@ -76,19 +90,35 @@ export default function PreventiviNoleggio() {
       render: (_value, row) => `${row.prezzo_noleggio ?? "-"} ${row.tipo_canone ?? ""}`,
     },
     {
-      key: "stato",
+      key: "id_preventivo",
       label: "Stato",
       render: (_value, row) => (
-        <StatoPreventivoNoleggioPopover
-          stato={row.stato}
-          onChange={async (next) => {
+        <PreventivoStatusButton
+          preventivo={row}
+          onStatusChange={async (next) => {
             await aggiornaStato(row.id_preventivo, next);
-            toast({
-              title: "Stato aggiornato",
-              description: `Il preventivo è ora ${next}`,
-            });
+            toast({ title: "Stato aggiornato", description: `Il preventivo è ora ${next}` });
           }}
-          disabled={row.stato === StatoPreventivo.CONCLUSO || row.stato === StatoPreventivo.ARCHIVIATO}
+          onGeneratePDF={() => {
+            setPreventivoPerPDF(row);
+            setPreviewOpen(true);
+          }}
+          onViewPDF={() => {
+            setPreventivoPerPDF(row);
+            setPreviewOpen(true);
+          }}
+          onConvert={() => {
+            setPreventivoSelezionato(row);
+            setConfirmOpen(true);
+          }}
+          onArchive={async () => {
+            await archiviaPreventivo(row.id_preventivo);
+            toast({ title: "Preventivo archiviato" });
+          }}
+          onUpdateSuccess={() => {
+            // L'invalidazione viene già gestita dal hook useMutation 
+            // ma forziamo un refresh per sicurezza se necessario
+          }}
         />
       ),
     },
@@ -97,24 +127,7 @@ export default function PreventiviNoleggio() {
   const renderActions = (row: PreventivoNoleggio) => (
     <TableActions
       onEdit={() => setPreventivoDaModificare(row)}
-      editDisabled={row.stato === StatoPreventivo.CONCLUSO || row.stato === StatoPreventivo.ARCHIVIATO || !!row.convertito_in_noleggio_id}
-      onComplete={
-        row.stato === StatoPreventivo.APPROVATO && !row.convertito_in_noleggio_id
-          ? () => {
-            setPreventivoSelezionato(row);
-            setConfirmOpen(true);
-          }
-          : undefined
-      }
-      completeDisabled={!!row.convertito_in_noleggio_id}
-      onArchive={
-        row.stato !== StatoPreventivo.ARCHIVIATO
-          ? async () => {
-            await archiviaPreventivo(row.id_preventivo);
-            toast({ title: "Preventivo archiviato" });
-          }
-          : undefined
-      }
+      editDisabled={row.stato !== StatoPreventivo.BOZZA && row.stato !== StatoPreventivo.IN_REVISIONE}
       onDelete={
         !row.convertito_in_noleggio_id
           ? async () => {
@@ -123,17 +136,6 @@ export default function PreventiviNoleggio() {
           }
           : undefined
       }
-      customActions={[
-        {
-          label: row.pdf_bozza_path ? "Visualizza PDF" : "Genera PDF",
-          icon: row.pdf_bozza_path ? <Eye className="h-4 w-4" /> : <FileText className="h-4 w-4" />,
-          onClick: () => {
-            setPreventivoPerPDF(row);
-            setPreviewOpen(true);
-          },
-          className: row.pdf_bozza_path ? "text-primary" : "text-muted-foreground",
-        }
-      ]}
     />
   );
 
@@ -142,6 +144,63 @@ export default function PreventiviNoleggio() {
     await convertiInNoleggio(preventivo);
     toast({ title: "Preventivo convertito", description: "Noleggio attivo creato" });
   };
+
+  const getPreviewData = () => {
+    if (!preventivoPerPDF) return null;
+
+    return {
+      datiOwner: {
+        ragione_sociale: "Toscana Carrelli S.R.L.",
+        indirizzo: "Via del Lavoro, 1",
+        citta: "Santa Croce sull'Arno",
+        cap: "56029",
+        provincia: "PI",
+        partita_iva: "01683400508", // Fixed property name
+        email: "info@toscanacarrelli.it",
+        telefono: "0571 366 738",
+        sito_web: "www.toscanacarrelli.it",
+        logo_url: "",
+        pec: "toscanacarrelli@pec.it", // Added
+        codice_univoco: "UNKNOWN", // Added
+        iban: "" // Added
+      },
+      datiCliente: {
+        ragione_sociale: preventivoPerPDF.Anagrafiche?.ragione_sociale ?? "",
+        partita_iva: preventivoPerPDF.Anagrafiche?.partita_iva ?? null,
+        indirizzo: preventivoPerPDF.Sedi?.indirizzo ?? preventivoPerPDF.Anagrafiche?.indirizzo ?? null,
+        citta: preventivoPerPDF.Sedi?.citta ?? preventivoPerPDF.Anagrafiche?.citta ?? null,
+        cap: preventivoPerPDF.Sedi?.cap ?? preventivoPerPDF.Anagrafiche?.cap ?? null,
+        provincia: preventivoPerPDF.Sedi?.provincia ?? preventivoPerPDF.Anagrafiche?.provincia ?? null,
+        telefono: preventivoPerPDF.Anagrafiche?.telefono ?? null,
+        email: preventivoPerPDF.Anagrafiche?.email ?? null,
+        pec: preventivoPerPDF.Anagrafiche?.pec ?? null,
+        codice_univoco: preventivoPerPDF.Anagrafiche?.codice_univoco ?? null
+      },
+      datiMezzo: {
+        marca: preventivoPerPDF.Mezzi?.marca ?? null,
+        modello: preventivoPerPDF.Mezzi?.modello ?? null,
+        matricola: preventivoPerPDF.Mezzi?.matricola ?? null,
+        id_interno: null, // Added
+        anno: preventivoPerPDF.Mezzi?.anno ? String(preventivoPerPDF.Mezzi.anno) : null,
+        categoria: null, // Added
+        ore_moto: preventivoPerPDF.Mezzi?.ore ?? null, // Fixed property name
+      },
+      datiPreventivo: {
+        codice_preventivo: preventivoPerPDF.codice ?? "BOZZA",
+        data_creazione: preventivoPerPDF.created_at ?? new Date().toISOString(),
+        data_inizio: preventivoPerPDF.data_inizio ?? null,
+        data_fine: preventivoPerPDF.data_fine ?? null,
+        tempo_indeterminato: preventivoPerPDF.tempo_indeterminato ?? false,
+        canone_noleggio: preventivoPerPDF.prezzo_noleggio ?? null, // Fixed property name
+        tipo_canone: preventivoPerPDF.tipo_canone ?? "giornaliero",
+        costo_trasporto: null, // Added
+        note: preventivoPerPDF.note ?? null,
+        validita_giorni: 30
+      }
+    };
+  };
+
+  const previewData = getPreviewData();
 
   return (
     <div className="p-6 space-y-6">
@@ -172,13 +231,6 @@ export default function PreventiviNoleggio() {
             </Select>
           </div>
 
-          <div className="flex gap-2 items-center">
-            {([StatoPreventivo.BOZZA, StatoPreventivo.INVIATO, StatoPreventivo.APPROVATO, StatoPreventivo.RIFIUTATO, StatoPreventivo.CONCLUSO, StatoPreventivo.ARCHIVIATO]).map((stato) => (
-              <Badge key={stato} variant={statoBadgeVariant[stato]}>
-                {stato}
-              </Badge>
-            ))}
-          </div>
         </div>
 
         <DataTable
@@ -210,14 +262,19 @@ export default function PreventiviNoleggio() {
         }}
       />
 
-      <PreventivoPreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        preventivo={preventivoPerPDF as any}
-        onSuccess={() => {
-          // hook invalida già la query
-        }}
-      />
+      {previewData && (
+        <PreventivoPreviewDialog
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          datiOwner={previewData.datiOwner}
+          datiCliente={previewData.datiCliente}
+          datiMezzo={previewData.datiMezzo}
+          datiPreventivo={previewData.datiPreventivo}
+          onSave={async () => {
+            setPreviewOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

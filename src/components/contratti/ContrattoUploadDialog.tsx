@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, FileUp, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { NOLEGGIO_BUCKET, getNoleggioPath } from "@/utils/noleggioStorage";
 import { cn } from "@/lib/utils";
 
 interface ContrattoUploadDialogProps {
@@ -88,18 +89,18 @@ export function ContrattoUploadDialog({
     setUploading(true);
     try {
       const timestamp = Date.now();
-      const filePath = `noleggi/${noleggioId}/contratto_firmato_${timestamp}.pdf`;
+      const filePath = getNoleggioPath("CONTRATTO_FIRMATO", noleggioId, timestamp);
 
-      // 1. Upload to storage
+      // 1. Upload to storage (silo noleggio)
       const { error: uploadError } = await supabase.storage
-        .from("contratti")
+        .from(NOLEGGIO_BUCKET)
         .upload(filePath, selectedFile);
 
       if (uploadError) throw uploadError;
 
       // 2. If there was an existing document, delete the old file
       if (existingFilePath) {
-        await supabase.storage.from("contratti").remove([existingFilePath]);
+        await supabase.storage.from(NOLEGGIO_BUCKET).remove([existingFilePath]);
 
         // Update existing document record
         const { error: updateError } = await supabase

@@ -40,6 +40,9 @@ SELECT
     pn.convertito_in_noleggio_id,
     pn.pdf_bozza_path,
     pn.pdf_firmato_path,
+    pn.dati_cliente AS snapshot_cliente,
+    pn.dati_mezzo AS snapshot_mezzo,
+    pn.dati_azienda AS snapshot_azienda,
     
     -- Dati Mezzo
     m.marca,
@@ -81,6 +84,7 @@ SELECT
     s.ubicazione_completa AS sede_operativa_ubicazione,
     s.indirizzo AS sede_indirizzo,
     s.citta AS sede_citta,
+    s.cap AS sede_cap,
     s.provincia AS sede_provincia,
     
     -- Info Noleggio Correlato (se convertito)

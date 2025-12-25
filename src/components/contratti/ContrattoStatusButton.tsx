@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { FileCheck, FileWarning, Minus, Download, RefreshCw, Eye, Plus } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ContrattoUploadDialog } from "./ContrattoUploadDialog";
-import { ContrattoFirmatoPreviewDialog } from "./ContrattoFirmatoPreviewDialog";
+import { DocumentoFirmatoDialog } from "@/components/pdf/DocumentoFirmatoDialog";
 import { GeneraContrattoDialogWrapper } from "./GeneraContrattoDialogWrapper";
+import { NOLEGGIO_BUCKET } from "@/utils/noleggioStorage";
 
 interface ContrattoFirmato {
   id_documento: string;
@@ -31,6 +32,7 @@ export function ContrattoStatusButton({
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [firmatoDialogOpen, setFirmatoDialogOpen] = useState(false);
 
   // Stato 1: Contratto non richiesto (grigio)
   if (!richiedeContratto) {
@@ -46,66 +48,20 @@ export function ContrattoStatusButton({
     );
   }
 
-  // Stato 2: Contratto mancante o bozza (Blue/Arancione)
+  // Stato 2: Contratto firmato MANCANTE (Blu)
   if (!contrattoFirmato) {
     return (
       <>
-        {/* Caso Bozza Presente (Arancione) - Popover con scelte */}
-        {hasDraftContract ? (
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-orange-300 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
-                title="Bozza presente - In attesa di firma"
-              >
-                <FileWarning className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" align="end">
-              <div className="flex flex-col gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start w-full"
-                  onClick={() => {
-                    setPopoverOpen(false);
-                    setPreviewDialogOpen(true);
-                  }}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Visualizza Bozza
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start w-full"
-                  onClick={() => {
-                    setPopoverOpen(false);
-                    setUploadDialogOpen(true);
-                  }}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Allega Firmato
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        ) : (
-          /* Caso Nessun Contratto (Blu) - Generazione */
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-            onClick={() => setPreviewDialogOpen(true)}
-            title="Genera Contratto"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+          onClick={() => setPreviewDialogOpen(true)}
+          title="Genera Contratto"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
 
-        {/* Dialoghi Condivisi per i flussi sopra */}
         <GeneraContrattoDialogWrapper
           noleggioId={noleggioId}
           open={previewDialogOpen}
@@ -145,7 +101,7 @@ export function ContrattoStatusButton({
               className="justify-start w-full"
               onClick={() => {
                 setPopoverOpen(false);
-                setPreviewDialogOpen(true);
+                setFirmatoDialogOpen(true);
               }}
             >
               <Eye className="h-4 w-4 mr-2" />
@@ -176,12 +132,15 @@ export function ContrattoStatusButton({
         onUploadSuccess={onUploadSuccess}
       />
 
-      <ContrattoFirmatoPreviewDialog
-        open={previewDialogOpen}
-        onOpenChange={setPreviewDialogOpen}
+      <DocumentoFirmatoDialog
+        open={firmatoDialogOpen}
+        onOpenChange={setFirmatoDialogOpen}
         filePath={contrattoFirmato.file_path}
-        fileName={contrattoFirmato.nome_file_originale || undefined}
+        bucket={NOLEGGIO_BUCKET}
+        title="Contratto Firmato"
+        fileName={contrattoFirmato.nome_file_originale || "contratto_firmato.pdf"}
       />
     </>
   );
 }
+

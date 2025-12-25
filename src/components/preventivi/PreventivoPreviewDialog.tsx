@@ -10,6 +10,7 @@ import { Loader2, FileText, Download, Save, Send } from "lucide-react";
 import { PreventivoCompletoView, OwnerInfo } from "@/types/database_views";
 import { useQuery } from "@tanstack/react-query";
 import { DatiAziendaOwner } from "../pdf/LetterheadPDF";
+import { NOLEGGIO_BUCKET, getNoleggioPath } from "@/utils/noleggioStorage";
 
 interface PreventivoPreviewDialogProps {
     open: boolean;
@@ -63,34 +64,12 @@ export function PreventivoPreviewDialog({
         try {
             setIsSaving(true);
 
-            // 1. Generate local filename
-            const fileName = `preventivo_${preventivo.codice || preventivo.id_preventivo}.pdf`;
-            const filePath = `preventivi/generati/${fileName}`;
-
-            // 2. Upload to Supabase Storage
-            const { error: uploadError } = await supabase.storage
-                .from("contratti")
-                .upload(filePath, blob, {
-                    contentType: "application/pdf",
-                    upsert: true
-                });
-
-            if (uploadError) throw uploadError;
-
-            // 3. Update database record
-            const { error: updateError } = await supabase
-                .from("prev_noleggi")
-                .update({
-                    pdf_bozza_path: filePath,
-                    stato: (preventivo.stato as any) === "bozza" ? "inviato" : (preventivo.stato as any)
-                })
-                .eq("id_preventivo", preventivo.id_preventivo);
-
-            if (updateError) throw updateError;
+            // 1. LOGICA 'ZERO-DRAFT': NON salviamo più il PDF fisico della bozza.
+            // Il sistema è ora "Data-Driven": la bozza si rigenera on-the-fly dai dati del DB.
 
             toast({
-                title: "Preventivo Registrato",
-                description: "Il PDF è stato salvato e archiviato con successo.",
+                title: "Preventivo Disponibile",
+                description: "Dati preventivo allineati. La bozza è pronta per l'invio.",
             });
 
             onSuccess?.();

@@ -6,24 +6,24 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  FileText, 
-  Download, 
-  Upload, 
-  Check, 
-  Clock, 
+import {
+  FileText,
+  Download,
+  Upload,
+  Check,
+  Clock,
   Send,
-  AlertCircle 
+  AlertCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { NOLEGGIO_BUCKET } from "@/utils/noleggioStorage";
 import { ContrattoUploader } from "./ContrattoUploader";
 
 interface Contratto {
   id_contratto: string;
   codice_contratto: string;
   stato_contratto: string;
-  pdf_bozza_path: string | null;
   pdf_firmato_path: string | null;
   data_creazione: string;
   data_invio: string | null;
@@ -49,30 +49,6 @@ export function ContrattoViewer({ contratto, onUpdate }: ContrattoViewerProps) {
 
   const statoConfig = STATO_CONFIG[contratto.stato_contratto] || STATO_CONFIG.bozza;
 
-  async function handleDownloadBozza() {
-    if (!contratto.pdf_bozza_path) {
-      toast({ title: "Nessuna bozza disponibile", variant: "destructive" });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.storage
-        .from("contratti")
-        .download(contratto.pdf_bozza_path);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${contratto.codice_contratto}_bozza.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Errore download:", error);
-      toast({ title: "Errore nel download", variant: "destructive" });
-    }
-  }
 
   async function handleDownloadFirmato() {
     if (!contratto.pdf_firmato_path) {
@@ -82,7 +58,7 @@ export function ContrattoViewer({ contratto, onUpdate }: ContrattoViewerProps) {
 
     try {
       const { data, error } = await supabase.storage
-        .from("contratti")
+        .from(NOLEGGIO_BUCKET)
         .download(contratto.pdf_firmato_path);
 
       if (error) throw error;
@@ -169,12 +145,6 @@ export function ContrattoViewer({ contratto, onUpdate }: ContrattoViewerProps) {
 
         {/* Azioni */}
         <div className="flex flex-wrap gap-2">
-          {contratto.pdf_bozza_path && (
-            <Button variant="outline" size="sm" onClick={handleDownloadBozza}>
-              <Download className="h-3 w-3 mr-1" />
-              Scarica Bozza
-            </Button>
-          )}
 
           {contratto.stato_contratto === "bozza" && (
             <Button variant="outline" size="sm" onClick={handleSegnaInviato} disabled={loading}>
