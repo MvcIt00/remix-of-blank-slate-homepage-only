@@ -123,10 +123,10 @@ export function PDFTable({ headers, rows, columnWidths }: { headers: string[]; r
     return (
         <View style={pdfStyles.table}>
             {/* Header */}
-            <View style={pdfStyles.tableHeader}>
+            <View style={[pdfStyles.tableHeader, { borderTopWidth: 2, borderTopColor: PDF_COLORS.accent }]}>
                 {headers.map((h, i) => (
                     <View key={i} style={{ width: columnWidths[i] }}>
-                        <Text style={pdfStyles.tableHeaderText}>{h}</Text>
+                        <Text style={[pdfStyles.tableHeaderText, { color: "#ffffff" }]}>{h}</Text>
                     </View>
                 ))}
             </View>

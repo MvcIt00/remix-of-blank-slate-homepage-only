@@ -149,28 +149,26 @@ export default function PreventiviNoleggio() {
     if (!preventivoPerPDF) return null;
 
     return {
-      datiOwner: {
-        ragione_sociale: "Toscana Carrelli S.R.L.",
-        indirizzo: "Via del Lavoro, 1",
-        citta: "Santa Croce sull'Arno",
-        cap: "56029",
-        provincia: "PI",
-        partita_iva: "01683400508", // Fixed property name
+      datiOwner: preventivoPerPDF.dati_azienda || {
+        ragione_sociale: "Mvc Toscana Carrelli",
+        indirizzo: "Viale magri 115",
+        citta: "Livorno",
+        cap: null,
+        provincia: null,
+        partita_iva: "000000001",
         email: "info@toscanacarrelli.it",
-        telefono: "0571 366 738",
-        sito_web: "www.toscanacarrelli.it",
-        logo_url: "",
-        pec: "toscanacarrelli@pec.it", // Added
-        codice_univoco: "UNKNOWN", // Added
-        iban: "" // Added
+        telefono: "0586.000000",
+        pec: null,
+        codice_univoco: null,
+        iban: null
       },
       datiCliente: {
         ragione_sociale: preventivoPerPDF.Anagrafiche?.ragione_sociale ?? "",
         partita_iva: preventivoPerPDF.Anagrafiche?.partita_iva ?? null,
-        indirizzo: preventivoPerPDF.Sedi?.indirizzo ?? preventivoPerPDF.Anagrafiche?.indirizzo ?? null,
-        citta: preventivoPerPDF.Sedi?.citta ?? preventivoPerPDF.Anagrafiche?.citta ?? null,
-        cap: preventivoPerPDF.Sedi?.cap ?? preventivoPerPDF.Anagrafiche?.cap ?? null,
-        provincia: preventivoPerPDF.Sedi?.provincia ?? preventivoPerPDF.Anagrafiche?.provincia ?? null,
+        indirizzo: preventivoPerPDF.Sedi?.indirizzo ?? null,
+        citta: preventivoPerPDF.Sedi?.citta ?? null,
+        cap: preventivoPerPDF.Sedi?.cap ?? null,
+        provincia: preventivoPerPDF.Sedi?.provincia ?? null,
         telefono: preventivoPerPDF.Anagrafiche?.telefono ?? null,
         email: preventivoPerPDF.Anagrafiche?.email ?? null,
         pec: preventivoPerPDF.Anagrafiche?.pec ?? null,

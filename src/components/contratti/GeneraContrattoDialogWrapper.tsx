@@ -123,12 +123,17 @@ export function GeneraContrattoDialogWrapper({
             const formattedData = {
                 existingContract: existingContract,
                 datiOwner: normalizedOwner || {
-                    ragione_sociale: "Toscana Carrelli S.r.l.",
-                    indirizzo: "",
-                    citta: "",
-                    cap: "",
-                    provincia: "",
-                    partita_iva: "",
+                    ragione_sociale: "Mvc Toscana Carrelli",
+                    indirizzo: "Viale magri 115",
+                    citta: "Livorno",
+                    cap: null,
+                    provincia: null,
+                    partita_iva: "000000001",
+                    email: "info@toscanacarrelli.it",
+                    telefono: "0586.000000",
+                    pec: null,
+                    codice_univoco: null,
+                    iban: null
                 },
                 datiCliente: {
                     ragione_sociale: noleggio.Anagrafiche.ragione_sociale,

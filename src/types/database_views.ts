@@ -132,9 +132,24 @@ export interface PreventivoCompletoView {
     sede_provincia: string | null;
     // Noleggio Correlato
     noleggio_is_terminato: boolean | null;
+    sede_operativa: string | null;
+    updated_at: string | null;
 
     // Snapshots (JSONB)
     snapshot_cliente: any | null;
     snapshot_mezzo: any | null;
     snapshot_azienda: any | null;
+    // Real DB Columns (Audit IDs Turn 2895)
+    dati_cliente: any;
+    dati_mezzo: any;
+    dati_azienda: any;
+    owner_ragione_sociale?: string;
+    owner_partita_iva?: string;
+    owner_pec?: string;
+    owner_sdi?: string;
+    owner_iban?: string;
+    owner_indirizzo?: string;
+    owner_citta?: string;
+    owner_cap?: string;
+    owner_provincia?: string;
 }

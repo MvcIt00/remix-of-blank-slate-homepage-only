@@ -16,9 +16,11 @@ interface ConvertiOptions {
 
 // Helper per mappare la View al tipo interno dell'app
 function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleggio {
-  // Snapshot priority: if snapshot exists, use it for historical integrity
-  const cliente = view.snapshot_cliente || {};
-  const mezzo = view.snapshot_mezzo || {};
+  // 1. PRIORITÀ SNAPSHOTS (Immutabilità Enterprise)
+  // IDV Turn 2895: dati_cliente, dati_mezzo, dati_azienda confermati nel DB reale
+  const snapshotCliente = view.dati_cliente || view.snapshot_cliente || {};
+  const snapshotMezzo = view.dati_mezzo || view.snapshot_mezzo || {};
+  const snapshotAzienda = view.dati_azienda || view.snapshot_azienda || {};
 
   return {
     id_preventivo: view.id_preventivo,
@@ -37,21 +39,26 @@ function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleg
     convertito_in_noleggio_id: view.convertito_in_noleggio_id || undefined,
     created_at: view.created_at,
 
-    // Snapshot-aware mapping
+    // Hydration con fallback: Snapshot > Database View Live > Default
     Anagrafiche: {
-      ragione_sociale: cliente.ragione_sociale || view.cliente_ragione_sociale || "N/D",
-      partita_iva: cliente.partita_iva || view.cliente_partita_iva,
-      pec: cliente.pec || view.cliente_pec,
-      codice_univoco: cliente.codice_univoco || view.cliente_codice_univoco,
-      email: view.cliente_email,
-      telefono: view.cliente_telefono
+      ragione_sociale: snapshotCliente.ragione_sociale || view.cliente_ragione_sociale || "N/D",
+      partita_iva: snapshotCliente.partita_iva || view.cliente_partita_iva,
+      pec: snapshotCliente.pec || view.cliente_pec,
+      codice_univoco: snapshotCliente.codice_univoco || view.cliente_codice_univoco,
+      email: snapshotCliente.email || view.cliente_email,
+      telefono: snapshotCliente.telefono || view.cliente_telefono,
+      indirizzo: snapshotCliente.indirizzo || undefined,
+      citta: snapshotCliente.citta || undefined,
+      cap: snapshotCliente.cap || undefined,
+      provincia: snapshotCliente.provincia || undefined,
     },
-    Mezzi: (mezzo.matricola || view.matricola) ? {
-      matricola: mezzo.matricola || view.matricola,
-      marca: mezzo.marca || view.marca,
-      modello: mezzo.modello || view.modello,
-      anno: mezzo.anno || view.anno,
-      ore: mezzo.ore || view.ore
+    Mezzi: (snapshotMezzo.matricola || view.matricola) ? {
+      matricola: snapshotMezzo.matricola || view.matricola,
+      marca: snapshotMezzo.marca || view.marca,
+      modello: snapshotMezzo.modello || view.modello,
+      anno: snapshotMezzo.anno || view.anno,
+      ore: snapshotMezzo.ore || view.ore,
+      categoria: snapshotMezzo.categoria || undefined,
     } : undefined,
     Sedi: view.sede_nome || view.sede_indirizzo ? {
       nome_sede: view.sede_nome,
@@ -62,7 +69,23 @@ function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleg
     } : undefined,
     Noleggi: view.noleggio_is_terminato !== null ? {
       is_terminato: view.noleggio_is_terminato
-    } : undefined
+    } : undefined,
+    sede_operativa: view.sede_operativa || null,
+    updated_at: view.updated_at || null,
+    // Extra Info per PDF (BRANDING DOMINANTE - Priorità assoluta ai dati Live Owner)
+    dati_azienda: {
+      ragione_sociale: view.owner_ragione_sociale || snapshotAzienda.ragione_sociale || "MVC TOSCANA CARRELLI",
+      partita_iva: view.owner_partita_iva || snapshotAzienda.partita_iva || "000000001",
+      pec: view.owner_pec || snapshotAzienda.pec,
+      codice_univoco: view.owner_sdi || snapshotAzienda.codice_univoco,
+      iban: view.owner_iban || snapshotAzienda.iban,
+      indirizzo: view.owner_indirizzo || snapshotAzienda.indirizzo || "Viale magri 115",
+      citta: view.owner_citta || snapshotAzienda.citta || "Livorno",
+      cap: view.owner_cap || snapshotAzienda.cap,
+      provincia: view.owner_provincia || snapshotAzienda.provincia,
+      telefono: "0586.000000",
+      email: "info@toscanacarrelli.it"
+    }
   } as PreventivoNoleggio;
 }
 

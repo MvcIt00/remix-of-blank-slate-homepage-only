@@ -85,12 +85,12 @@ export function PreventivoPDF({ datiOwner, datiCliente, datiMezzo, datiPreventiv
                 {/* 1. Cliente e Riferimenti - Deterministic Grid */}
                 <PDFGrid>
                     <PDFGridCol width="50%">
-                        <PDFSection title="Spett.le Cliente">
+                        <PDFSection title="DESTINATARIO">
                             <Text style={pdfStyles.textBold}>{datiCliente.ragione_sociale}</Text>
                             <View style={{ marginTop: 2 }}>
                                 <Text style={pdfStyles.text}>{datiCliente.indirizzo}</Text>
                                 <Text style={pdfStyles.text}>{datiCliente.cap} {datiCliente.citta} ({datiCliente.provincia})</Text>
-                                {datiCliente.piva && <Text style={pdfStyles.text}>P.IVA: {datiCliente.piva}</Text>}
+                                {datiCliente.piva && <Text style={pdfStyles.text}>P.IVA {datiCliente.piva}</Text>}
                             </View>
                         </PDFSection>
                     </PDFGridCol>

@@ -58,6 +58,7 @@ export interface PreventivoNoleggio {
     cap?: string | null;
     provincia?: string | null;
   } | null;
+  dati_azienda?: any | null; // Logica Dinamica Owner MVC
 }
 
 export interface PreventivoNoleggioInput {

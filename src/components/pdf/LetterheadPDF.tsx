@@ -15,32 +15,32 @@ export const PDF_MARGINS = {
   footerPosition: 25,
 };
 
-// Tavolozza colori Premium (Figma Design System)
+// Tavolozza colori Premium (Toscana Carrelli Identity)
 export const PDF_COLORS = {
-  primary: "#1e293b", // Slate 800
-  secondary: "#334155", // Slate 700
-  accent: "#b45309", // Amber 700 (Toscana Carrelli)
-  textMain: "#1e293b",
+  primary: "#1a365d", // Blu Profondo Istituzionale (Toscana Carrelli)
+  secondary: "#2d3748", // Slate 800
+  accent: "#FFC107", // Giallo Toscana Carrelli Vivo
+  textMain: "#1a365d",
   textMuted: "#64748b", // Slate 500
   border: "#e2e8f0", // Slate 200
   bgLight: "#f8fafc", // Slate 50
   white: "#ffffff",
 };
 
-// Dati Aziendali STATIC (Hardcoded per massima stabilità)
-// Evita dipendenze dal DB per i dati dell'intestazione
+// Dati Aziendali STATIC (Fallback / Legacy)
+// In produzione vengono sovrascritti dai dati della tabella 'Anagrafiche' (is_owner = true)
 export const CONST_OWNER_DATA: DatiAziendaOwner = {
-  ragione_sociale: "MVC TOSCANA CARRELLI",
-  partita_iva: "00000000001",
-  indirizzo: "Viale Magri 115",
+  ragione_sociale: "Mvc Toscana Carrelli",
+  partita_iva: "000000001",
+  indirizzo: "Viale magri 115",
   citta: "Livorno",
-  cap: "57100",
-  provincia: "LI",
-  telefono: "0586 000000",
+  cap: null,
+  provincia: null,
+  telefono: "0586.000000",
   email: "info@toscanacarrelli.it",
-  pec: "pec@toscanacarrelli.it",
-  codice_univoco: "0000000",
-  iban: "IT00000000000000001"
+  pec: null,
+  codice_univoco: null,
+  iban: null
 };
 
 export const pdfStyles = StyleSheet.create({
@@ -125,19 +125,19 @@ export const pdfStyles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 20,
   },
-  // Sezione Header (SPAZIO CHIARO)
+  // Sezione Header (SPAZIO CHIARO + IDENTITÀ)
   sectionHeader: {
-    fontSize: 9,
+    fontSize: 9.5,
     fontFamily: "Helvetica-Bold",
-    color: "#1a365d",
+    color: PDF_COLORS.primary, // Navy Blu
     textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 12,
-    paddingVertical: 6,
+    letterSpacing: 1,
+    marginBottom: 10,
+    paddingVertical: 5,
     paddingHorizontal: 8,
-    backgroundColor: "#f8fafc",
-    borderLeftWidth: 3,
-    borderLeftColor: "#FBBF24",
+    backgroundColor: PDF_COLORS.bgLight,
+    borderLeftWidth: 4,
+    borderLeftColor: PDF_COLORS.accent, // Giallo Toscana Carrelli
   },
   content: {
     paddingTop: 5,
@@ -180,7 +180,7 @@ export const pdfStyles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   tableHeaderText: {
-    color: "#ffffff",
+    color: "#ffffff", // Bianco Puro (High Contrast)
     fontSize: 8,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
@@ -343,7 +343,8 @@ export function LetterheadFooter({ datiOwner, pageNumber = true }: LetterheadFoo
   return (
     <View style={pdfStyles.footer} fixed>
       <Text>
-        {datiOwner.ragione_sociale} - P.IVA {datiOwner.partita_iva}
+        {datiOwner.ragione_sociale}
+        {datiOwner.partita_iva && ` - P.IVA ${datiOwner.partita_iva}`}
         {datiOwner.iban && ` - IBAN: ${datiOwner.iban}`}
       </Text>
       {pageNumber && (
