@@ -4,6 +4,7 @@
  * Versione 3.1 - Enterprise Design System (Fixed Header & Static Owner Data)
  */
 
+import React from "react";
 import { Page, View, Text, Image, StyleSheet, Document } from "@react-pdf/renderer";
 import logoMvc from "@/assets/logo_mvc.png";
 
@@ -265,15 +266,24 @@ interface PageShellProps {
   titolo?: string;
   sottoTitolo?: string;
   datiOwner?: DatiAziendaOwner;
+  documentId?: string; // ID univoco del documento (es. ID Preventivo)
+  disclaimer?: string; // Disclaimer opzionale
 }
 
 /**
  * PageShell - Il componente più 'sicuro' per generare documenti.
  * Enforces standardized margins, header, and footer.
  */
-export function PageShell({ children, titolo, sottoTitolo, datiOwner }: PageShellProps) {
+export function PageShell({ children, titolo, sottoTitolo, datiOwner, documentId, disclaimer }: PageShellProps) {
   // Usa i dati passati o il fallback statico
   const effectiveOwner = datiOwner || CONST_OWNER_DATA;
+
+  // Genera un Hash-ID di validazione deterministico se non fornito
+  const validationId = React.useMemo(() => {
+    if (documentId) return documentId.slice(-8).toUpperCase();
+    const hash = Math.random().toString(36).substring(2, 10).toUpperCase();
+    return `TMP-${hash}`;
+  }, [documentId]);
 
   const indirizzoCompleto = [
     effectiveOwner.indirizzo,
@@ -323,7 +333,11 @@ export function PageShell({ children, titolo, sottoTitolo, datiOwner }: PageShel
         {children}
       </View>
 
-      <LetterheadFooter datiOwner={effectiveOwner} />
+      <LetterheadFooter
+        datiOwner={effectiveOwner}
+        validationId={validationId}
+        disclaimer={disclaimer}
+      />
     </Page>
   );
 }
@@ -334,24 +348,46 @@ export function LetterheadHeader({ datiOwner }: any) { return null; }
 interface LetterheadFooterProps {
   datiOwner: DatiAziendaOwner;
   pageNumber?: boolean;
+  validationId?: string;
+  disclaimer?: string;
 }
 
 /**
  * Componente Footer della carta intestata
  */
-export function LetterheadFooter({ datiOwner, pageNumber = true }: LetterheadFooterProps) {
+export function LetterheadFooter({ datiOwner, pageNumber = true, validationId, disclaimer }: LetterheadFooterProps) {
   return (
     <View style={pdfStyles.footer} fixed>
-      <Text>
-        {datiOwner.ragione_sociale}
-        {datiOwner.partita_iva && ` - P.IVA ${datiOwner.partita_iva}`}
-        {datiOwner.iban && ` - IBAN: ${datiOwner.iban}`}
-      </Text>
-      {pageNumber && (
-        <Text
-          render={({ pageNumber: pn, totalPages }) => `Pagina ${pn} di ${totalPages}`}
-        />
+      {disclaimer && (
+        <Text style={{ fontSize: 6, color: "#718096", marginBottom: 4, fontStyle: "italic" }}>
+          {disclaimer}
+        </Text>
       )}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', borderTopWidth: 0.5, borderTopColor: "#e2e8f0", paddingTop: 4 }}>
+        <View style={{ flex: 1, textAlign: 'left' }}>
+          <Text>
+            {datiOwner.ragione_sociale}
+            {datiOwner.partita_iva && ` - P.IVA ${datiOwner.partita_iva}`}
+          </Text>
+          {datiOwner.iban && <Text style={{ fontSize: 6 }}>IBAN: {datiOwner.iban}</Text>}
+        </View>
+
+        {validationId && (
+          <View style={{ flex: 1, textAlign: 'center' }}>
+            <Text style={{ fontSize: 6, fontFamily: 'Helvetica-Bold', color: '#4a5568' }}>
+              VALIDAZIONE: {validationId}
+            </Text>
+          </View>
+        )}
+
+        <View style={{ flex: 1, textAlign: 'right' }}>
+          {pageNumber && (
+            <Text
+              render={({ pageNumber: pn, totalPages }) => `Pagina ${pn} di ${totalPages}`}
+            />
+          )}
+        </View>
+      </View>
     </View>
   );
 }

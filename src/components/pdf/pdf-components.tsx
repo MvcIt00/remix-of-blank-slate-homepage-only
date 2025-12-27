@@ -67,12 +67,17 @@ export interface GroupSectionData extends BaseSection {
     keepTogether: boolean;
 }
 
+export interface BreakPageSectionData extends BaseSection {
+    type: 'break-page';
+}
+
 export type DocumentSection =
     | StandardSectionData
     | EconomicSectionData
     | TextSectionData
     | SignatureSectionData
-    | GroupSectionData;
+    | GroupSectionData
+    | BreakPageSectionData;
 
 
 /* ==========================================================================
@@ -238,6 +243,9 @@ const SectionRenderer = ({ section }: { section: DocumentSection }) => {
                         ))}
                     </View>
                 );
+
+            case 'break-page':
+                return <View break />;
 
             default:
                 return null;

@@ -179,16 +179,18 @@ export function ContrattoPDF({ datiOwner, datiCliente, datiMezzo, datiContratto 
     sectionDatiCliente,
     sectionMezzo,
     sectionCondizioni,
+    { id: 'atomic_split', type: 'break-page' }, // ATOMIC SPLIT SEMANTICO
     bottomGroup
   ];
 
   return (
     <Document title={`Contratto_${datiContratto.codice_contratto}`}>
-      {/* PAGE 1: GENERATED CONTENT */}
       <PageShell
         titolo="Contratto di Noleggio"
         sottoTitolo={`Rif. ${datiContratto.codice_contratto}`}
         datiOwner={datiOwner}
+        documentId={datiContratto.codice_contratto}
+        disclaimer="* Il presente contratto è regolato dalle condizioni generali di noleggio di Toscana Carrelli S.r.l. La firma del presente documento costituisce accettazione integrale di ogni clausola."
       >
         <PDFDocumentBuilder sections={documentSections} />
       </PageShell>

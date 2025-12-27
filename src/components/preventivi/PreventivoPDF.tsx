@@ -1,20 +1,22 @@
-import { Document, View, Text } from "@react-pdf/renderer";
+import React from "react";
+import { Document } from "@react-pdf/renderer";
 import {
     PageShell,
     DatiAziendaOwner,
     formatDataItaliana,
     formatEuro,
-    getModalitaPagamentoLabel
 } from "@/components/pdf/LetterheadPDF";
 import {
-    PDFSection,
-    PDFKeyValue,
-    PDFTable,
-    PDFGrid,
-    PDFGridCol,
-    PDFSignatureBox
+    PDFDocumentBuilder,
+    DocumentSection,
+    StandardSectionData,
+    EconomicSectionData,
+    SignatureSectionData,
 } from "@/components/pdf/pdf-components";
-import { pdfStyles } from "@/components/pdf/LetterheadPDF";
+import {
+    UniversalClientSection,
+    UniversalMezzoSection
+} from "@/components/pdf/universal/UniversalPDFSections";
 
 export interface DatiCliente {
     ragione_sociale: string;
@@ -27,6 +29,13 @@ export interface DatiCliente {
     email?: string;
     pec?: string;
     telefono?: string;
+    sede_legale_indirizzo?: string;
+    sede_legale_citta?: string;
+    sede_legale_cap?: string;
+    sede_legale_provincia?: string;
+    nome_contatto_principale?: string;
+    email_principale?: string;
+    telefono_principale?: string;
 }
 
 export interface DatiMezzo {
@@ -34,6 +43,10 @@ export interface DatiMezzo {
     modello: string;
     matricola: string;
     id_interno?: string;
+    anno?: string;
+    categoria?: string;
+    ore_moto?: number;
+    ubicazione_attuale_dettaglio?: string;
 }
 
 export interface DatiPreventivo {
@@ -57,6 +70,32 @@ interface PreventivoPDFProps {
 }
 
 export function PreventivoPDF({ datiOwner, datiCliente, datiMezzo, datiPreventivo }: PreventivoPDFProps) {
+    // 1. Preparazione Sezioni Universali
+    const clientSection = UniversalClientSection(datiCliente as any, {
+        title: "Destinatario",
+        id: "cliente_header"
+    });
+
+    const mezzoSection = UniversalMezzoSection(datiMezzo as any, {
+        title: "Oggetto: Proposta di Noleggio",
+        mode: 'standard'
+    });
+
+    // 2. Condizioni Operative
+    const sectionCondizioni: StandardSectionData = {
+        id: 'condizioni',
+        type: 'standard',
+        title: 'Riferimenti e Durata',
+        spacingTop: 'section',
+        data: [
+            { label: 'Data Preventivo', value: formatDataItaliana(datiPreventivo.data_creazione) },
+            { label: 'Inizio Previsto', value: datiPreventivo.data_inizio ? formatDataItaliana(datiPreventivo.data_inizio) : "Da concordare" },
+            { label: 'Durata Stima', value: datiPreventivo.tempo_indeterminato ? "Tempo indeterminato" : "Da concordare" },
+            { label: 'Valido fino al', value: datiPreventivo.valido_fino ? formatDataItaliana(datiPreventivo.valido_fino) : "30 giorni" }
+        ].filter(d => d.value)
+    };
+
+    // 3. Proposta Economica
     const rows = [
         [
             `Canone di Noleggio (${datiPreventivo.tipo_canone || "mensile"})`,
@@ -67,13 +106,51 @@ export function PreventivoPDF({ datiOwner, datiCliente, datiMezzo, datiPreventiv
 
     if (datiPreventivo.prezzo_trasporto) {
         rows.push([
-            "Costi di Trasporto (Andata/Ritorno)",
+            "Costi di Trasporto (A/R)",
             formatEuro(datiPreventivo.prezzo_trasporto),
             "Una Tantum"
         ]);
     }
 
-    const totale = (datiPreventivo.prezzo_noleggio || 0) + (datiPreventivo.prezzo_trasporto || 0);
+    const sectionEconomica: EconomicSectionData = {
+        id: 'economica',
+        type: 'economic',
+        spacingTop: 'section',
+        tableHeaders: ["Descrizione", "Importo (IVA escl.)", "Frequenza"],
+        columnWidths: ["50%", "25%", "25%"],
+        rows: rows,
+        totalLabel: "TOTALE PREVENTIVO",
+        totalValue: formatEuro((datiPreventivo.prezzo_noleggio || 0) + (datiPreventivo.prezzo_trasporto || 0))
+    };
+
+    // 4. Firme
+    const sectionFirme: SignatureSectionData = {
+        id: 'firme',
+        type: 'signatures',
+        spacingTop: 'final',
+        labels: ["Il Cliente (per Accettazione)", "Toscana Carrelli S.r.l."]
+    };
+
+    const documentSections: DocumentSection[] = [
+        clientSection,
+        {
+            id: 'dati_oggettivi',
+            type: 'group',
+            keepTogether: true,
+            sections: [mezzoSection, sectionCondizioni]
+        },
+        { id: 'split', type: 'break-page' }, // ATOMIC SPLIT
+        {
+            id: 'economia_firme',
+            type: 'group',
+            keepTogether: true,
+            sections: [
+                sectionEconomica,
+                ...(datiPreventivo.note ? [{ id: 'note', type: 'text', content: `Note: ${datiPreventivo.note}`, spacingTop: 'normal' } as DocumentSection] : []),
+                sectionFirme
+            ]
+        }
+    ];
 
     return (
         <Document title={`Preventivo_${datiPreventivo.codice_preventivo}`}>
@@ -81,91 +158,10 @@ export function PreventivoPDF({ datiOwner, datiCliente, datiMezzo, datiPreventiv
                 titolo="PREVENTIVO DI NOLEGGIO"
                 sottoTitolo={`N. ${datiPreventivo.codice_preventivo}`}
                 datiOwner={datiOwner}
+                documentId={datiPreventivo.codice_preventivo}
+                disclaimer="* I prezzi indicati non includono l'IVA. La proposta ha validità 30gg salvo il venduto. Il noleggio è regolato dalle condizioni generali di Toscana Carrelli."
             >
-                {/* 1. Cliente e Riferimenti - Deterministic Grid */}
-                <PDFGrid>
-                    <PDFGridCol width="50%">
-                        <PDFSection title="DESTINATARIO">
-                            <Text style={pdfStyles.textBold}>{datiCliente.ragione_sociale}</Text>
-                            <View style={{ marginTop: 2 }}>
-                                <Text style={pdfStyles.text}>{datiCliente.indirizzo}</Text>
-                                <Text style={pdfStyles.text}>{datiCliente.cap} {datiCliente.citta} ({datiCliente.provincia})</Text>
-                                {datiCliente.piva && <Text style={pdfStyles.text}>P.IVA {datiCliente.piva}</Text>}
-                            </View>
-                        </PDFSection>
-                    </PDFGridCol>
-                    <PDFGridCol width="45%">
-                        <PDFSection title="Riferimenti">
-                            <PDFKeyValue label="Data Documento" value={formatDataItaliana(datiPreventivo.data_creazione)} />
-                            <PDFKeyValue label="Codice Prev." value={datiPreventivo.codice_preventivo} />
-                            {datiPreventivo.valido_fino && (
-                                <PDFKeyValue label="Valido fino al" value={formatDataItaliana(datiPreventivo.valido_fino)} />
-                            )}
-                        </PDFSection>
-                    </PDFGridCol>
-                </PDFGrid>
-
-                {/* 2. Dettaglio Mezzo */}
-                <PDFSection title="Dettagli Mezzo Preventivato">
-                    <PDFGrid>
-                        <PDFGridCol width="50%">
-                            <PDFKeyValue label="Marca / Modello" value={`${datiMezzo.marca} ${datiMezzo.modello}`} />
-                        </PDFGridCol>
-                        <PDFGridCol width="45%">
-                            <PDFKeyValue label="Matricola" value={datiMezzo.matricola} />
-                        </PDFGridCol>
-                    </PDFGrid>
-                </PDFSection>
-
-                {/* 3. Proposta Economica */}
-                <PDFSection title="Proposta Economica">
-                    <PDFTable
-                        headers={["Descrizione", "Importo (IVA escl.)", "Frequenza"]}
-                        columnWidths={["55%", "20%", "25%"]}
-                        rows={rows}
-                    />
-
-                    <View style={{ marginTop: 5, alignItems: 'flex-end' }}>
-                        <View style={{ width: 180, borderTopWidth: 1, borderTopColor: '#1a365d', paddingTop: 8 }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold" }}>TOTALE PREV.</Text>
-                                <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold" }}>{formatEuro(totale)}</Text>
-                            </View>
-                        </View>
-                    </View>
-                </PDFSection>
-
-                {/* 4. Note e Condizioni */}
-                <PDFSection title="Note e Condizioni di Noleggio">
-                    <PDFGrid>
-                        <PDFGridCol width="50%">
-                            <PDFKeyValue label="Disponibilità" value="Da confermare" />
-                            <PDFKeyValue
-                                label="Inizio previsto"
-                                value={datiPreventivo.data_inizio ? formatDataItaliana(datiPreventivo.data_inizio) : "Da concordare"}
-                            />
-                        </PDFGridCol>
-                        <PDFGridCol width="45%">
-                            <PDFKeyValue
-                                label="Durata stimata"
-                                value={datiPreventivo.tempo_indeterminato ? "Tempo indeterminato" : "Da concordare"}
-                            />
-                        </PDFGridCol>
-                    </PDFGrid>
-
-                    {datiPreventivo.note && (
-                        <View style={{ marginTop: 10 }}>
-                            <Text style={[pdfStyles.text, { fontStyle: 'italic', fontSize: 8 }]}>Note: {datiPreventivo.note}</Text>
-                        </View>
-                    )}
-                </PDFSection>
-
-                {/* 5. Firme - Grouped */}
-                <View style={{ marginTop: 25 }} wrap={false}>
-                    <PDFSignatureBox label="Per Accettazione (Il Cliente)" />
-                    <PDFSignatureBox label="Toscana Carrelli S.r.l." />
-                </View>
-
+                <PDFDocumentBuilder sections={documentSections} />
             </PageShell>
         </Document>
     );

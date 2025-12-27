@@ -190,6 +190,7 @@ export function PreventivoPDF({ datiOwner, datiCliente, datiMezzo, datiPreventiv
         sectionCondizioni
       ]
     },
+    { id: 'page_split', type: 'break-page' }, // FORZA SALTO PAGINA SEMANTICO
     {
       id: 'economica_firme',
       type: 'group',
@@ -208,16 +209,10 @@ export function PreventivoPDF({ datiOwner, datiCliente, datiMezzo, datiPreventiv
         titolo="Preventivo di Noleggio"
         sottoTitolo={`Rif. ${datiPreventivo.codice_preventivo}`}
         datiOwner={datiOwner}
+        documentId={datiPreventivo.codice_preventivo}
+        disclaimer="* I prezzi indicati non includono l'IVA. La presente proposta non costituisce contratto sino a conferma scritta delle parti. Il mezzo viene consegnato in perfetto stato di funzionamento e deve essere restituito nelle medesime condizioni."
       >
         <PDFDocumentBuilder sections={documentSections} />
-
-        {/* CHARACTER: Footer Note specific for Quotes */}
-        <View style={{ marginTop: 20, padding: 10, backgroundColor: PDF_COLORS.bgLight, borderLeftWidth: 2, borderLeftColor: PDF_COLORS.accent }}>
-          <Text style={{ fontSize: 7, color: PDF_COLORS.textMuted, lineHeight: 1.4 }}>
-            * I prezzi indicati non includono l'IVA. La presente proposta non costituisce contratto sino a conferma scritta delle parti.
-            Il mezzo viene consegnato in perfetto stato di funzionamento e deve essere restituito nelle medesime condizioni.
-          </Text>
-        </View>
       </PageShell>
     </Document>
   );
