@@ -554,7 +554,7 @@ export function ModificaNoleggioForm({ noleggio, onClose, onSuccess }: ModificaN
 
   const tempoIndeterminato = form.watch("tempo_indeterminato");
 
-  const mezzoLabel = noleggio.Mezzi 
+  const mezzoLabel = noleggio.Mezzi
     ? `${noleggio.Mezzi.marca ?? "-"} ${noleggio.Mezzi.modello ?? ""}`.trim()
     : "Mezzo";
 

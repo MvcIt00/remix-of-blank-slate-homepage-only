@@ -12,6 +12,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { NuovoNoleggioForm } from "@/components/form/nuovo_noleggio_form";
 import { useNavigate } from "react-router-dom";
 import { MezzoClickable } from "@/components/mezzo-clickable";
+import { calcolaStatoNoleggio, isMezzoDisponibilePerNoleggio } from "@/utils/noleggioStatus";
 
 
 interface MezzoDisponibile {
@@ -23,12 +24,25 @@ interface MezzoDisponibile {
   categoria: string | null;
   anno: string | null;
   id_anagrafica: string | null;
-  Anagrafiche: {
-    ragione_sociale: string | null;
-    partita_iva: string | null;
-  } | null;
-}
+  owner_ragione_sociale: string | null;
+  owner_partita_iva: string | null;
 
+  // Sede Ubicazione
+  sede_ubicazione_nome: string | null;
+  sede_ubicazione_completa: string | null;
+
+  // Noleggio attivo (se presente)
+  id_noleggio: string | null;
+  noleggio_data_inizio: string | null;
+  noleggio_data_fine: string | null;
+  noleggio_tempo_indeterminato: boolean | null;
+  noleggio_is_terminato: boolean | null;
+  stato_noleggio: "futuro" | "attivo" | "scaduto" | "archiviato" | "terminato" | null;
+
+  // Cliente noleggio
+  cliente_ragione_sociale: string | null;
+  cliente_piva: string | null;
+}
 export default function Noleggi() {
   const navigate = useNavigate();
   const [mezziDisponibili, setMezziDisponibili] = useState<MezzoDisponibile[]>([]);
@@ -45,20 +59,29 @@ export default function Noleggi() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("Mezzi")
-        .select(`
-          *,
-          Anagrafiche (
-            ragione_sociale,
-            partita_iva
-          )
-        `)
-        .eq("is_disponibile_noleggio", true)
-        .eq("is_cancellato", false)
-        .order("created_at", { ascending: false });
+        .from("vw_mezzi_disponibili_noleggio" as any)
+        .select("*");
 
       if (error) throw error;
-      setMezziDisponibili(data || []);
+
+      // Ordina: prima mezzi disponibili (senza noleggio), poi con noleggio
+      const sorted = (data || []).sort((a: any, b: any) => {
+        const aHasNoleggio = a.stato_noleggio ? 1 : 0;
+        const bHasNoleggio = b.stato_noleggio ? 1 : 0;
+
+        // Prima mezzi senza noleggio (0), poi con noleggio (1)
+        if (aHasNoleggio !== bHasNoleggio) {
+          return aHasNoleggio - bHasNoleggio;
+        }
+
+        // All'interno dello stesso gruppo, ordina per marca
+        const marcaA = (a.marca || "").toLowerCase();
+        const marcaB = (b.marca || "").toLowerCase();
+        return marcaA.localeCompare(marcaB);
+      });
+
+      setMezziDisponibili((sorted as unknown as MezzoDisponibile[]) || []);
+
     } catch (error) {
       console.error("Error loading mezzi disponibili:", error);
       toast({
@@ -106,43 +129,78 @@ export default function Noleggi() {
         </MezzoClickable>
       ),
     },
-    { key: "matricola", label: "Matricola" },
-    { key: "id_interno", label: "ID Interno" },
     {
-      key: "categoria",
-      label: "Categoria",
-      render: (value) => value && <Badge variant="secondary">{value}</Badge>,
+      key: "matricola",
+      label: "Identificazione",
+      render: (_, mezzo) => (
+        <div className="text-sm">
+          <div className="font-medium">{mezzo.matricola || "-"}</div>
+          <div className="text-xs text-muted-foreground">{mezzo.id_interno || "-"}</div>
+        </div>
+      ),
     },
-    { key: "anno", label: "Anno" },
+    {
+      key: "ubicazione",
+      label: "Ubicazione",
+      render: (_, mezzo) => {
+        if (!mezzo.sede_ubicazione_nome && !mezzo.sede_ubicazione_completa) return "-";
+        return (
+          <div className="text-sm max-w-[250px]">
+            <div className="font-medium truncate">{mezzo.sede_ubicazione_nome || "-"}</div>
+            <div className="text-xs text-muted-foreground truncate">{mezzo.sede_ubicazione_completa || "-"}</div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "stato_noleggio",
+      label: "Stato",
+      render: (_, mezzo) => {
+        if (!mezzo.stato_noleggio) return <Badge variant="outline">Disponibile</Badge>;
+        const { label, variant, className } = calcolaStatoNoleggio({
+          stato_noleggio: mezzo.stato_noleggio,
+          is_terminato: mezzo.noleggio_is_terminato || false
+        });
+        return <Badge variant={variant} className={className}>{label}</Badge>;
+      },
+    },
     {
       key: "proprietario",
       label: "Proprietario",
       render: (_, mezzo) => (
         <div className="text-sm">
-          <div className="font-medium">{mezzo.Anagrafiche?.ragione_sociale || "-"}</div>
-          <div className="text-muted-foreground">P.IVA: {mezzo.Anagrafiche?.partita_iva || "-"}</div>
+          <div className="font-medium">{mezzo.owner_ragione_sociale || "-"}</div>
+          <div className="text-muted-foreground">P.IVA: {mezzo.owner_partita_iva || "-"}</div>
         </div>
       ),
     },
   ];
 
-  const renderActions = (mezzo: MezzoDisponibile) => (
-    <TableActions
-      customActions={[
-        {
-          label: "Preventivo",
-          icon: <FileText className="h-4 w-4" />,
-          onClick: () => handlePreventivoMezzo(mezzo),
-        },
-        {
-          label: "Noleggia",
-          icon: <Plus className="h-4 w-4" />,
-          onClick: () => handleNoleggiaMezzo(mezzo),
-          variant: "default",
-        },
-      ]}
-    />
-  );
+  const renderActions = (mezzo: MezzoDisponibile) => {
+    const isDisponibile = isMezzoDisponibilePerNoleggio({
+      stato_noleggio: mezzo.stato_noleggio,
+      is_terminato: mezzo.noleggio_is_terminato || false
+    });
+
+    const actions = [
+      {
+        label: "Preventivo",
+        icon: <FileText className="h-4 w-4" />,
+        onClick: () => handlePreventivoMezzo(mezzo),
+      },
+    ];
+
+    // Aggiungi bottone Noleggia solo se mezzo disponibile
+    if (isDisponibile) {
+      actions.push({
+        label: "Noleggia",
+        icon: <Plus className="h-4 w-4" />,
+        onClick: () => handleNoleggiaMezzo(mezzo),
+      });
+    }
+
+    return <TableActions customActions={actions} />;
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -200,7 +258,13 @@ export default function Noleggi() {
         <DialogContent className="max-w-4xl">
           {mezzoSelezionato && (
             <NuovoNoleggioForm
-              mezzo={mezzoSelezionato}
+              mezzo={{
+                ...mezzoSelezionato,
+                Anagrafiche: {
+                  ragione_sociale: mezzoSelezionato.owner_ragione_sociale,
+                  partita_iva: mezzoSelezionato.owner_partita_iva,
+                },
+              }}
               mode={formMode}
               onClose={handleCloseForm}
               onSuccess={handleSuccess}
