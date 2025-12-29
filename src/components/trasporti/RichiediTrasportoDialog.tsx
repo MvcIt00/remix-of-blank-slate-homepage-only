@@ -326,8 +326,8 @@ export function RichiediTrasportoDialog({ idNoleggio, open, onOpenChange }: Rich
                                                 <AnagraficaSelettore
                                                     key={`partenza-anag-${field.value}`}
                                                     placeholder="Seleziona partenza"
-                                                    onSelectAnagrafica={(anagrafica) => {
-                                                        field.onChange(anagrafica.id_anagrafica);
+                                                    onSelectAnagrafica={(id) => {
+                                                        field.onChange(id);
                                                         setManualAnagraficaPartenza(true);
                                                     }}
                                                     defaultValue={field.value}
@@ -374,8 +374,8 @@ export function RichiediTrasportoDialog({ idNoleggio, open, onOpenChange }: Rich
                                                 <AnagraficaSelettore
                                                     key={`arrivo-anag-${field.value}`}
                                                     placeholder={tipoTrasporto ? "Seleziona anagrafica arrivo" : "Seleziona tipo trasporto prima"}
-                                                    onSelectAnagrafica={(anagrafica) => {
-                                                        field.onChange(anagrafica.id_anagrafica);
+                                                    onSelectAnagrafica={(id) => {
+                                                        field.onChange(id);
                                                         setManualAnagraficaArrivo(true);
                                                     }}
                                                     defaultValue={field.value}
@@ -420,7 +420,7 @@ export function RichiediTrasportoDialog({ idNoleggio, open, onOpenChange }: Rich
                                             <AnagraficaSelettore
                                                 placeholder="Seleziona vettore"
                                                 filterView="trasportatori"
-                                                onSelectAnagrafica={(anagrafica) => field.onChange(anagrafica.id_anagrafica)}
+                                                onSelectAnagrafica={(id) => field.onChange(id)}
                                                 defaultValue={field.value}
                                             />
                                         </FormControl>

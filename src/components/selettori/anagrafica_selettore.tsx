@@ -12,7 +12,7 @@ interface Anagrafica {
 }
 
 interface AnagraficaSelettoreProps {
-  onSelectAnagrafica: (anagrafica: Anagrafica) => void;
+  onSelectAnagrafica: (id: string, anagrafica: Anagrafica) => void;
   defaultValue?: string;
   placeholder?: string;
   filterView?: 'trasportatori';  // Estendibile: 'clienti' | 'fornitori' | etc.
@@ -56,7 +56,7 @@ export function AnagraficaSelettore({
     <BaseSelector
       onSearch={handleSearch}
       loadById={loadById}
-      onSelect={(a) => onSelectAnagrafica(a)}
+      onSelect={(a) => onSelectAnagrafica(a.id_anagrafica, a)}
       getDisplayValue={(a) => a.ragione_sociale}
       getId={(a) => a.id_anagrafica}
       placeholder={placeholder}
