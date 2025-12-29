@@ -13,6 +13,9 @@ import { PreventivoNoleggioInput } from "@/types/preventiviNoleggio";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SedeSelettore } from "@/components/selettori/sede_selettore";
+// import { useCalcoloTrasporto, useZoneTrasporto } from "@/hooks/useCalcoloTrasporto"; // OPTIONAL FUTURE FEATURE
+import { Calculator, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const preventivoSchema = z.object({
   id_anagrafica: z.string().min(1, "Seleziona un cliente"),
@@ -24,6 +27,9 @@ const preventivoSchema = z.object({
   tempo_indeterminato: z.boolean().default(false),
   prezzo_noleggio: z.number().nullable(),
   prezzo_trasporto: z.number().nullable(),
+  id_zona_partenza: z.string().optional().nullable(),
+  id_zona_arrivo: z.string().optional().nullable(),
+  tipo_trasporto: z.enum(["andata", "ritorno", "andata_ritorno"]).default("andata"),
   tipo_canone: z.enum(["giornaliero", "mensile"]).nullable(),
   note: z.string().optional().nullable(),
 });
@@ -42,6 +48,7 @@ export function PreventivoNoleggioForm({
   submitLabel = "Salva preventivo",
 }: PreventivoNoleggioFormProps) {
   const [loading, setLoading] = useState(false);
+  const { data: zone } = useZoneTrasporto();
 
   const form = useForm<PreventivoFormValues>({
     resolver: zodResolver(preventivoSchema),
@@ -52,6 +59,9 @@ export function PreventivoNoleggioForm({
       tipo_canone: "mensile",
       prezzo_noleggio: null,
       prezzo_trasporto: null,
+      id_zona_partenza: null,
+      id_zona_arrivo: null,
+      tipo_trasporto: "andata",
       data_inizio: null,
       data_fine: null,
       note: null,
@@ -64,6 +74,21 @@ export function PreventivoNoleggioForm({
   const [sedi, setSedi] = useState<any[]>([]);
   const idAnagrafica = form.watch("id_anagrafica");
   const tempoIndeterminato = form.watch("tempo_indeterminato");
+  const zonaPartenza = form.watch("id_zona_partenza");
+  const zonaArrivo = form.watch("id_zona_arrivo");
+  const tipoTrasporto = form.watch("tipo_trasporto");
+  const idFornitore = form.watch("id_anagrafica_fornitore");
+
+  // Hook per calcolo automatico prezzo trasporto - OPTIONAL FUTURE FEATURE
+  // const { data: calcoloTrasporto, isLoading: isCalcoloLoading } = useCalcoloTrasporto(
+  //   {
+  //     id_zona_partenza: zonaPartenza || null,
+  //     id_zona_arrivo: zonaArrivo || null,
+  //     tipo_trasporto: tipoTrasporto,
+  //     id_fornitore: idFornitore || null,
+  //   },
+  //   false // Non auto-eseguire, solo su click "Calcola"
+  // );
 
   useEffect(() => {
     if (idAnagrafica) {
@@ -226,24 +251,127 @@ export function PreventivoNoleggioForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="prezzo_trasporto"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Prezzo trasporto (€)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="id_zona_partenza"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zona Partenza</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleziona zona" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {zone?.map((zona) => (
+                          <SelectItem key={zona.id_zona} value={zona.id_zona}>
+                            {zona.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="id_zona_arrivo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zona Arrivo</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleziona zona" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {zone?.map((zona) => (
+                          <SelectItem key={zona.id_zona} value={zona.id_zona}>
+                            {zona.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tipo_trasporto"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo Trasporto</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="andata">Solo Andata</SelectItem>
+                        <SelectItem value="ritorno">Solo Ritorno</SelectItem>
+                        <SelectItem value="andata_ritorno">Andata e Ritorno</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {zonaPartenza && zonaArrivo && calcoloTrasporto && !calcoloTrasporto.has_config && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Nessuna tariffa configurata per questa tratta. Inserisci il prezzo manualmente.
+                </AlertDescription>
+              </Alert>
             )}
-          />
+
+            <FormField
+              control={form.control}
+              name="prezzo_trasporto"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prezzo trasporto (€)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                        placeholder={calcoloTrasporto?.prezzo_suggerito ? `Suggerito: €${calcoloTrasporto.prezzo_suggerito}` : "Inserisci prezzo"}
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled={!zonaPartenza || !zonaArrivo || isCalcoloLoading}
+                      onClick={() => {
+                        if (calcoloTrasporto?.prezzo_suggerito) {
+                          field.onChange(calcoloTrasporto.prezzo_suggerito);
+                        }
+                      }}
+                      title="Calcola prezzo da configurazione"
+                    >
+                      <Calculator className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <FormField
             control={form.control}

@@ -1,4 +1,4 @@
-import { Home, Truck, Wallet, LogOut } from "lucide-react";
+import { Home, Truck, Wallet, LogOut, PackageOpen } from "lucide-react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -19,6 +19,7 @@ import { toast } from "sonner";
 const menuItems = [
   { title: "Start", url: "/", icon: Home },
   { title: "Noleggi", url: "/noleggi", icon: Truck },
+  { title: "Trasporti", url: "/trasporti", icon: PackageOpen },
   { title: "Fabbisogno", url: "/fabbisogno", icon: Wallet },
 ];
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FileCheck, FileWarning, Minus, Download, RefreshCw, Eye, Plus } from "lucide-react";
+import { FileCheck, FileWarning, Minus, Download, RefreshCw, Eye, Plus, FileText } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ContrattoUploadDialog } from "./ContrattoUploadDialog";
 import { DocumentoFirmatoDialog } from "@/components/pdf/DocumentoFirmatoDialog";
@@ -48,19 +48,64 @@ export function ContrattoStatusButton({
     );
   }
 
-  // Stato 2: Contratto firmato MANCANTE (Blu)
+  // Stato 2: Contratto firmato MANCANTE
   if (!contrattoFirmato) {
     return (
       <>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-          onClick={() => setPreviewDialogOpen(true)}
-          title="Genera Contratto"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        {hasDraftContract ? (
+          // STATO BOZZA (Marrone/Amber)
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-amber-600 text-amber-700 bg-amber-50 hover:bg-amber-100 hover:text-amber-800"
+                title="Contratto in Bozza"
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2" align="end">
+              <div className="flex flex-col gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start w-full"
+                  onClick={() => {
+                    setPopoverOpen(false);
+                    setPreviewDialogOpen(true);
+                  }}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Vedi Contratto
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start w-full"
+                  onClick={() => {
+                    setPopoverOpen(false);
+                    setUploadDialogOpen(true);
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Allega Contratto
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        ) : (
+          // STATO NUOVO (Blu)
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+            onClick={() => setPreviewDialogOpen(true)}
+            title="Genera Contratto"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
 
         <GeneraContrattoDialogWrapper
           noleggioId={noleggioId}

@@ -12,20 +12,24 @@ interface Anagrafica {
 }
 
 interface AnagraficaSelettoreProps {
-  onSelectAnagrafica: (id: string, anagrafica: Anagrafica) => void;
+  onSelectAnagrafica: (anagrafica: Anagrafica) => void;
   defaultValue?: string;
   placeholder?: string;
+  filterView?: 'trasportatori';  // Estendibile: 'clienti' | 'fornitori' | etc.
 }
 
 export function AnagraficaSelettore({
   onSelectAnagrafica,
   defaultValue,
-  placeholder = "Cerca anagrafica per nome o partita IVA..."
+  placeholder = "Cerca anagrafica per nome o partita IVA...",
+  filterView
 }: AnagraficaSelettoreProps) {
+
+  const tableName = filterView === 'trasportatori' ? 'vw_anagrafiche_trasportatori' : 'Anagrafiche';
 
   const handleSearch = async (term: string) => {
     const { data, error } = await supabase
-      .from("Anagrafiche")
+      .from(tableName)
       .select("*")
       .eq("is_cancellato", false)
       .or(`ragione_sociale.ilike.%${term}%,partita_iva.ilike.%${term}%`)
@@ -40,7 +44,7 @@ export function AnagraficaSelettore({
 
   const loadById = async (id: string) => {
     const { data } = await supabase
-      .from("Anagrafiche")
+      .from(tableName)
       .select("*")
       .eq("id_anagrafica", id)
       .eq("is_cancellato", false)
@@ -52,7 +56,7 @@ export function AnagraficaSelettore({
     <BaseSelector
       onSearch={handleSearch}
       loadById={loadById}
-      onSelect={(a) => onSelectAnagrafica(a.id_anagrafica, a)}
+      onSelect={(a) => onSelectAnagrafica(a)}
       getDisplayValue={(a) => a.ragione_sociale}
       getId={(a) => a.id_anagrafica}
       placeholder={placeholder}

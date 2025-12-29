@@ -20,12 +20,17 @@ import {
     Pencil,
     Trash2,
     FileCheck,
-    AlertTriangle
+    AlertTriangle,
+    PackageOpen,
+    Plus
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ContrattoStatusButton } from "@/components/contratti";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import { useTrasportiByNoleggio } from "@/hooks/useTrasporti";
+import { useState } from "react";
+import { TrasportiCollegatiSection } from "./TrasportiCollegatiSection";
 
 // Importa le interfacce necessarie (o ridefiniscile se sono locali in NoleggiAttivi, meglio esportarle)
 // Per ora uso 'any' per le parti complesse per non bloccarmi sui tipi, ma l'ideale è condividere Noleggio
@@ -177,6 +182,11 @@ export function RentalDetailSheet({
                             </div>
                         </div>
                     </section>
+
+                    <Separator />
+
+                    {/* --- TRASPORTI COLLEGATI --- */}
+                    <TrasportiCollegatiSection noleggioId={noleggio.id_noleggio} />
                 </div>
 
                 <SheetFooter className="mt-12 flex-col gap-2 sm:flex-col sm:space-x-0 border-t pt-6">
