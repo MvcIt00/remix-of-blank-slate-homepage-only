@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { FileText, Send, Clock, AlertTriangle, Edit } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { usePreventiviStats } from "@/hooks/usePreventiviStats";
 import { StatoPreventivo } from "@/types/preventiviNoleggio";
 import { PreventiviFilteredDialog } from "./PreventiviFilteredDialog";
@@ -13,15 +11,13 @@ const MESI = [
   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
 ];
 
-interface StatCardProps {
+interface StatItemProps {
   label: string;
   count: number;
-  icon: React.ReactNode;
-  variant?: "default" | "secondary" | "destructive" | "outline";
   onClick?: () => void;
 }
 
-function StatCard({ label, count, icon, variant = "secondary", onClick }: StatCardProps) {
+function StatItem({ label, count, onClick }: StatItemProps) {
   const isDisabled = count === 0;
   
   return (
@@ -29,19 +25,13 @@ function StatCard({ label, count, icon, variant = "secondary", onClick }: StatCa
       onClick={isDisabled ? undefined : onClick}
       disabled={isDisabled}
       className={cn(
-        "flex items-center gap-2 p-2 rounded-lg transition-colors",
+        "text-sm transition-colors",
         isDisabled 
-          ? "opacity-50 cursor-not-allowed" 
-          : "hover:bg-muted/50 cursor-pointer"
+          ? "text-muted-foreground/50 cursor-not-allowed" 
+          : "text-foreground hover:text-primary cursor-pointer"
       )}
     >
-      <Badge variant={variant} className="h-8 min-w-[2rem] justify-center text-sm font-bold">
-        {count}
-      </Badge>
-      <span className="text-sm text-muted-foreground flex items-center gap-1">
-        {icon}
-        {label}
-      </span>
+      <span className="font-semibold">{count}</span> {label}
     </button>
   );
 }
@@ -116,44 +106,34 @@ export function PreventiviDashboard() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1">
-        <StatCard
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <StatItem
           label="Bozze"
           count={stats.bozze}
-          icon={<FileText className="h-3.5 w-3.5" />}
-          variant="outline"
           onClick={() => openFilter(StatoPreventivo.BOZZA, "Preventivi Bozza")}
         />
 
-        <StatCard
+        <StatItem
           label="Da Inviare"
           count={stats.daInviare}
-          icon={<Send className="h-3.5 w-3.5" />}
-          variant="default"
           onClick={() => openFilter(StatoPreventivo.DA_INVIARE, "Preventivi Da Inviare")}
         />
         
-        <StatCard
+        <StatItem
           label="Inviati"
           count={stats.inviati}
-          icon={<Clock className="h-3.5 w-3.5" />}
-          variant="secondary"
           onClick={() => openFilter(StatoPreventivo.INVIATO, "Preventivi Inviati")}
         />
 
-        <StatCard
+        <StatItem
           label="Scaduti"
           count={stats.scaduti}
-          icon={<AlertTriangle className="h-3.5 w-3.5" />}
-          variant="destructive"
           onClick={() => openFilter(StatoPreventivo.SCADUTO, "Preventivi Scaduti")}
         />
 
-        <StatCard
+        <StatItem
           label="In Revisione"
           count={stats.inRevisione}
-          icon={<Edit className="h-3.5 w-3.5" />}
-          variant="outline"
           onClick={() => openFilter(StatoPreventivo.IN_REVISIONE, "Preventivi In Revisione")}
         />
       </div>
