@@ -1,54 +1,63 @@
-import { useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  ModificaPreventivoDialog, 
-  ConfermaPreventivoDialog, 
-  PreventivoPreviewDialog,
-  PreventiviDataTable 
-} from "@/components/preventivi-noleggio";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { PreventiviDataTable } from "./PreventiviDataTable";
+import { ModificaPreventivoDialog } from "./ModificaPreventivoDialog";
+import { ConfermaPreventivoDialog } from "./ConfermaPreventivoDialog";
+import { PreventivoPreviewDialog } from "./PreventivoPreviewDialog";
+import { PreventivoNoleggio, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { usePreventiviNoleggio } from "@/hooks/usePreventiviNoleggio";
-import { PreventivoNoleggio as PreventivoNoleggioType, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { toast } from "@/hooks/use-toast";
 
-export default function PreventiviNoleggio() {
+interface PreventiviFilteredDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  data: PreventivoNoleggio[];
+  title: string;
+  loading?: boolean;
+}
+
+export function PreventiviFilteredDialog({
+  open,
+  onOpenChange,
+  data,
+  title,
+  loading = false,
+}: PreventiviFilteredDialogProps) {
   const {
-    preventivi,
-    loading,
     aggiornaPreventivo,
     aggiornaStato,
     eliminaPreventivo,
     archiviaPreventivo,
     convertiInNoleggio,
   } = usePreventiviNoleggio();
-  
-  const [statoFiltro, setStatoFiltro] = useState<StatoPreventivo | "">("");
-  const [preventivoSelezionato, setPreventivoSelezionato] = useState<PreventivoNoleggioType | null>(null);
-  const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggioType | null>(null);
+
+  const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggio | null>(null);
+  const [preventivoSelezionato, setPreventivoSelezionato] = useState<PreventivoNoleggio | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [preventivoPerPDF, setPreventivoPerPDF] = useState<PreventivoNoleggioType | null>(null);
-
-  const filteredData = useMemo(() => {
-    return statoFiltro ? preventivi.filter((p) => p.stato === statoFiltro) : preventivi;
-  }, [preventivi, statoFiltro]);
+  const [preventivoPerPDF, setPreventivoPerPDF] = useState<PreventivoNoleggio | null>(null);
 
   const handleStatusChange = async (id: string, stato: StatoPreventivo) => {
     await aggiornaStato(id, stato);
     toast({ title: "Stato aggiornato", description: `Il preventivo è ora ${stato}` });
   };
 
-  const handleDelete = async (preventivo: PreventivoNoleggioType) => {
+  const handleDelete = async (preventivo: PreventivoNoleggio) => {
     await eliminaPreventivo(preventivo.id_preventivo);
     toast({ title: "Preventivo eliminato" });
   };
 
-  const handleArchive = async (preventivo: PreventivoNoleggioType) => {
+  const handleArchive = async (preventivo: PreventivoNoleggio) => {
     await archiviaPreventivo(preventivo.id_preventivo);
     toast({ title: "Preventivo archiviato" });
   };
 
-  const handleConvert = async (preventivo: PreventivoNoleggioType) => {
+  const handleConvert = async (preventivo: PreventivoNoleggio) => {
     await convertiInNoleggio(preventivo);
     toast({ title: "Preventivo convertito", description: "Noleggio attivo creato" });
   };
@@ -68,7 +77,7 @@ export default function PreventiviNoleggio() {
         telefono: "0586.000000",
         pec: null,
         codice_univoco: null,
-        iban: null
+        iban: null,
       },
       datiCliente: {
         ragione_sociale: preventivoPerPDF.Anagrafiche?.ragione_sociale ?? "",
@@ -80,7 +89,7 @@ export default function PreventiviNoleggio() {
         telefono: preventivoPerPDF.Anagrafiche?.telefono ?? null,
         email: preventivoPerPDF.Anagrafiche?.email ?? null,
         pec: preventivoPerPDF.Anagrafiche?.pec ?? null,
-        codice_univoco: preventivoPerPDF.Anagrafiche?.codice_univoco ?? null
+        codice_univoco: preventivoPerPDF.Anagrafiche?.codice_univoco ?? null,
       },
       datiMezzo: {
         marca: preventivoPerPDF.Mezzi?.marca ?? null,
@@ -101,61 +110,39 @@ export default function PreventiviNoleggio() {
         tipo_canone: preventivoPerPDF.tipo_canone ?? "giornaliero",
         costo_trasporto: null,
         note: preventivoPerPDF.note ?? null,
-        validita_giorni: 30
-      }
+        validita_giorni: 30,
+      },
     };
   };
 
   const previewData = getPreviewData();
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Preventivi Noleggio</h1>
-          <p className="text-muted-foreground">Crea, invia e converti i preventivi in noleggi attivi.</p>
-        </div>
-      </div>
-
-      <Card className="p-4 space-y-4">
-        <div className="flex gap-4 items-center">
-          <div>
-            <p className="text-sm text-muted-foreground">Filtro stato</p>
-            <Select value={statoFiltro || "tutti"} onValueChange={(v) => setStatoFiltro(v === "tutti" ? "" : (v as StatoPreventivo))}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Tutti gli stati" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="tutti">Tutti</SelectItem>
-                <SelectItem value="bozza">Bozza</SelectItem>
-                <SelectItem value="inviato">Inviato</SelectItem>
-                <SelectItem value="scaduto">Scaduto</SelectItem>
-                <SelectItem value="approvato">Approvato</SelectItem>
-                <SelectItem value="rifiutato">Rifiutato</SelectItem>
-                <SelectItem value="concluso">Concluso</SelectItem>
-                <SelectItem value="archiviato">Archiviato</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <PreventiviDataTable
-          data={filteredData}
-          loading={loading}
-          onStatusChange={handleStatusChange}
-          onEdit={setPreventivoDaModificare}
-          onDelete={handleDelete}
-          onGeneratePDF={(p) => {
-            setPreventivoPerPDF(p);
-            setPreviewOpen(true);
-          }}
-          onConvert={(p) => {
-            setPreventivoSelezionato(p);
-            setConfirmOpen(true);
-          }}
-          onArchive={handleArchive}
-        />
-      </Card>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+          <PreventiviDataTable
+            data={data}
+            loading={loading}
+            onStatusChange={handleStatusChange}
+            onEdit={setPreventivoDaModificare}
+            onDelete={handleDelete}
+            onGeneratePDF={(p) => {
+              setPreventivoPerPDF(p);
+              setPreviewOpen(true);
+            }}
+            onConvert={(p) => {
+              setPreventivoSelezionato(p);
+              setConfirmOpen(true);
+            }}
+            onArchive={handleArchive}
+            emptyMessage="Nessun preventivo in questa categoria"
+          />
+        </DialogContent>
+      </Dialog>
 
       <ConfermaPreventivoDialog
         open={confirmOpen}
@@ -189,6 +176,6 @@ export default function PreventiviNoleggio() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
