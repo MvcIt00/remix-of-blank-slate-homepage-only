@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Building2, MapPin, Users, FileText } from "lucide-react";
+import { X, Building2, MapPin, Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -10,7 +10,7 @@ import {
   EditDatiAmministrativiDialog,
   EditContattiDialog,
 } from "@/components/anagrafica";
-import { DraggableWindow } from "@/components/ui/draggable-window";
+import { InfoModal } from "@/components/ui/responsive-modal";
 
 interface AnagraficaCardProps {
   anagraficaId: string;
@@ -146,9 +146,9 @@ export function AnagraficaCard({ anagraficaId, onClose }: AnagraficaCardProps) {
 
   if (loading) {
     return (
-      <DraggableWindow
+      <InfoModal
         open={true}
-        onClose={onClose}
+        onOpenChange={(v) => !v && onClose()}
         title="Caricamento..."
         width="wide"
       >
@@ -157,26 +157,26 @@ export function AnagraficaCard({ anagraficaId, onClose }: AnagraficaCardProps) {
           <div className="h-4 bg-muted rounded w-1/2"></div>
           <div className="h-4 bg-muted rounded w-2/3"></div>
         </div>
-      </DraggableWindow>
+      </InfoModal>
     );
   }
 
   if (!anagrafica) {
     return (
-      <DraggableWindow
+      <InfoModal
         open={true}
-        onClose={onClose}
+        onOpenChange={(v) => !v && onClose()}
         title="Errore"
       >
         <p>Anagrafica non trovata</p>
-      </DraggableWindow>
+      </InfoModal>
     );
   }
 
   return (
-    <DraggableWindow
+    <InfoModal
       open={true}
-      onClose={onClose}
+      onOpenChange={(v) => !v && onClose()}
       title={
         <div className="flex items-center gap-3">
           <Building2 className="h-6 w-6 text-primary" />
@@ -369,6 +369,6 @@ export function AnagraficaCard({ anagraficaId, onClose }: AnagraficaCardProps) {
           )}
         </section>
       </div >
-    </DraggableWindow >
+    </InfoModal >
   );
 }
