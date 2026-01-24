@@ -22,7 +22,7 @@ export const useTrasporti = (
         queryKey: ['trasporti', stato],
         queryFn: async () => {
             let query = supabase
-                .from('trasporti')
+                .from('trasporti' as any)
                 .select(`
           *,
           mezzo:Mezzi(marca, modello, matricola),
@@ -63,7 +63,7 @@ export const useTrasportiByNoleggio = (
             if (!id_noleggio) return [];
 
             const { data, error } = await supabase
-                .from('noleggi_trasporti')
+                .from('noleggi_trasporti' as any)
                 .select(`
           trasporto:trasporti(
             *,
@@ -78,7 +78,7 @@ export const useTrasportiByNoleggio = (
             if (error) throw error;
 
             // Extract trasporti from bridge table response
-            return data?.map(item => item.trasporto).filter(Boolean) || [];
+            return (data as any)?.map((item: any) => item.trasporto).filter(Boolean) || [];
         },
         enabled: enabled && !!id_noleggio,
         staleTime: 30 * 1000,
@@ -100,7 +100,7 @@ export const useTrasporto = (
             if (!id_trasporto) return null;
 
             const { data, error } = await supabase
-                .from('trasporti')
+                .from('trasporti' as any)
                 .select(`
           *,
           mezzo:Mezzi(marca, modello, matricola),
@@ -127,17 +127,18 @@ export const useTrasportiStats = () => {
         queryKey: ['trasporti', 'stats'],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from('trasporti')
+                .from('trasporti' as any)
                 .select('id_trasporto, stato')
                 .eq('is_cancellato', false);
 
             if (error) throw error;
 
             // Count by stato
+            const items = data as any[];
             const counts = {
-                richiesto: data.filter(t => t.stato === 'richiesto').length,
-                confermato: data.filter(t => t.stato === 'confermato').length,
-                completato: data.filter(t => t.stato === 'completato').length,
+                richiesto: items.filter(t => t.stato === 'richiesto').length,
+                confermato: items.filter(t => t.stato === 'confermato').length,
+                completato: items.filter(t => t.stato === 'completato').length,
             };
 
             return counts;

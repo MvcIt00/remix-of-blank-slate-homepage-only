@@ -25,12 +25,12 @@ export function AnagraficaSelettore({
   filterView
 }: AnagraficaSelettoreProps) {
 
-  const tableName = filterView === 'trasportatori' ? 'vw_anagrafiche_trasportatori' : 'Anagrafiche';
+  const tableName = filterView === 'trasportatori' ? 'vw_anagrafiche_trasportatori' : 'anagrafiche';
 
-  const handleSearch = async (term: string) => {
+  const handleSearch = async (term: string): Promise<Anagrafica[] | null> => {
     const { data, error } = await supabase
-      .from(tableName)
-      .select("*")
+      .from(tableName as any)
+      .select("id_anagrafica, ragione_sociale, partita_iva, is_cliente, is_fornitore, is_owner")
       .eq("is_cancellato", false)
       .or(`ragione_sociale.ilike.%${term}%,partita_iva.ilike.%${term}%`)
       .limit(10);
@@ -39,17 +39,17 @@ export function AnagraficaSelettore({
       console.error("Error searching anagrafiche:", error);
       return null;
     }
-    return data;
+    return data as unknown as Anagrafica[];
   };
 
-  const loadById = async (id: string) => {
+  const loadById = async (id: string): Promise<Anagrafica | null> => {
     const { data } = await supabase
-      .from(tableName)
-      .select("*")
+      .from(tableName as any)
+      .select("id_anagrafica, ragione_sociale, partita_iva, is_cliente, is_fornitore, is_owner")
       .eq("id_anagrafica", id)
       .eq("is_cancellato", false)
       .single();
-    return data;
+    return data as unknown as Anagrafica | null;
   };
 
   return (
