@@ -29,6 +29,7 @@ export interface PreventivoNoleggio {
   codice: string | null;
   pdf_firmato_path: string | null;
   convertito_in_noleggio_id?: string | null;
+  is_archiviato?: boolean; // Flag per archiviazione (mantiene stato originale)
   created_at: string;
   updated_at: string | null;
   Anagrafiche?: {

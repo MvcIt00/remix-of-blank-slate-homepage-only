@@ -2,45 +2,40 @@ import { useMemo } from "react";
 import { usePreventiviNoleggio } from "./usePreventiviNoleggio";
 import { StatoPreventivo } from "@/types/preventiviNoleggio";
 
-export function usePreventiviStats(anno: number, mese: number | null) {
+/**
+ * Hook per statistiche operative preventivi.
+ * 
+ * FILOSOFIA (Protocollo AX04/AX05/AX06):
+ * Questo hook serve la Dashboard Proattiva che suggerisce azioni all'operatore.
+ * NON è un contatore statistico ma un indicatore operativo.
+ * 
+ * Gli archiviati sono esclusi (is_archiviato = true).
+ */
+export function usePreventiviStats() {
   const { preventivi, loading, error } = usePreventiviNoleggio();
 
   const stats = useMemo(() => {
-    // Filtra preventivi per anno e opzionalmente mese (esclusi archiviati)
-    const preventiviPeriodo = preventivi.filter(p => {
-      if (p.stato === StatoPreventivo.ARCHIVIATO) return false;
-      const dataCreazione = new Date(p.created_at);
-      const matchAnno = dataCreazione.getFullYear() === anno;
-      const matchMese = mese === null || dataCreazione.getMonth() + 1 === mese;
-      return matchAnno && matchMese;
-    });
+    // Escludi archiviati dalla dashboard operativa
+    const attivi = preventivi.filter(p => !p.is_archiviato);
 
     return {
-      totale: preventiviPeriodo.length,
-      bozze: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.BOZZA).length,
-      daInviare: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.DA_INVIARE).length,
-      inviati: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.INVIATO).length,
-      scaduti: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.SCADUTO).length,
-      inRevisione: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.IN_REVISIONE).length,
+      bozze: attivi.filter(p => p.stato === StatoPreventivo.BOZZA).length,
+      daInviare: attivi.filter(p => p.stato === StatoPreventivo.DA_INVIARE).length,
+      inviati: attivi.filter(p => p.stato === StatoPreventivo.INVIATO).length,
+      daModificare: attivi.filter(p => p.stato === StatoPreventivo.IN_REVISIONE).length,
+      scaduti: attivi.filter(p => p.stato === StatoPreventivo.SCADUTO).length,
+      // Totale operativo (solo stati che richiedono azione)
+      totale: attivi.filter(p => 
+        [StatoPreventivo.BOZZA, StatoPreventivo.DA_INVIARE, StatoPreventivo.INVIATO, 
+         StatoPreventivo.IN_REVISIONE, StatoPreventivo.SCADUTO].includes(p.stato)
+      ).length,
     };
-  }, [preventivi, anno, mese]);
+  }, [preventivi]);
 
-  // Preventivi per stato filtrati per periodo
-  const getPreventiviByStato = (stato: StatoPreventivo) => {
-    return preventivi.filter(p => {
-      if (p.stato !== stato) return false;
-      const dataCreazione = new Date(p.created_at);
-      const matchAnno = dataCreazione.getFullYear() === anno;
-      const matchMese = mese === null || dataCreazione.getMonth() + 1 === mese;
-      return matchAnno && matchMese;
-    });
+  // Restituisce anche i preventivi filtrati per stato (per il dialog)
+  const getPreventiviPerStato = (stato: StatoPreventivo) => {
+    return preventivi.filter(p => p.stato === stato && !p.is_archiviato);
   };
 
-  return { 
-    stats, 
-    loading, 
-    error, 
-    preventivi,
-    getPreventiviByStato 
-  };
+  return { stats, loading, error, getPreventiviPerStato };
 }

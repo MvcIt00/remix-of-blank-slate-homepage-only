@@ -37,6 +37,7 @@ function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleg
     codice: view.codice || null,
     pdf_firmato_path: view.pdf_firmato_path || null,
     convertito_in_noleggio_id: view.convertito_in_noleggio_id || undefined,
+    is_archiviato: view.is_archiviato ?? false,
     created_at: view.created_at,
 
     // Hydration con fallback: Snapshot > Database View Live > Default
@@ -179,14 +180,62 @@ export function usePreventiviNoleggio() {
     }
   });
 
-  // 5. MUTATION: Archivia
+  // 5. MUTATION: Archivia (mantiene stato originale, imposta is_archiviato = true)
   const archiviaMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("prev_noleggi" as any)
-        .update({ stato: StatoPreventivo.ARCHIVIATO })
+        .update({ is_archiviato: true })
         .eq("id_preventivo", id);
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] });
+    }
+  });
+
+  // 6. MUTATION: Duplica preventivo (per "Rinnova")
+  const duplicaMutation = useMutation({
+    mutationFn: async (originalId: string) => {
+      // Trova il preventivo originale
+      const originale = preventivi.find(p => p.id_preventivo === originalId);
+      if (!originale) throw new Error("Preventivo non trovato");
+
+      // Step 1: Crea nuovo padre
+      const { data: parentData, error: parentError } = await supabase
+        .from("Preventivi" as any)
+        .insert({ id_anagrafica: originale.id_anagrafica })
+        .select()
+        .single();
+      if (parentError) throw parentError;
+
+      // Step 2: Crea figlio clonato (azzerando date e stato)
+      const payload = {
+        id_preventivo: (parentData as any).id_preventivo,
+        id_anagrafica: originale.id_anagrafica,
+        id_mezzo: originale.id_mezzo,
+        sede_operativa: originale.sede_operativa,
+        data_inizio: null, // Date azzerate per rinnovo
+        data_fine: null,
+        tempo_indeterminato: originale.tempo_indeterminato,
+        prezzo_noleggio: originale.prezzo_noleggio,
+        prezzo_trasporto: originale.prezzo_trasporto,
+        tipo_canone: originale.tipo_canone,
+        note: `Rinnovo da ${originale.codice || 'BOZZA'}`,
+        stato: StatoPreventivo.BOZZA, // Nuovo preventivo parte da bozza
+      };
+      
+      const { data, error: childError } = await supabase
+        .from("prev_noleggi" as any)
+        .insert(payload)
+        .select()
+        .single();
+
+      if (childError) {
+        await supabase.from("Preventivi").delete().eq("id_preventivo", (parentData as any).id_preventivo);
+        throw childError;
+      }
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] });
@@ -257,12 +306,13 @@ export function usePreventiviNoleggio() {
     preventivi,
     loading,
     error: error ? (error as Error).message : null,
-    fetchPreventivi: async () => queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] }), // Dummy function for compatibility
+    fetchPreventivi: async () => queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] }),
     creaPreventivo: creaMutation.mutateAsync,
     aggiornaPreventivo: (id: string, v: any) => aggiornaMutation.mutateAsync({ id, updates: v }),
     aggiornaStato: (id: string, s: StatoPreventivo) => aggiornaMutation.mutateAsync({ id, updates: { stato: s } }),
     eliminaPreventivo: eliminaMutation.mutateAsync,
     archiviaPreventivo: archiviaMutation.mutateAsync,
+    duplicaPreventivo: duplicaMutation.mutateAsync,
     convertiInNoleggio,
   };
 }

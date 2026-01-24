@@ -1,15 +1,19 @@
 import { useState } from "react";
-import { usePreventiviStats } from "@/hooks/usePreventiviStats";
-import { StatoPreventivo } from "@/types/preventiviNoleggio";
-import { PreventiviFilteredDialog } from "./PreventiviFilteredDialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePreventiviStats } from "@/hooks/usePreventiviStats";
+import { PreventiviFilteredDialog } from "./PreventiviFilteredDialog";
+import { StatoPreventivo } from "@/types/preventiviNoleggio";
 import { cn } from "@/lib/utils";
 
-const MESI = [
-  "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-  "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-];
+// Voci operative (ordine da protocollo)
+const VOCI_OPERATIVE = [
+  { key: 'bozze', label: 'Bozze', stato: StatoPreventivo.BOZZA },
+  { key: 'daInviare', label: 'Da Inviare', stato: StatoPreventivo.DA_INVIARE },
+  { key: 'inviati', label: 'Inviati', stato: StatoPreventivo.INVIATO },
+  { key: 'daModificare', label: 'Da Modificare', stato: StatoPreventivo.IN_REVISIONE },
+  { key: 'scaduti', label: 'Scaduti', stato: StatoPreventivo.SCADUTO },
+] as const;
 
 interface StatItemProps {
   label: string;
@@ -22,125 +26,63 @@ function StatItem({ label, count, onClick }: StatItemProps) {
   
   return (
     <button
+      type="button"
       onClick={isDisabled ? undefined : onClick}
       disabled={isDisabled}
       className={cn(
-        "text-base font-bold transition-colors",
+        "text-lg font-bold transition-colors",
         isDisabled 
           ? "text-muted-foreground/40 cursor-not-allowed" 
           : "text-foreground hover:text-primary cursor-pointer"
       )}
     >
-      {label} {count}
+      {label} <span className="text-xl">{count}</span>
     </button>
   );
 }
 
 export function PreventiviDashboard() {
-  const annoCorrente = new Date().getFullYear();
-  const meseCorrente = new Date().getMonth() + 1;
-
-  const [anno, setAnno] = useState(annoCorrente);
-  const [mese, setMese] = useState<number | null>(meseCorrente);
-
-  const { stats, loading } = usePreventiviStats(anno, mese);
+  const { stats, loading } = usePreventiviStats();
   const [filterDialog, setFilterDialog] = useState<{
     open: boolean;
     stato: StatoPreventivo;
     title: string;
-  }>({
-    open: false,
-    stato: StatoPreventivo.INVIATO,
-    title: "",
-  });
-
-  const openFilter = (stato: StatoPreventivo, title: string) => {
-    setFilterDialog({ open: true, stato, title });
-  };
+  }>({ open: false, stato: StatoPreventivo.BOZZA, title: "" });
 
   if (loading) {
     return (
-      <div className="space-y-3">
-        <Skeleton className="h-6 w-48" />
-        <div className="flex flex-wrap gap-2">
-          <Skeleton className="h-10 w-24" />
-          <Skeleton className="h-10 w-24" />
-          <Skeleton className="h-10 w-24" />
-        </div>
-      </div>
+      <Card>
+        <CardContent className="pt-4">
+          <Skeleton className="h-8 w-full" />
+        </CardContent>
+      </Card>
     );
   }
 
+  const handleOpenDialog = (voce: typeof VOCI_OPERATIVE[number]) => {
+    setFilterDialog({
+      open: true,
+      stato: voce.stato,
+      title: voce.label,
+    });
+  };
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-muted-foreground">
-          {stats.totale} preventivi {mese ? `in ${MESI[mese - 1]}` : "nel"} {anno}
-        </p>
-        <div className="flex items-center gap-2">
-          <Select 
-            value={mese?.toString() ?? "all"} 
-            onValueChange={(v) => setMese(v === "all" ? null : Number(v))}
-          >
-            <SelectTrigger className="w-[130px] h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tutto l'anno</SelectItem>
-              {MESI.map((nomeMese, index) => (
-                <SelectItem key={index + 1} value={(index + 1).toString()}>
-                  {nomeMese}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={anno.toString()} onValueChange={(v) => setAnno(Number(v))}>
-            <SelectTrigger className="w-[90px] h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[2024, 2025, 2026, 2027].map((a) => (
-                <SelectItem key={a} value={a.toString()}>
-                  {a}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-x-4 gap-y-1">
-        <StatItem
-          label="Bozze"
-          count={stats.bozze}
-          onClick={() => openFilter(StatoPreventivo.BOZZA, "Preventivi Bozza")}
-        />
-
-        <StatItem
-          label="Da Inviare"
-          count={stats.daInviare}
-          onClick={() => openFilter(StatoPreventivo.DA_INVIARE, "Preventivi Da Inviare")}
-        />
-        
-        <StatItem
-          label="Inviati"
-          count={stats.inviati}
-          onClick={() => openFilter(StatoPreventivo.INVIATO, "Preventivi Inviati")}
-        />
-
-        <StatItem
-          label="Scaduti"
-          count={stats.scaduti}
-          onClick={() => openFilter(StatoPreventivo.SCADUTO, "Preventivi Scaduti")}
-        />
-
-        <StatItem
-          label="In Revisione"
-          count={stats.inRevisione}
-          onClick={() => openFilter(StatoPreventivo.IN_REVISIONE, "Preventivi In Revisione")}
-        />
-      </div>
+    <>
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            {VOCI_OPERATIVE.map((voce) => (
+              <StatItem
+                key={voce.key}
+                label={voce.label}
+                count={stats[voce.key as keyof typeof stats] as number}
+                onClick={() => handleOpenDialog(voce)}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <PreventiviFilteredDialog
         open={filterDialog.open}
@@ -148,6 +90,6 @@ export function PreventiviDashboard() {
         filterStato={filterDialog.stato}
         title={filterDialog.title}
       />
-    </div>
+    </>
   );
 }
