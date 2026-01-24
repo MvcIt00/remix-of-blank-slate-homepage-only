@@ -15,7 +15,6 @@ import { ModificaPreventivoDialog } from "./ModificaPreventivoDialog";
 import { PreventivoPreviewDialog } from "./PreventivoPreviewDialog";
 import { ConfermaPreventivoDialog } from "./ConfermaPreventivoDialog";
 import { RinnovaPreventivoDialog } from "./RinnovaPreventivoDialog";
-import { PreventivoStatoBadge } from "./PreventivoStatoBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
@@ -49,7 +48,6 @@ export function PreventiviFilteredDialog({
   const { 
     preventivi, 
     aggiornaPreventivo, 
-    aggiornaStato, 
     convertiInNoleggio,
     eliminaPreventivo,
     archiviaPreventivo,
@@ -117,12 +115,6 @@ export function PreventiviFilteredDialog({
       validita_giorni: 30
     }
   });
-
-  // Handler cambio stato via badge - ora supporta dettaglio per IN_REVISIONE
-  const handleStatusChange = async (p: PreventivoNoleggio, newStatus: StatoPreventivo, dettaglio?: string): Promise<void> => {
-    await aggiornaStato(p.id_preventivo, newStatus, dettaglio);
-    toast({ title: "Stato aggiornato", description: `Preventivo ora: ${newStatus}` });
-  };
 
   // Handler azioni
   const handleArchivia = async (p: PreventivoNoleggio) => {
@@ -264,64 +256,59 @@ export function PreventiviFilteredDialog({
               Nessun preventivo in questo stato
             </p>
           ) : (
-            <ScrollArea className="flex-1 -mx-6 px-6">
-              {/* Header riga - layout ottimizzato con allineamento verticale */}
-              <div className="grid grid-cols-[90px_1.2fr_1.5fr_80px_100px_auto] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b sticky top-0 bg-background z-10 items-center">
-                <span className="truncate">Codice</span>
-                <span className="truncate">Cliente</span>
-                <span className="truncate">Mezzo</span>
-                <span className="truncate">Canone</span>
-                <span className="truncate">Stato</span>
+            <>
+              {/* Header FUORI da ScrollArea per allineamento perfetto */}
+              <div className="grid grid-cols-[90px_minmax(120px,1.2fr)_minmax(150px,1.5fr)_80px_100px] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b">
+                <span>Codice</span>
+                <span>Cliente</span>
+                <span>Mezzo</span>
+                <span>Canone</span>
                 <span className="text-right">Azioni</span>
               </div>
 
-              {/* Lista righe */}
-              <div className="divide-y">
-                {filteredPreventivi.map((p) => (
-                  <div
-                    key={p.id_preventivo}
-                    className="grid grid-cols-[90px_1.2fr_1.5fr_80px_100px_auto] gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors"
-                  >
-                    {/* Codice */}
-                    <span className="font-mono text-xs font-bold text-muted-foreground truncate">
-                      {p.codice || "BOZZA"}
-                    </span>
-
-                    {/* Cliente */}
-                    <span className="font-medium truncate text-sm">
-                      {p.Anagrafiche?.ragione_sociale ?? "Cliente"}
-                    </span>
-
-                    {/* Mezzo - layout migliorato con interno */}
-                    <div className="flex flex-col text-sm min-w-0">
-                      <span className="font-medium truncate">
-                        {p.Mezzi?.marca} {p.Mezzi?.modello}
+              {/* ScrollArea SOLO per le righe dati */}
+              <ScrollArea className="flex-1">
+                <div className="divide-y">
+                  {filteredPreventivi.map((p) => (
+                    <div
+                      key={p.id_preventivo}
+                      className="grid grid-cols-[90px_minmax(120px,1.2fr)_minmax(150px,1.5fr)_80px_100px] gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors"
+                    >
+                      {/* Codice */}
+                      <span className="font-mono text-xs font-bold text-muted-foreground truncate">
+                        {p.codice || "BOZZA"}
                       </span>
-                      <span className="text-xs text-muted-foreground truncate">
-                        {p.Mezzi?.matricola && `Matr: ${p.Mezzi.matricola}`}
-                        {(p.Mezzi as any)?.id_interno && ` • Int: ${(p.Mezzi as any).id_interno}`}
+
+                      {/* Cliente */}
+                      <span className="font-medium truncate text-sm">
+                        {p.Anagrafiche?.ragione_sociale ?? "Cliente"}
                       </span>
+
+                      {/* Mezzo */}
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium truncate text-sm">
+                          {p.Mezzi?.marca} {p.Mezzi?.modello}
+                        </span>
+                        <span className="text-xs text-muted-foreground truncate">
+                          {p.Mezzi?.matricola && `Matr: ${p.Mezzi.matricola}`}
+                          {(p.Mezzi as any)?.id_interno && ` • Int: ${(p.Mezzi as any).id_interno}`}
+                        </span>
+                      </div>
+
+                      {/* Canone */}
+                      <span className="text-sm">
+                        {p.prezzo_noleggio ? `€${p.prezzo_noleggio}` : "-"}
+                      </span>
+
+                      {/* Azioni inline */}
+                      <div className="flex items-center justify-end">
+                        {renderAzioni(p)}
+                      </div>
                     </div>
-
-                    {/* Canone */}
-                    <span className="text-sm">
-                      {p.prezzo_noleggio ? `€${p.prezzo_noleggio}` : "-"}
-                    </span>
-
-                    {/* Stato Badge cliccabile con supporto dettaglio */}
-                    <PreventivoStatoBadge
-                      stato={p.stato}
-                      onStatusChange={(newStatus, dettaglio) => handleStatusChange(p, newStatus, dettaglio)}
-                    />
-
-                    {/* Azioni inline */}
-                    <div className="flex items-center justify-end">
-                      {renderAzioni(p)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+                  ))}
+                </div>
+              </ScrollArea>
+            </>
           )}
         </DialogContent>
       </Dialog>
