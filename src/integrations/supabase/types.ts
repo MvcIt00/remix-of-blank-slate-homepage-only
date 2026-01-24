@@ -2099,6 +2099,7 @@ export type Database = {
           dati_cliente: Json | null
           dati_mezzo: Json | null
           deposito_cauzionale: number | null
+          dettaglio_modifica: string | null
           id_anagrafica: string
           id_anagrafica_fornitore: string | null
           id_mezzo: string
@@ -2127,6 +2128,7 @@ export type Database = {
           dati_cliente?: Json | null
           dati_mezzo?: Json | null
           deposito_cauzionale?: number | null
+          dettaglio_modifica?: string | null
           id_anagrafica: string
           id_anagrafica_fornitore?: string | null
           id_mezzo: string
@@ -2155,6 +2157,7 @@ export type Database = {
           dati_cliente?: Json | null
           dati_mezzo?: Json | null
           deposito_cauzionale?: number | null
+          dettaglio_modifica?: string | null
           id_anagrafica?: string
           id_anagrafica_fornitore?: string | null
           id_mezzo?: string
