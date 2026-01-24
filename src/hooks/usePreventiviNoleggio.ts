@@ -123,7 +123,7 @@ export function usePreventiviNoleggio() {
       const payload = {
         ...input,
         id_preventivo: (parentData as any).id_preventivo,
-        stato: input.stato ?? StatoPreventivo.BOZZA,
+        stato: input.stato ?? StatoPreventivo.DA_INVIARE, // Default: pronto per invio
       };
       const { data, error: childError } = await supabase
         .from("prev_noleggi" as any)

@@ -57,7 +57,13 @@ export function MezzoSelettore({
       onSearch={handleSearch}
       loadById={loadById}
       onSelect={(m) => onSelectMezzo(m.id_mezzo)}
-      getDisplayValue={(m) => `${m.marca} ${m.modello} ${m.matricola ? `(Mat: ${m.matricola})` : ''} ${m.id_interno ? `(ID: ${m.id_interno})` : ''}`}
+      getDisplayValue={(m) => {
+        const marca = m.marca ?? "";
+        const modello = m.modello ?? "";
+        const matricola = m.matricola ? `(Mat: ${m.matricola})` : "";
+        const idInterno = m.id_interno ? `(ID: ${m.id_interno})` : "";
+        return [marca, modello, matricola, idInterno].filter(Boolean).join(" ").trim() || "Mezzo sconosciuto";
+      }}
       getId={(m) => m.id_mezzo}
       placeholder={placeholder}
       defaultValue={defaultValue}

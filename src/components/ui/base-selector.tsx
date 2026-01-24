@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -49,28 +49,35 @@ export function BaseSelector<T>({
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<T | null>(null);
+    const [initialized, setInitialized] = useState(false);
 
     const inputRef = useRef<HTMLInputElement>(null);
+    
+    // Memoize getDisplayValue to stabilize reference
+    const stableGetDisplayValue = useCallback(getDisplayValue, []);
 
-    // Load initial value
+    // Load initial value - only once when defaultValue is set
     useEffect(() => {
-        if (defaultValue && loadById) {
+        if (defaultValue && loadById && !initialized) {
             const init = async () => {
                 const item = await loadById(defaultValue);
                 if (item) {
                     setSelectedItem(item);
-                    setSearchTerm(getDisplayValue(item));
+                    setSearchTerm(stableGetDisplayValue(item));
                 }
+                setInitialized(true);
             };
             init();
+        } else if (!defaultValue) {
+            setInitialized(true);
         }
-    }, [defaultValue, loadById, getDisplayValue]);
+    }, [defaultValue, loadById, stableGetDisplayValue, initialized]);
 
     // Debounced search
     useEffect(() => {
         const term = searchTerm.trim();
 
-        if (selectedItem && term === getDisplayValue(selectedItem)) {
+        if (selectedItem && term === stableGetDisplayValue(selectedItem)) {
             return;
         }
 
@@ -95,11 +102,11 @@ export function BaseSelector<T>({
 
         const debounce = setTimeout(performSearch, debounceMs);
         return () => clearTimeout(debounce);
-    }, [searchTerm, minChars, debounceMs, onSearch, selectedItem, getDisplayValue]);
+    }, [searchTerm, minChars, debounceMs, onSearch, selectedItem, stableGetDisplayValue]);
 
     const handleSelectItem = (item: T) => {
         setSelectedItem(item);
-        setSearchTerm(getDisplayValue(item));
+        setSearchTerm(stableGetDisplayValue(item));
         setResults([]);
         setOpen(false);
         onSelect(item);
