@@ -118,9 +118,9 @@ export function PreventiviFilteredDialog({
     }
   });
 
-  // Handler cambio stato via badge
-  const handleStatusChange = async (p: PreventivoNoleggio, newStatus: StatoPreventivo) => {
-    await aggiornaStato(p.id_preventivo, newStatus);
+  // Handler cambio stato via badge - ora supporta dettaglio per IN_REVISIONE
+  const handleStatusChange = async (p: PreventivoNoleggio, newStatus: StatoPreventivo, dettaglio?: string): Promise<void> => {
+    await aggiornaStato(p.id_preventivo, newStatus, dettaglio);
     toast({ title: "Stato aggiornato", description: `Preventivo ora: ${newStatus}` });
   };
 
@@ -265,8 +265,8 @@ export function PreventiviFilteredDialog({
             </p>
           ) : (
             <ScrollArea className="flex-1 -mx-6 px-6">
-              {/* Header riga */}
-              <div className="grid grid-cols-[90px_1fr_160px_80px_100px_auto] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b sticky top-0 bg-background z-10">
+              {/* Header riga - layout ottimizzato con mezzo espanso */}
+              <div className="grid grid-cols-[90px_1.2fr_1.5fr_80px_100px_auto] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b sticky top-0 bg-background z-10">
                 <span>Codice</span>
                 <span>Cliente</span>
                 <span>Mezzo</span>
@@ -280,7 +280,7 @@ export function PreventiviFilteredDialog({
                 {filteredPreventivi.map((p) => (
                   <div
                     key={p.id_preventivo}
-                    className="grid grid-cols-[90px_1fr_160px_80px_100px_auto] gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors"
+                    className="grid grid-cols-[90px_1.2fr_1.5fr_80px_100px_auto] gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors"
                   >
                     {/* Codice */}
                     <span className="font-mono text-xs font-bold text-muted-foreground truncate">
@@ -292,21 +292,26 @@ export function PreventiviFilteredDialog({
                       {p.Anagrafiche?.ragione_sociale ?? "Cliente"}
                     </span>
 
-                    {/* Mezzo */}
-                    <span className="text-sm text-muted-foreground truncate">
-                      {p.Mezzi?.marca} {p.Mezzi?.modello}
-                      {p.Mezzi?.matricola && ` (${p.Mezzi.matricola})`}
-                    </span>
+                    {/* Mezzo - layout migliorato con interno */}
+                    <div className="flex flex-col text-sm min-w-0">
+                      <span className="font-medium truncate">
+                        {p.Mezzi?.marca} {p.Mezzi?.modello}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {p.Mezzi?.matricola && `Matr: ${p.Mezzi.matricola}`}
+                        {(p.Mezzi as any)?.id_interno && ` • Int: ${(p.Mezzi as any).id_interno}`}
+                      </span>
+                    </div>
 
                     {/* Canone */}
                     <span className="text-sm">
                       {p.prezzo_noleggio ? `€${p.prezzo_noleggio}` : "-"}
                     </span>
 
-                    {/* Stato Badge cliccabile */}
+                    {/* Stato Badge cliccabile con supporto dettaglio */}
                     <PreventivoStatoBadge
                       stato={p.stato}
-                      onStatusChange={(newStatus) => handleStatusChange(p, newStatus)}
+                      onStatusChange={(newStatus, dettaglio) => handleStatusChange(p, newStatus, dettaglio)}
                     />
 
                     {/* Azioni inline */}

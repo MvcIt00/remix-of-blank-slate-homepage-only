@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { StatusBadge, StatusConfig } from "@/components/ui/status-badge";
 import { StatoPreventivo } from "@/types/preventiviNoleggio";
+import { DettaglioModificaDialog } from "./DettaglioModificaDialog";
 
 /**
  * Configurazione label per ogni stato preventivo
@@ -39,7 +41,8 @@ const TRANSIZIONI_PERMESSE: Record<StatoPreventivo, StatoPreventivo[]> = {
 
 interface PreventivoStatoBadgeProps {
   stato: StatoPreventivo;
-  onStatusChange?: (newStatus: StatoPreventivo) => Promise<void>;
+  /** Callback per cambio stato - riceve nuovo stato e opzionalmente il dettaglio modifica */
+  onStatusChange?: (newStatus: StatoPreventivo, dettaglioModifica?: string) => Promise<void>;
   disabled?: boolean;
   className?: string;
 }
@@ -50,6 +53,7 @@ interface PreventivoStatoBadgeProps {
  * Utilizza StatusBadge centralizzato con:
  * - Configurazione label custom (es. IN_REVISIONE → "Da Modificare")
  * - Transizioni permesse specifiche per workflow preventivi
+ * - Dialog per dettaglio modifica quando si imposta IN_REVISIONE
  */
 export function PreventivoStatoBadge({
   stato,
@@ -57,14 +61,44 @@ export function PreventivoStatoBadge({
   disabled = false,
   className,
 }: PreventivoStatoBadgeProps) {
+  const [dettaglioDialogOpen, setDettaglioDialogOpen] = useState(false);
+
+  // Handler interno che intercetta IN_REVISIONE per mostrare dialog
+  const handleStatusChange = async (newStatus: StatoPreventivo): Promise<void> => {
+    if (!onStatusChange) return;
+    
+    // Se il nuovo stato è IN_REVISIONE, apriamo il dialog per chiedere il motivo
+    if (newStatus === StatoPreventivo.IN_REVISIONE) {
+      setDettaglioDialogOpen(true);
+      return;
+    }
+    
+    // Per tutti gli altri stati, procediamo normalmente
+    await onStatusChange(newStatus);
+  };
+
+  // Handler conferma dal dialog dettaglio
+  const handleDettaglioConfirm = async (dettaglio: string) => {
+    if (!onStatusChange) return;
+    await onStatusChange(StatoPreventivo.IN_REVISIONE, dettaglio);
+  };
+
   return (
-    <StatusBadge
-      value={stato}
-      config={PREVENTIVO_STATUS_CONFIG}
-      allowedTransitions={TRANSIZIONI_PERMESSE[stato]}
-      onStatusChange={onStatusChange}
-      disabled={disabled}
-      className={className}
-    />
+    <>
+      <StatusBadge
+        value={stato}
+        config={PREVENTIVO_STATUS_CONFIG}
+        allowedTransitions={TRANSIZIONI_PERMESSE[stato]}
+        onStatusChange={handleStatusChange}
+        disabled={disabled}
+        className={className}
+      />
+      
+      <DettaglioModificaDialog
+        open={dettaglioDialogOpen}
+        onOpenChange={setDettaglioDialogOpen}
+        onConfirm={handleDettaglioConfirm}
+      />
+    </>
   );
 }

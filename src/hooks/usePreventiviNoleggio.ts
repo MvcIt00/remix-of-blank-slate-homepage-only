@@ -38,6 +38,8 @@ function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleg
     pdf_firmato_path: view.pdf_firmato_path || null,
     convertito_in_noleggio_id: view.convertito_in_noleggio_id || undefined,
     is_archiviato: view.is_archiviato ?? false,
+    dettaglio_modifica: (view as any).dettaglio_modifica || null,
+    data_scadenza: (view as any).data_scadenza || null,
     created_at: view.created_at,
 
     // Hydration con fallback: Snapshot > Database View Live > Default
@@ -326,7 +328,14 @@ export function usePreventiviNoleggio() {
     fetchPreventivi: async () => queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] }),
     creaPreventivo: creaMutation.mutateAsync,
     aggiornaPreventivo: (id: string, v: any) => aggiornaMutation.mutateAsync({ id, updates: v }),
-    aggiornaStato: (id: string, s: StatoPreventivo) => aggiornaMutation.mutateAsync({ id, updates: { stato: s } }),
+    aggiornaStato: (id: string, s: StatoPreventivo, dettaglioModifica?: string) => 
+      aggiornaMutation.mutateAsync({ 
+        id, 
+        updates: { 
+          stato: s, 
+          ...(dettaglioModifica !== undefined && { dettaglio_modifica: dettaglioModifica })
+        } 
+      }),
     eliminaPreventivo: eliminaMutation.mutateAsync,
     archiviaPreventivo: archiviaMutation.mutateAsync,
     duplicaPreventivo: duplicaMutation.mutateAsync,
