@@ -1,54 +1,147 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  ModificaPreventivoDialog, 
-  ConfermaPreventivoDialog, 
-  PreventivoPreviewDialog,
-  PreventiviDataTable 
-} from "@/components/preventivi-noleggio";
+import { Badge } from "@/components/ui/badge";
+import { DataTable, DataTableColumn } from "@/components/ui/data-table";
+import { ModificaPreventivoDialog, PreventivoStatusButton, ConfermaPreventivoDialog, PreventivoPreviewDialog } from "@/components/preventivi-noleggio";
 import { usePreventiviNoleggio } from "@/hooks/usePreventiviNoleggio";
-import { PreventivoNoleggio as PreventivoNoleggioType, StatoPreventivo } from "@/types/preventiviNoleggio";
+import { PreventivoNoleggio, PreventivoNoleggioInput, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { toast } from "@/hooks/use-toast";
+import { TableActions } from "@/components/ui/table-actions";
+import { FileText, Eye } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+const statoBadgeVariant: Record<StatoPreventivo, "secondary" | "default" | "destructive" | "outline"> = {
+  bozza: "secondary",
+  inviato: "secondary",
+  scaduto: "destructive", // Evidenzia preventivi scaduti
+  in_revisione: "outline",
+  approvato: "default",
+  rifiutato: "destructive",
+  concluso: "outline",
+  archiviato: "secondary",
+};
 
 export default function PreventiviNoleggio() {
   const {
     preventivi,
     loading,
+    creaPreventivo,
     aggiornaPreventivo,
     aggiornaStato,
     eliminaPreventivo,
     archiviaPreventivo,
     convertiInNoleggio,
   } = usePreventiviNoleggio();
-  
   const [statoFiltro, setStatoFiltro] = useState<StatoPreventivo | "">("");
-  const [preventivoSelezionato, setPreventivoSelezionato] = useState<PreventivoNoleggioType | null>(null);
-  const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggioType | null>(null);
+  const [preventivoSelezionato, setPreventivoSelezionato] = useState<PreventivoNoleggio | null>(null);
+  const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggio | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [preventivoPerPDF, setPreventivoPerPDF] = useState<PreventivoNoleggioType | null>(null);
+  const [preventivoPerPDF, setPreventivoPerPDF] = useState<PreventivoNoleggio | null>(null);
 
   const filteredData = useMemo(() => {
     return statoFiltro ? preventivi.filter((p) => p.stato === statoFiltro) : preventivi;
   }, [preventivi, statoFiltro]);
 
-  const handleStatusChange = async (id: string, stato: StatoPreventivo) => {
-    await aggiornaStato(id, stato);
-    toast({ title: "Stato aggiornato", description: `Il preventivo è ora ${stato}` });
-  };
+  const columns: DataTableColumn<PreventivoNoleggio>[] = [
+    {
+      key: "codice",
+      label: "Codice",
+      render: (v) => <span className="font-mono text-xs font-bold">{v || "-"}</span>,
+    },
+    {
+      key: "cliente",
+      label: "Cliente",
+      render: (_value, row) => row.Anagrafiche?.ragione_sociale ?? row.id_anagrafica,
+    },
+    {
+      key: "sede_operativa",
+      label: "Sede Operativa",
+      render: (_value, row) => (
+        <div className="flex flex-col text-sm max-w-[200px]">
+          <span className="font-medium truncate" title={row.Sedi?.indirizzo || "-"}>
+            {row.Sedi?.indirizzo || "-"}
+          </span>
+          <span className="text-xs text-muted-foreground truncate" title={`${row.Sedi?.citta || ""} ${row.Sedi?.cap || ""}`}>
+            {row.Sedi?.citta || row.sede_operativa || "-"} {row.Sedi?.cap || ""}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "mezzo",
+      label: "Mezzo",
+      render: (_value, row) =>
+        row.Mezzi?.matricola
+          ? `${row.Mezzi.marca ?? ""} ${row.Mezzi.modello ?? ""} (${row.Mezzi.matricola})`
+          : row.id_mezzo,
+    },
+    {
+      key: "periodo",
+      label: "Periodo",
+      render: (_value, row) =>
+        row.tempo_indeterminato ? "Tempo indeterminato" : `${row.data_inizio ?? "-"} → ${row.data_fine ?? "-"}`,
+    },
+    {
+      key: "canone",
+      label: "Canone",
+      render: (_value, row) => `${row.prezzo_noleggio ?? "-"} ${row.tipo_canone ?? ""}`,
+    },
+    {
+      key: "id_preventivo",
+      label: "Stato",
+      render: (_value, row) => (
+        <PreventivoStatusButton
+          preventivo={row}
+          onStatusChange={async (next) => {
+            await aggiornaStato(row.id_preventivo, next);
+            toast({ title: "Stato aggiornato", description: `Il preventivo è ora ${next}` });
+          }}
+          onGeneratePDF={() => {
+            setPreventivoPerPDF(row);
+            setPreviewOpen(true);
+          }}
+          onViewPDF={() => {
+            setPreventivoPerPDF(row);
+            setPreviewOpen(true);
+          }}
+          onConvert={() => {
+            setPreventivoSelezionato(row);
+            setConfirmOpen(true);
+          }}
+          onArchive={async () => {
+            await archiviaPreventivo(row.id_preventivo);
+            toast({ title: "Preventivo archiviato" });
+          }}
+          onUpdateSuccess={() => {
+            // L'invalidazione viene già gestita dal hook useMutation 
+            // ma forziamo un refresh per sicurezza se necessario
+          }}
+        />
+      ),
+    },
+  ];
 
-  const handleDelete = async (preventivo: PreventivoNoleggioType) => {
-    await eliminaPreventivo(preventivo.id_preventivo);
-    toast({ title: "Preventivo eliminato" });
-  };
+  const renderActions = (row: PreventivoNoleggio) => (
+    <TableActions
+      onEdit={() => setPreventivoDaModificare(row)}
+      editDisabled={row.stato !== StatoPreventivo.BOZZA && row.stato !== StatoPreventivo.IN_REVISIONE}
+      onDelete={
+        !row.convertito_in_noleggio_id
+          ? async () => {
+            await eliminaPreventivo(row.id_preventivo);
+            toast({ title: "Preventivo eliminato" });
+          }
+          : undefined
+      }
+    />
+  );
 
-  const handleArchive = async (preventivo: PreventivoNoleggioType) => {
-    await archiviaPreventivo(preventivo.id_preventivo);
-    toast({ title: "Preventivo archiviato" });
-  };
 
-  const handleConvert = async (preventivo: PreventivoNoleggioType) => {
+  const handleConvert = async (preventivo: PreventivoNoleggio) => {
     await convertiInNoleggio(preventivo);
     toast({ title: "Preventivo convertito", description: "Noleggio attivo creato" });
   };
@@ -86,10 +179,10 @@ export default function PreventiviNoleggio() {
         marca: preventivoPerPDF.Mezzi?.marca ?? null,
         modello: preventivoPerPDF.Mezzi?.modello ?? null,
         matricola: preventivoPerPDF.Mezzi?.matricola ?? null,
-        id_interno: null,
+        id_interno: null, // Added
         anno: preventivoPerPDF.Mezzi?.anno ? String(preventivoPerPDF.Mezzi.anno) : null,
-        categoria: null,
-        ore_moto: preventivoPerPDF.Mezzi?.ore ?? null,
+        categoria: null, // Added
+        ore_moto: preventivoPerPDF.Mezzi?.ore ?? null, // Fixed property name
       },
       datiPreventivo: {
         codice_preventivo: preventivoPerPDF.codice ?? "BOZZA",
@@ -97,9 +190,9 @@ export default function PreventiviNoleggio() {
         data_inizio: preventivoPerPDF.data_inizio ?? null,
         data_fine: preventivoPerPDF.data_fine ?? null,
         tempo_indeterminato: preventivoPerPDF.tempo_indeterminato ?? false,
-        canone_noleggio: preventivoPerPDF.prezzo_noleggio ?? null,
+        canone_noleggio: preventivoPerPDF.prezzo_noleggio ?? null, // Fixed property name
         tipo_canone: preventivoPerPDF.tipo_canone ?? "giornaliero",
-        costo_trasporto: null,
+        costo_trasporto: null, // Added
         note: preventivoPerPDF.note ?? null,
         validita_giorni: 30
       }
@@ -137,23 +230,16 @@ export default function PreventiviNoleggio() {
               </SelectContent>
             </Select>
           </div>
+
         </div>
 
-        <PreventiviDataTable
+        <DataTable
           data={filteredData}
+          columns={columns}
+          actions={renderActions}
           loading={loading}
-          onStatusChange={handleStatusChange}
-          onEdit={setPreventivoDaModificare}
-          onDelete={handleDelete}
-          onGeneratePDF={(p) => {
-            setPreventivoPerPDF(p);
-            setPreviewOpen(true);
-          }}
-          onConvert={(p) => {
-            setPreventivoSelezionato(p);
-            setConfirmOpen(true);
-          }}
-          onArchive={handleArchive}
+          searchPlaceholder="Cerca per cliente, mezzo o note"
+          emptyMessage="Nessun preventivo registrato"
         />
       </Card>
 
