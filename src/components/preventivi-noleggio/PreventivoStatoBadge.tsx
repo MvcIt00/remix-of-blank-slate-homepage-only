@@ -58,7 +58,7 @@ export function PreventivoStatoBadge({
   className,
 }: PreventivoStatoBadgeProps) {
   return (
-    <StatusBadge<StatoPreventivo>
+    <StatusBadge
       value={stato}
       config={PREVENTIVO_STATUS_CONFIG}
       allowedTransitions={TRANSIZIONI_PERMESSE[stato]}
