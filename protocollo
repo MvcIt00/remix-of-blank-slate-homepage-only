@@ -1,3 +1,34 @@
+## AI Assistant Preferences
+This document defines how I prefer to work with AI coding assistants for maximum learning efficiency.
+### Working Style
+When I request code reviews, analysis, or theoretical explanations:
+**Execution Approach:**
+1. Always read `@protocollo` first for project architecture standards
+2. Provide working implementations, not just theoretical discussions
+3. Use appropriate tools (lov-write, lov-line-replace, etc.) to show changes in actual files
+4. Ensure all code is production-ready and follows project conventions
+**Terminology Guide:**
+- **"Review"** → Analyze the code AND implement improvements
+- **"Theorize"** → Design the solution AND execute it  
+- **"Explain"** → Describe the approach AND show it working in the codebase
+- **"Analyze"** → Examine AND apply necessary changes
+### Learning Philosophy
+I learn best by seeing working code in context rather than abstract explanations. When helping me understand a concept, please demonstrate it with functional implementations in the actual project files.
+This hands-on approach ensures I can immediately see, test, and understand the changes in the live preview.
+---
+**Configuration Type:** Educational Development  
+**Last Updated:** 2026-01-24  
+**Status:** Active
+
+
+
+
+
+
+
+
+
+
 PROTOCOL v1.2 - MACHINE-FIRST DEVELOPMENT
 Gestionale Carrelli Elevatori - Architectural Guidelines
 
