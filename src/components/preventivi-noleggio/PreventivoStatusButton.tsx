@@ -41,14 +41,20 @@ export function PreventivoStatusButton({
             case "bozza":
                 return {
                     icon: <Plus className="h-4 w-4" />,
+                    className: "border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-700",
+                    label: "Bozza",
+                };
+            case "da_inviare":
+                return {
+                    icon: <Send className="h-4 w-4" />,
                     className: "border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700",
-                    label: "Bozza - Genera PDF",
+                    label: "Da Inviare",
                 };
             case "in_revisione":
                 return {
                     icon: <Edit3 className="h-4 w-4" />,
                     className: "border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700",
-                    label: "In Revisione (Bozza)",
+                    label: "In Revisione",
                 };
             case "inviato":
                 return {
@@ -174,9 +180,35 @@ export function PreventivoStatusButton({
                             Stato: {preventivo.stato.replace('_', ' ')}
                         </p>
 
-                        {/* --- HAPPY PATH --- */}
-
+                        {/* --- BOZZA: Solo anteprima/genera --- */}
                         {preventivo.stato === "bozza" && (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="justify-start w-full font-bold text-slate-600 hover:text-slate-700 hover:bg-slate-50"
+                                    onClick={() => {
+                                        setPopoverOpen(false);
+                                        onGeneratePDF();
+                                    }}
+                                >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Visualizza Anteprima
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="justify-start w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    onClick={() => handleStatusUpdate(StatoPreventivo.DA_INVIARE)}
+                                >
+                                    <Send className="h-4 w-4 mr-2" />
+                                    Segna come Pronto
+                                </Button>
+                            </>
+                        )}
+
+                        {/* --- DA_INVIARE: Stato principale workflow --- */}
+                        {preventivo.stato === "da_inviare" && (
                             <>
                                 <Button
                                     variant="ghost"
@@ -199,9 +231,19 @@ export function PreventivoStatusButton({
                                     <Send className="h-4 w-4 mr-2" />
                                     Segna come Inviato
                                 </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="justify-start w-full text-slate-500"
+                                    onClick={() => handleStatusUpdate(StatoPreventivo.BOZZA)}
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Salva come Bozza
+                                </Button>
                             </>
                         )}
 
+                        {/* --- IN_REVISIONE --- */}
                         {preventivo.stato === "in_revisione" && (
                             <Button
                                 variant="ghost"
@@ -213,7 +255,7 @@ export function PreventivoStatusButton({
                                 }}
                             >
                                 <RefreshCw className="h-4 w-4 mr-2" />
-                                Salva & Re-Invia
+                                Visualizza/Modifica
                             </Button>
                         )}
 

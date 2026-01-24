@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const statoBadgeVariant: Record<StatoPreventivo, "secondary" | "default" | "destructive" | "outline"> = {
   bozza: "secondary",
+  da_inviare: "default", // Blu - pronto per invio
   inviato: "secondary",
   scaduto: "destructive", // Evidenzia preventivi scaduti
   in_revisione: "outline",
@@ -128,7 +129,7 @@ export default function PreventiviNoleggio() {
   const renderActions = (row: PreventivoNoleggio) => (
     <TableActions
       onEdit={() => setPreventivoDaModificare(row)}
-      editDisabled={row.stato !== StatoPreventivo.BOZZA && row.stato !== StatoPreventivo.IN_REVISIONE}
+      editDisabled={![StatoPreventivo.BOZZA, StatoPreventivo.DA_INVIARE, StatoPreventivo.IN_REVISIONE].includes(row.stato)}
       onDelete={
         !row.convertito_in_noleggio_id
           ? async () => {
@@ -221,8 +222,10 @@ export default function PreventiviNoleggio() {
               <SelectContent>
                 <SelectItem value="tutti">Tutti</SelectItem>
                 <SelectItem value="bozza">Bozza</SelectItem>
+                <SelectItem value="da_inviare">Da Inviare</SelectItem>
                 <SelectItem value="inviato">Inviato</SelectItem>
                 <SelectItem value="scaduto">Scaduto</SelectItem>
+                <SelectItem value="in_revisione">In Revisione</SelectItem>
                 <SelectItem value="approvato">Approvato</SelectItem>
                 <SelectItem value="rifiutato">Rifiutato</SelectItem>
                 <SelectItem value="concluso">Concluso</SelectItem>
@@ -256,7 +259,11 @@ export default function PreventiviNoleggio() {
         preventivo={preventivoDaModificare}
         onSave={async (values) => {
           if (!preventivoDaModificare) return;
-          await aggiornaPreventivo(preventivoDaModificare.id_preventivo, values);
+          // Se era in revisione, resetta a "da_inviare" per reinserirlo nel flusso
+          const updates = preventivoDaModificare.stato === StatoPreventivo.IN_REVISIONE
+            ? { ...values, stato: StatoPreventivo.DA_INVIARE }
+            : values;
+          await aggiornaPreventivo(preventivoDaModificare.id_preventivo, updates);
           toast({ title: "Preventivo aggiornato" });
           setPreventivoDaModificare(null);
         }}

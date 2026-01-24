@@ -1,9 +1,11 @@
 // Enum for strict typing - allineato con DB enum stato_preventivo
+// Ordine workflow: bozza → da_inviare → inviato → scaduto → in_revisione → approvato → rifiutato → concluso → archiviato
 export enum StatoPreventivo {
   BOZZA = "bozza",
+  DA_INVIARE = "da_inviare", // Preventivo completato pronto per invio (stato default alla creazione)
   INVIATO = "inviato",
   SCADUTO = "scaduto", // Preventivo inviato che ha superato data_scadenza senza risposta
-  IN_REVISIONE = "in_revisione",
+  IN_REVISIONE = "in_revisione", // Cliente ha richiesto modifiche
   APPROVATO = "approvato",
   RIFIUTATO = "rifiutato",
   CONCLUSO = "concluso",
