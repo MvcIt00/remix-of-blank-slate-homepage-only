@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { usePreventiviNoleggio } from "@/hooks/usePreventiviNoleggio";
 import { PreventivoNoleggio, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { toast } from "@/hooks/use-toast";
-import { Eye, Pencil, Trash2, Archive, RefreshCw } from "lucide-react";
+import { Eye, Pencil, Trash2, Archive, RefreshCw, Send, Check, X, MessageSquare } from "lucide-react";
 import { ModificaPreventivoDialog } from "./ModificaPreventivoDialog";
 import { PreventivoPreviewDialog } from "./PreventivoPreviewDialog";
 import { ConfermaPreventivoDialog } from "./ConfermaPreventivoDialog";
 import { RinnovaPreventivoDialog } from "./RinnovaPreventivoDialog";
+import { DettaglioModificaDialog } from "./DettaglioModificaDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
@@ -62,6 +63,8 @@ export function PreventiviFilteredDialog({
   const [deleteConfirm, setDeleteConfirm] = useState<PreventivoNoleggio | null>(null);
   const [rinnovaOpen, setRinnovaOpen] = useState(false);
   const [preventivoDaRinnovare, setPreventivoDaRinnovare] = useState<PreventivoNoleggio | null>(null);
+  const [dettaglioModificaOpen, setDettaglioModificaOpen] = useState(false);
+  const [preventivoPerDettaglio, setPreventivoPerDettaglio] = useState<PreventivoNoleggio | null>(null);
 
   const filteredPreventivi = useMemo(() => {
     return preventivi.filter(p => p.stato === filterStato && !p.is_archiviato);
@@ -137,7 +140,21 @@ export function PreventiviFilteredDialog({
     setRinnovaOpen(false);
   };
 
-  // Azioni contestuali inline (solo azioni operative, non cambio stato)
+  // Handler per cambio stato rapido
+  const handleCambiaStato = async (p: PreventivoNoleggio, nuovoStato: StatoPreventivo) => {
+    await aggiornaPreventivo(p.id_preventivo, { stato: nuovoStato });
+    
+    const messaggi: Partial<Record<StatoPreventivo, string>> = {
+      [StatoPreventivo.INVIATO]: "Preventivo segnato come inviato",
+      [StatoPreventivo.APPROVATO]: "Preventivo approvato",
+      [StatoPreventivo.RIFIUTATO]: "Preventivo rifiutato",
+      [StatoPreventivo.IN_REVISIONE]: "Preventivo in revisione",
+    };
+    
+    toast({ title: messaggi[nuovoStato] || "Stato aggiornato" });
+  };
+
+  // Azioni contestuali per stato (secondo matrice operativa)
   const renderAzioni = (p: PreventivoNoleggio) => {
     const actions: Array<{
       icon: React.ReactNode;
@@ -146,19 +163,36 @@ export function PreventiviFilteredDialog({
       variant?: "default" | "outline" | "ghost" | "destructive";
     }> = [];
 
-    // Anteprima sempre presente
-    actions.push({
-      icon: <Eye className="h-4 w-4" />,
-      label: "Anteprima",
-      onClick: () => {
-        setPreventivoPerPDF(p);
-        setPreviewOpen(true);
-      },
-      variant: "ghost"
-    });
+    // === BOZZA ===
+    if (p.stato === StatoPreventivo.BOZZA) {
+      actions.push({
+        icon: <Pencil className="h-4 w-4" />,
+        label: "Completa",
+        onClick: () => setPreventivoDaModificare(p),
+        variant: "ghost"
+      });
+      actions.push({
+        icon: <Eye className="h-4 w-4" />,
+        label: "Anteprima",
+        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
+        variant: "ghost"
+      });
+    }
 
-    // Modifica per stati editabili
-    if ([StatoPreventivo.BOZZA, StatoPreventivo.DA_INVIARE, StatoPreventivo.IN_REVISIONE].includes(p.stato)) {
+    // === DA_INVIARE ===
+    if (p.stato === StatoPreventivo.DA_INVIARE) {
+      actions.push({
+        icon: <Send className="h-4 w-4" />,
+        label: "Segna Inviato",
+        onClick: () => handleCambiaStato(p, StatoPreventivo.INVIATO),
+        variant: "default"
+      });
+      actions.push({
+        icon: <Eye className="h-4 w-4" />,
+        label: "Anteprima",
+        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
+        variant: "ghost"
+      });
       actions.push({
         icon: <Pencil className="h-4 w-4" />,
         label: "Modifica",
@@ -167,7 +201,54 @@ export function PreventiviFilteredDialog({
       });
     }
 
-    // Rinnova per scaduti
+    // === INVIATO ===
+    if (p.stato === StatoPreventivo.INVIATO) {
+      actions.push({
+        icon: <Check className="h-4 w-4" />,
+        label: "Approvato",
+        onClick: () => handleCambiaStato(p, StatoPreventivo.APPROVATO),
+        variant: "default"
+      });
+      actions.push({
+        icon: <X className="h-4 w-4" />,
+        label: "Rifiutato",
+        onClick: () => handleCambiaStato(p, StatoPreventivo.RIFIUTATO),
+        variant: "ghost"
+      });
+      actions.push({
+        icon: <MessageSquare className="h-4 w-4" />,
+        label: "Da Modificare",
+        onClick: () => {
+          setPreventivoPerDettaglio(p);
+          setDettaglioModificaOpen(true);
+        },
+        variant: "ghost"
+      });
+      actions.push({
+        icon: <Eye className="h-4 w-4" />,
+        label: "Anteprima",
+        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
+        variant: "ghost"
+      });
+    }
+
+    // === IN_REVISIONE (Da Modificare) ===
+    if (p.stato === StatoPreventivo.IN_REVISIONE) {
+      actions.push({
+        icon: <Pencil className="h-4 w-4" />,
+        label: "Modifica",
+        onClick: () => setPreventivoDaModificare(p),
+        variant: "default" // Azione primaria
+      });
+      actions.push({
+        icon: <Eye className="h-4 w-4" />,
+        label: "Anteprima",
+        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
+        variant: "ghost"
+      });
+    }
+
+    // === SCADUTO ===
     if (p.stato === StatoPreventivo.SCADUTO) {
       actions.push({
         icon: <RefreshCw className="h-4 w-4" />,
@@ -175,7 +256,8 @@ export function PreventiviFilteredDialog({
         onClick: () => {
           setPreventivoDaRinnovare(p);
           setRinnovaOpen(true);
-        }
+        },
+        variant: "default" // Azione primaria
       });
       actions.push({
         icon: <Archive className="h-4 w-4" />,
@@ -183,39 +265,21 @@ export function PreventiviFilteredDialog({
         onClick: () => handleArchivia(p),
         variant: "ghost"
       });
-    }
-
-    // Converti per approvati
-    if (p.stato === StatoPreventivo.APPROVATO && !p.convertito_in_noleggio_id) {
       actions.push({
         icon: <Eye className="h-4 w-4" />,
-        label: "Converti in Noleggio",
-        onClick: () => {
-          setPreventivoSelezionato(p);
-          setConfirmOpen(true);
-        }
-      });
-    }
-
-    // Archivia per rifiutati
-    if (p.stato === StatoPreventivo.RIFIUTATO) {
-      actions.push({
-        icon: <Archive className="h-4 w-4" />,
-        label: "Archivia",
-        onClick: () => handleArchivia(p),
+        label: "Anteprima",
+        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
         variant: "ghost"
       });
     }
 
-    // Elimina per stati non definitivi
-    if (![StatoPreventivo.CONCLUSO, StatoPreventivo.ARCHIVIATO].includes(p.stato)) {
-      actions.push({
-        icon: <Trash2 className="h-4 w-4" />,
-        label: "Elimina",
-        onClick: () => setDeleteConfirm(p),
-        variant: "destructive"
-      });
-    }
+    // === ELIMINA (sempre presente per tutti i 5 stati operativi) ===
+    actions.push({
+      icon: <Trash2 className="h-4 w-4" />,
+      label: "Elimina",
+      onClick: () => setDeleteConfirm(p),
+      variant: "destructive"
+    });
 
     return (
       <div className="flex items-center gap-1">
@@ -355,6 +419,22 @@ export function PreventiviFilteredDialog({
         onOpenChange={setRinnovaOpen}
         preventivo={preventivoDaRinnovare}
         onConfirm={handleRinnova}
+      />
+
+      {/* Dialog per inserire dettaglio modifica */}
+      <DettaglioModificaDialog
+        open={dettaglioModificaOpen}
+        onOpenChange={setDettaglioModificaOpen}
+        onConfirm={async (dettaglio) => {
+          if (!preventivoPerDettaglio) return;
+          await aggiornaPreventivo(preventivoPerDettaglio.id_preventivo, { 
+            stato: StatoPreventivo.IN_REVISIONE,
+            dettaglio_modifica: dettaglio 
+          });
+          toast({ title: "Preventivo in revisione", description: "Motivo registrato" });
+          setPreventivoPerDettaglio(null);
+          setDettaglioModificaOpen(false);
+        }}
       />
 
       {/* Conferma conversione noleggio */}
