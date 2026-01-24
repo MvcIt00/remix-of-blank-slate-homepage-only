@@ -1,7 +1,8 @@
-// Enum for strict typing
+// Enum for strict typing - allineato con DB enum stato_preventivo
 export enum StatoPreventivo {
   BOZZA = "bozza",
   INVIATO = "inviato",
+  SCADUTO = "scaduto", // Preventivo inviato che ha superato data_scadenza senza risposta
   IN_REVISIONE = "in_revisione",
   APPROVATO = "approvato",
   RIFIUTATO = "rifiutato",
