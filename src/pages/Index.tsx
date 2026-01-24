@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2 } from "lucide-react";
+import { Building2, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NuovaAnagraficaForm } from "@/components/form/nuova_anagrafica_form";
 import { NuovoMezzoBottone } from "@/components/bottoni/nuovo_mezzo_bottone";
@@ -10,6 +10,7 @@ import { MezzoSelettore } from "@/components/selettori/mezzo_selettore";
 import { AnagraficaCard } from "@/components/card/anagrafica_card";
 import { MezzoCard } from "@/components/card/mezzo_card";
 import { ParcoMacchine } from "@/components/parco_macchine";
+import { PreventiviDashboard } from "@/components/preventivi-noleggio";
 
 const Index = () => {
   const [selectedAnagraficaId, setSelectedAnagraficaId] = useState<string | null>(null);
@@ -56,16 +57,30 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-10">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl font-bold flex items-center gap-2">
-                Parco Macchine
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ParcoMacchine />
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  Parco Macchine
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ParcoMacchine />
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Preventivi Noleggio
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PreventiviDashboard />
+              </CardContent>
+            </Card>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
