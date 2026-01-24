@@ -10,10 +10,12 @@ import { Button } from "@/components/ui/button";
 import { usePreventiviNoleggio } from "@/hooks/usePreventiviNoleggio";
 import { PreventivoNoleggio, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { toast } from "@/hooks/use-toast";
-import { Eye, Pencil, Trash2, Send, CheckCircle, XCircle, RotateCcw, Archive, FileEdit, RefreshCw } from "lucide-react";
+import { Eye, Pencil, Trash2, Archive, RefreshCw } from "lucide-react";
 import { ModificaPreventivoDialog } from "./ModificaPreventivoDialog";
 import { PreventivoPreviewDialog } from "./PreventivoPreviewDialog";
 import { ConfermaPreventivoDialog } from "./ConfermaPreventivoDialog";
+import { RinnovaPreventivoDialog } from "./RinnovaPreventivoDialog";
+import { PreventivoStatoBadge } from "./PreventivoStatoBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
@@ -51,16 +53,17 @@ export function PreventiviFilteredDialog({
     convertiInNoleggio,
     eliminaPreventivo,
     archiviaPreventivo,
-    duplicaPreventivo
+    rinnovaPreventivo,
   } = usePreventiviNoleggio();
   
   const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggio | null>(null);
-  const [modificaEInvia, setModificaEInvia] = useState(false);
   const [preventivoPerPDF, setPreventivoPerPDF] = useState<PreventivoNoleggio | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [preventivoSelezionato, setPreventivoSelezionato] = useState<PreventivoNoleggio | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<PreventivoNoleggio | null>(null);
+  const [rinnovaOpen, setRinnovaOpen] = useState(false);
+  const [preventivoDaRinnovare, setPreventivoDaRinnovare] = useState<PreventivoNoleggio | null>(null);
 
   const filteredPreventivi = useMemo(() => {
     return preventivi.filter(p => p.stato === filterStato && !p.is_archiviato);
@@ -115,37 +118,13 @@ export function PreventiviFilteredDialog({
     }
   });
 
-  // Handler azioni rapide
-  const handleSegnaInviato = async (p: PreventivoNoleggio) => {
-    await aggiornaStato(p.id_preventivo, StatoPreventivo.INVIATO);
-    toast({ title: "Preventivo segnato come inviato" });
+  // Handler cambio stato via badge
+  const handleStatusChange = async (p: PreventivoNoleggio, newStatus: StatoPreventivo) => {
+    await aggiornaStato(p.id_preventivo, newStatus);
+    toast({ title: "Stato aggiornato", description: `Preventivo ora: ${newStatus}` });
   };
 
-  const handleAccettato = async (p: PreventivoNoleggio) => {
-    await aggiornaStato(p.id_preventivo, StatoPreventivo.APPROVATO);
-    toast({ title: "Preventivo approvato" });
-  };
-
-  const handleRifiutato = async (p: PreventivoNoleggio) => {
-    await aggiornaStato(p.id_preventivo, StatoPreventivo.RIFIUTATO);
-    toast({ title: "Preventivo rifiutato" });
-  };
-
-  const handleInRevisione = async (p: PreventivoNoleggio) => {
-    await aggiornaStato(p.id_preventivo, StatoPreventivo.IN_REVISIONE);
-    toast({ title: "Preventivo in revisione" });
-  };
-
-  const handleTornaABozza = async (p: PreventivoNoleggio) => {
-    await aggiornaStato(p.id_preventivo, StatoPreventivo.BOZZA);
-    toast({ title: "Preventivo tornato a bozza" });
-  };
-
-  const handleRinnova = async (p: PreventivoNoleggio) => {
-    await duplicaPreventivo(p.id_preventivo);
-    toast({ title: "Preventivo rinnovato", description: "Creata nuova bozza" });
-  };
-
+  // Handler azioni
   const handleArchivia = async (p: PreventivoNoleggio) => {
     await archiviaPreventivo(p.id_preventivo);
     toast({ title: "Preventivo archiviato" });
@@ -158,17 +137,15 @@ export function PreventiviFilteredDialog({
     setDeleteConfirm(null);
   };
 
-  const handleModificaEInvia = (p: PreventivoNoleggio) => {
-    setPreventivoDaModificare(p);
-    setModificaEInvia(true);
+  const handleRinnova = async (nuovaDataScadenza: string) => {
+    if (!preventivoDaRinnovare) return;
+    await rinnovaPreventivo(preventivoDaRinnovare.id_preventivo, nuovaDataScadenza);
+    toast({ title: "Preventivo rinnovato", description: "Stato: Inviato" });
+    setPreventivoDaRinnovare(null);
+    setRinnovaOpen(false);
   };
 
-  const handleModifica = (p: PreventivoNoleggio) => {
-    setPreventivoDaModificare(p);
-    setModificaEInvia(false);
-  };
-
-  // Render azioni inline contestuali per stato (icon buttons con tooltip)
+  // Azioni contestuali inline (solo azioni operative, non cambio stato)
   const renderAzioni = (p: PreventivoNoleggio) => {
     const actions: Array<{
       icon: React.ReactNode;
@@ -177,59 +154,75 @@ export function PreventiviFilteredDialog({
       variant?: "default" | "outline" | "ghost" | "destructive";
     }> = [];
 
-    switch (filterStato) {
-      case StatoPreventivo.BOZZA:
-        actions.push(
-          { icon: <FileEdit className="h-4 w-4" />, label: "Completa e Invia", onClick: () => handleModificaEInvia(p) },
-          { icon: <Pencil className="h-4 w-4" />, label: "Completa", onClick: () => handleModifica(p), variant: "ghost" },
-          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
-        );
-        break;
-      
-      case StatoPreventivo.DA_INVIARE:
-        actions.push(
-          { icon: <Send className="h-4 w-4" />, label: "Segna Inviato", onClick: () => handleSegnaInviato(p) },
-          { icon: <FileEdit className="h-4 w-4" />, label: "Modifica e Invia", onClick: () => handleModificaEInvia(p), variant: "ghost" },
-          { icon: <Pencil className="h-4 w-4" />, label: "Modifica", onClick: () => handleModifica(p), variant: "ghost" },
-          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
-        );
-        break;
-      
-      case StatoPreventivo.INVIATO:
-        actions.push(
-          { icon: <CheckCircle className="h-4 w-4" />, label: "Accettato", onClick: () => handleAccettato(p) },
-          { icon: <XCircle className="h-4 w-4" />, label: "Rifiutato", onClick: () => handleRifiutato(p), variant: "ghost" },
-          { icon: <RotateCcw className="h-4 w-4" />, label: "In Revisione", onClick: () => handleInRevisione(p), variant: "ghost" },
-          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
-        );
-        break;
-      
-      case StatoPreventivo.IN_REVISIONE:
-        actions.push(
-          { icon: <FileEdit className="h-4 w-4" />, label: "Modifica e Invia", onClick: () => handleModificaEInvia(p) },
-          { icon: <RotateCcw className="h-4 w-4" />, label: "Torna a Bozza", onClick: () => handleTornaABozza(p), variant: "ghost" },
-          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
-        );
-        break;
-      
-      case StatoPreventivo.SCADUTO:
-        actions.push(
-          { icon: <RefreshCw className="h-4 w-4" />, label: "Rinnova", onClick: () => handleRinnova(p) },
-          { icon: <Archive className="h-4 w-4" />, label: "Archivia", onClick: () => handleArchivia(p), variant: "ghost" },
-          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
-        );
-        break;
-      
-      case StatoPreventivo.APPROVATO:
-        if (!p.convertito_in_noleggio_id) {
-          actions.push(
-            { icon: <CheckCircle className="h-4 w-4" />, label: "Converti in Noleggio", onClick: () => {
-              setPreventivoSelezionato(p);
-              setConfirmOpen(true);
-            }}
-          );
+    // Anteprima sempre presente
+    actions.push({
+      icon: <Eye className="h-4 w-4" />,
+      label: "Anteprima",
+      onClick: () => {
+        setPreventivoPerPDF(p);
+        setPreviewOpen(true);
+      },
+      variant: "ghost"
+    });
+
+    // Modifica per stati editabili
+    if ([StatoPreventivo.BOZZA, StatoPreventivo.DA_INVIARE, StatoPreventivo.IN_REVISIONE].includes(p.stato)) {
+      actions.push({
+        icon: <Pencil className="h-4 w-4" />,
+        label: "Modifica",
+        onClick: () => setPreventivoDaModificare(p),
+        variant: "ghost"
+      });
+    }
+
+    // Rinnova per scaduti
+    if (p.stato === StatoPreventivo.SCADUTO) {
+      actions.push({
+        icon: <RefreshCw className="h-4 w-4" />,
+        label: "Rinnova",
+        onClick: () => {
+          setPreventivoDaRinnovare(p);
+          setRinnovaOpen(true);
         }
-        break;
+      });
+      actions.push({
+        icon: <Archive className="h-4 w-4" />,
+        label: "Archivia",
+        onClick: () => handleArchivia(p),
+        variant: "ghost"
+      });
+    }
+
+    // Converti per approvati
+    if (p.stato === StatoPreventivo.APPROVATO && !p.convertito_in_noleggio_id) {
+      actions.push({
+        icon: <Eye className="h-4 w-4" />,
+        label: "Converti in Noleggio",
+        onClick: () => {
+          setPreventivoSelezionato(p);
+          setConfirmOpen(true);
+        }
+      });
+    }
+
+    // Archivia per rifiutati
+    if (p.stato === StatoPreventivo.RIFIUTATO) {
+      actions.push({
+        icon: <Archive className="h-4 w-4" />,
+        label: "Archivia",
+        onClick: () => handleArchivia(p),
+        variant: "ghost"
+      });
+    }
+
+    // Elimina per stati non definitivi
+    if (![StatoPreventivo.CONCLUSO, StatoPreventivo.ARCHIVIATO].includes(p.stato)) {
+      actions.push({
+        icon: <Trash2 className="h-4 w-4" />,
+        label: "Elimina",
+        onClick: () => setDeleteConfirm(p),
+        variant: "destructive"
+      });
     }
 
     return (
@@ -273,11 +266,12 @@ export function PreventiviFilteredDialog({
           ) : (
             <ScrollArea className="flex-1 -mx-6 px-6">
               {/* Header riga */}
-              <div className="grid grid-cols-[100px_1fr_180px_100px_1fr] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b sticky top-0 bg-background z-10">
+              <div className="grid grid-cols-[90px_1fr_160px_80px_100px_auto] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b sticky top-0 bg-background z-10">
                 <span>Codice</span>
                 <span>Cliente</span>
                 <span>Mezzo</span>
                 <span>Canone</span>
+                <span>Stato</span>
                 <span className="text-right">Azioni</span>
               </div>
 
@@ -286,7 +280,7 @@ export function PreventiviFilteredDialog({
                 {filteredPreventivi.map((p) => (
                   <div
                     key={p.id_preventivo}
-                    className="grid grid-cols-[100px_1fr_180px_100px_1fr] gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors"
+                    className="grid grid-cols-[90px_1fr_160px_80px_100px_auto] gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors"
                   >
                     {/* Codice */}
                     <span className="font-mono text-xs font-bold text-muted-foreground truncate">
@@ -309,27 +303,14 @@ export function PreventiviFilteredDialog({
                       {p.prezzo_noleggio ? `€${p.prezzo_noleggio}` : "-"}
                     </span>
 
-                    {/* Azioni inline */}
-                    <div className="flex items-center justify-end gap-1">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => {
-                              setPreventivoPerPDF(p);
-                              setPreviewOpen(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <p>Anteprima</p>
-                        </TooltipContent>
-                      </Tooltip>
+                    {/* Stato Badge cliccabile */}
+                    <PreventivoStatoBadge
+                      stato={p.stato}
+                      onStatusChange={(newStatus) => handleStatusChange(p, newStatus)}
+                    />
 
+                    {/* Azioni inline */}
+                    <div className="flex items-center justify-end">
                       {renderAzioni(p)}
                     </div>
                   </div>
@@ -344,21 +325,15 @@ export function PreventiviFilteredDialog({
       <ModificaPreventivoDialog
         open={!!preventivoDaModificare}
         onOpenChange={(open) => {
-          if (!open) {
-            setPreventivoDaModificare(null);
-            setModificaEInvia(false);
-          }
+          if (!open) setPreventivoDaModificare(null);
         }}
         preventivo={preventivoDaModificare}
         onSave={async (values) => {
           if (!preventivoDaModificare) return;
           
+          // Se era in revisione o bozza, dopo modifica va a da_inviare
           let nuovoStato = preventivoDaModificare.stato;
-          if (modificaEInvia) {
-            nuovoStato = StatoPreventivo.INVIATO;
-          } else if (preventivoDaModificare.stato === StatoPreventivo.IN_REVISIONE) {
-            nuovoStato = StatoPreventivo.DA_INVIARE;
-          } else if (preventivoDaModificare.stato === StatoPreventivo.BOZZA) {
+          if ([StatoPreventivo.IN_REVISIONE, StatoPreventivo.BOZZA].includes(preventivoDaModificare.stato)) {
             nuovoStato = StatoPreventivo.DA_INVIARE;
           }
           
@@ -367,11 +342,8 @@ export function PreventiviFilteredDialog({
             stato: nuovoStato 
           });
           
-          toast({ 
-            title: modificaEInvia ? "Preventivo aggiornato e inviato" : "Preventivo aggiornato"
-          });
+          toast({ title: "Preventivo aggiornato" });
           setPreventivoDaModificare(null);
-          setModificaEInvia(false);
         }}
       />
 
@@ -384,6 +356,14 @@ export function PreventiviFilteredDialog({
           onSave={async () => setPreviewOpen(false)}
         />
       )}
+
+      {/* Rinnova preventivo scaduto */}
+      <RinnovaPreventivoDialog
+        open={rinnovaOpen}
+        onOpenChange={setRinnovaOpen}
+        preventivo={preventivoDaRinnovare}
+        onConfirm={handleRinnova}
+      />
 
       {/* Conferma conversione noleggio */}
       <ConfermaPreventivoDialog

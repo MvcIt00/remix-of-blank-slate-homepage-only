@@ -242,6 +242,23 @@ export function usePreventiviNoleggio() {
     }
   });
 
+  // 7. MUTATION: Rinnova preventivo scaduto (aggiorna data_scadenza e stato → inviato)
+  const rinnovaMutation = useMutation({
+    mutationFn: async ({ id, nuovaDataScadenza }: { id: string; nuovaDataScadenza: string }) => {
+      const { error } = await supabase
+        .from("prev_noleggi" as any)
+        .update({ 
+          data_scadenza: nuovaDataScadenza,
+          stato: StatoPreventivo.INVIATO 
+        })
+        .eq("id_preventivo", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] });
+    }
+  });
+
   // 6. LOGICA DI CONVERSIONE (Complessa, lasciamo come async function wrappata)
   const convertiInNoleggio = async (preventivo: PreventivoNoleggio, options?: ConvertiOptions) => {
     try {
@@ -313,6 +330,7 @@ export function usePreventiviNoleggio() {
     eliminaPreventivo: eliminaMutation.mutateAsync,
     archiviaPreventivo: archiviaMutation.mutateAsync,
     duplicaPreventivo: duplicaMutation.mutateAsync,
+    rinnovaPreventivo: (id: string, nuovaDataScadenza: string) => rinnovaMutation.mutateAsync({ id, nuovaDataScadenza }),
     convertiInNoleggio,
   };
 }
