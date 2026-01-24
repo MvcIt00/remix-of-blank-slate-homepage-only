@@ -103,8 +103,9 @@ export interface PreventivoCompletoView {
     prezzo_trasporto: number | null;
     tipo_canone: "giornaliero" | "mensile" | null;
     note: string | null;
-    stato: "bozza" | "inviato" | "approvato" | "rifiutato" | "concluso" | "archiviato";
+    stato: "bozza" | "da_inviare" | "inviato" | "scaduto" | "in_revisione" | "approvato" | "rifiutato" | "concluso" | "archiviato";
     codice: string | null;
+    is_archiviato: boolean | null;
     pdf_firmato_path: string | null;
     convertito_in_noleggio_id: string | null;
     created_at: string;
