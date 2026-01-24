@@ -14,6 +14,7 @@ import { Eye, Pencil, Trash2, Send, CheckCircle, XCircle, RotateCcw, Archive, Fi
 import { ModificaPreventivoDialog } from "./ModificaPreventivoDialog";
 import { PreventivoPreviewDialog } from "./PreventivoPreviewDialog";
 import { ConfermaPreventivoDialog } from "./ConfermaPreventivoDialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PreventiviFilteredDialogProps {
   open: boolean;
@@ -162,114 +168,98 @@ export function PreventiviFilteredDialog({
     setModificaEInvia(false);
   };
 
-  // Render azioni contestuali per stato
+  // Render azioni inline contestuali per stato (icon buttons con tooltip)
   const renderAzioni = (p: PreventivoNoleggio) => {
+    const actions: Array<{
+      icon: React.ReactNode;
+      label: string;
+      onClick: () => void;
+      variant?: "default" | "outline" | "ghost" | "destructive";
+    }> = [];
+
     switch (filterStato) {
       case StatoPreventivo.BOZZA:
-        return (
-          <>
-            <Button size="sm" variant="default" onClick={() => handleModificaEInvia(p)}>
-              <FileEdit className="h-4 w-4 mr-1" /> Completa e Invia
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => handleModifica(p)}>
-              <Pencil className="h-4 w-4 mr-1" /> Completa
-            </Button>
-            <Button size="sm" variant="destructive" onClick={() => setDeleteConfirm(p)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
+        actions.push(
+          { icon: <FileEdit className="h-4 w-4" />, label: "Completa e Invia", onClick: () => handleModificaEInvia(p) },
+          { icon: <Pencil className="h-4 w-4" />, label: "Completa", onClick: () => handleModifica(p), variant: "ghost" },
+          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
         );
+        break;
       
       case StatoPreventivo.DA_INVIARE:
-        return (
-          <>
-            <Button size="sm" variant="default" onClick={() => handleSegnaInviato(p)}>
-              <Send className="h-4 w-4 mr-1" /> Segna Inviato
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => handleModifica(p)}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button size="sm" variant="secondary" onClick={() => handleModificaEInvia(p)}>
-              <FileEdit className="h-4 w-4 mr-1" /> Modifica e Invia
-            </Button>
-            <Button size="sm" variant="destructive" onClick={() => setDeleteConfirm(p)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
+        actions.push(
+          { icon: <Send className="h-4 w-4" />, label: "Segna Inviato", onClick: () => handleSegnaInviato(p) },
+          { icon: <FileEdit className="h-4 w-4" />, label: "Modifica e Invia", onClick: () => handleModificaEInvia(p), variant: "ghost" },
+          { icon: <Pencil className="h-4 w-4" />, label: "Modifica", onClick: () => handleModifica(p), variant: "ghost" },
+          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
         );
+        break;
       
       case StatoPreventivo.INVIATO:
-        return (
-          <>
-            <Button size="sm" variant="default" onClick={() => handleAccettato(p)}>
-              <CheckCircle className="h-4 w-4 mr-1" /> Accettato
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => handleRifiutato(p)}>
-              <XCircle className="h-4 w-4 mr-1" /> Rifiutato
-            </Button>
-            <Button size="sm" variant="secondary" onClick={() => handleInRevisione(p)}>
-              <RotateCcw className="h-4 w-4 mr-1" /> In Revisione
-            </Button>
-            <Button size="sm" variant="destructive" onClick={() => setDeleteConfirm(p)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
+        actions.push(
+          { icon: <CheckCircle className="h-4 w-4" />, label: "Accettato", onClick: () => handleAccettato(p) },
+          { icon: <XCircle className="h-4 w-4" />, label: "Rifiutato", onClick: () => handleRifiutato(p), variant: "ghost" },
+          { icon: <RotateCcw className="h-4 w-4" />, label: "In Revisione", onClick: () => handleInRevisione(p), variant: "ghost" },
+          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
         );
+        break;
       
       case StatoPreventivo.IN_REVISIONE:
-        return (
-          <>
-            <Button size="sm" variant="default" onClick={() => handleModificaEInvia(p)}>
-              <FileEdit className="h-4 w-4 mr-1" /> Modifica e Invia
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => handleTornaABozza(p)}>
-              <RotateCcw className="h-4 w-4 mr-1" /> Torna a Bozza
-            </Button>
-            <Button size="sm" variant="destructive" onClick={() => setDeleteConfirm(p)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
+        actions.push(
+          { icon: <FileEdit className="h-4 w-4" />, label: "Modifica e Invia", onClick: () => handleModificaEInvia(p) },
+          { icon: <RotateCcw className="h-4 w-4" />, label: "Torna a Bozza", onClick: () => handleTornaABozza(p), variant: "ghost" },
+          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
         );
+        break;
       
       case StatoPreventivo.SCADUTO:
-        return (
-          <>
-            <Button size="sm" variant="default" onClick={() => handleRinnova(p)}>
-              <RefreshCw className="h-4 w-4 mr-1" /> Rinnova
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => handleArchivia(p)}>
-              <Archive className="h-4 w-4 mr-1" /> Archivia
-            </Button>
-            <Button size="sm" variant="destructive" onClick={() => setDeleteConfirm(p)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
+        actions.push(
+          { icon: <RefreshCw className="h-4 w-4" />, label: "Rinnova", onClick: () => handleRinnova(p) },
+          { icon: <Archive className="h-4 w-4" />, label: "Archivia", onClick: () => handleArchivia(p), variant: "ghost" },
+          { icon: <Trash2 className="h-4 w-4" />, label: "Elimina", onClick: () => setDeleteConfirm(p), variant: "destructive" }
         );
+        break;
       
       case StatoPreventivo.APPROVATO:
-        return (
-          <>
-            {!p.convertito_in_noleggio_id && (
-              <Button size="sm" variant="default" onClick={() => {
-                setPreventivoSelezionato(p);
-                setConfirmOpen(true);
-              }}>
-                <CheckCircle className="h-4 w-4 mr-1" /> Converti in Noleggio
-              </Button>
-            )}
-          </>
-        );
-      
-      default:
-        return null;
+        if (!p.convertito_in_noleggio_id) {
+          actions.push(
+            { icon: <CheckCircle className="h-4 w-4" />, label: "Converti in Noleggio", onClick: () => {
+              setPreventivoSelezionato(p);
+              setConfirmOpen(true);
+            }}
+          );
+        }
+        break;
     }
+
+    return (
+      <div className="flex items-center gap-1">
+        {actions.map((action, idx) => (
+          <Tooltip key={idx}>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant={action.variant || "default"}
+                className="h-7 w-7"
+                onClick={action.onClick}
+              >
+                {action.icon}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{action.label}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    );
   };
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-5xl max-h-[85vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               {title}
               <Badge variant="secondary">{filteredPreventivi.length}</Badge>
@@ -281,54 +271,71 @@ export function PreventiviFilteredDialog({
               Nessun preventivo in questo stato
             </p>
           ) : (
-            <div className="space-y-3">
-              {filteredPreventivi.map((p) => (
-                <div
-                  key={p.id_preventivo}
-                  className="p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors"
-                >
-                  {/* Riga info */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-muted-foreground">
-                          {p.codice || "BOZZA"}
-                        </span>
-                        <span className="font-medium truncate">
-                          {p.Anagrafiche?.ragione_sociale ?? "Cliente"}
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground flex gap-2 flex-wrap">
-                        <span>
-                          {p.Mezzi?.marca} {p.Mezzi?.modello}
-                          {p.Mezzi?.matricola && ` (${p.Mezzi.matricola})`}
-                        </span>
-                        <span>•</span>
-                        <span>
-                          {p.prezzo_noleggio ? `€${p.prezzo_noleggio}` : "-"} / {p.tipo_canone ?? "mese"}
-                        </span>
-                      </div>
+            <ScrollArea className="flex-1 -mx-6 px-6">
+              {/* Header riga */}
+              <div className="grid grid-cols-[100px_1fr_180px_100px_1fr] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b sticky top-0 bg-background z-10">
+                <span>Codice</span>
+                <span>Cliente</span>
+                <span>Mezzo</span>
+                <span>Canone</span>
+                <span className="text-right">Azioni</span>
+              </div>
+
+              {/* Lista righe */}
+              <div className="divide-y">
+                {filteredPreventivi.map((p) => (
+                  <div
+                    key={p.id_preventivo}
+                    className="grid grid-cols-[100px_1fr_180px_100px_1fr] gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors"
+                  >
+                    {/* Codice */}
+                    <span className="font-mono text-xs font-bold text-muted-foreground truncate">
+                      {p.codice || "BOZZA"}
+                    </span>
+
+                    {/* Cliente */}
+                    <span className="font-medium truncate text-sm">
+                      {p.Anagrafiche?.ragione_sociale ?? "Cliente"}
+                    </span>
+
+                    {/* Mezzo */}
+                    <span className="text-sm text-muted-foreground truncate">
+                      {p.Mezzi?.marca} {p.Mezzi?.modello}
+                      {p.Mezzi?.matricola && ` (${p.Mezzi.matricola})`}
+                    </span>
+
+                    {/* Canone */}
+                    <span className="text-sm">
+                      {p.prezzo_noleggio ? `€${p.prezzo_noleggio}` : "-"}
+                    </span>
+
+                    {/* Azioni inline */}
+                    <div className="flex items-center justify-end gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => {
+                              setPreventivoPerPDF(p);
+                              setPreviewOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>Anteprima</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {renderAzioni(p)}
                     </div>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setPreventivoPerPDF(p);
-                        setPreviewOpen(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
                   </div>
-
-                  {/* Azioni rapide contestuali */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {renderAzioni(p)}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ScrollArea>
           )}
         </DialogContent>
       </Dialog>
@@ -346,8 +353,6 @@ export function PreventiviFilteredDialog({
         onSave={async (values) => {
           if (!preventivoDaModificare) return;
           
-          // Se "Modifica e Invia", imposta stato INVIATO
-          // Se da IN_REVISIONE, torna a DA_INVIARE (a meno che non sia Modifica e Invia)
           let nuovoStato = preventivoDaModificare.stato;
           if (modificaEInvia) {
             nuovoStato = StatoPreventivo.INVIATO;
