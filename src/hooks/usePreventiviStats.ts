@@ -2,31 +2,36 @@ import { useMemo } from "react";
 import { usePreventiviNoleggio } from "./usePreventiviNoleggio";
 import { StatoPreventivo } from "@/types/preventiviNoleggio";
 
-export function usePreventiviStats() {
+export function usePreventiviStats(anno: number, mese: number) {
   const { preventivi, loading, error } = usePreventiviNoleggio();
 
   const stats = useMemo(() => {
-    // Filtra preventivi non archiviati (tutti gli anni per ora)
-    const preventiviAttivi = preventivi.filter(p => {
-      return p.stato !== StatoPreventivo.ARCHIVIATO;
+    // Filtra preventivi per anno/mese (esclusi archiviati)
+    const preventiviPeriodo = preventivi.filter(p => {
+      if (p.stato === StatoPreventivo.ARCHIVIATO) return false;
+      const dataCreazione = new Date(p.created_at);
+      return dataCreazione.getFullYear() === anno && 
+             dataCreazione.getMonth() + 1 === mese;
     });
 
     return {
-      totale: preventiviAttivi.length,
-      bozze: preventiviAttivi.filter(p => p.stato === StatoPreventivo.BOZZA).length,
-      daInviare: preventiviAttivi.filter(p => p.stato === StatoPreventivo.DA_INVIARE).length,
-      inviati: preventiviAttivi.filter(p => p.stato === StatoPreventivo.INVIATO).length,
-      scaduti: preventiviAttivi.filter(p => p.stato === StatoPreventivo.SCADUTO).length,
-      inRevisione: preventiviAttivi.filter(p => p.stato === StatoPreventivo.IN_REVISIONE).length,
-      approvati: preventiviAttivi.filter(p => p.stato === StatoPreventivo.APPROVATO).length,
-      rifiutati: preventiviAttivi.filter(p => p.stato === StatoPreventivo.RIFIUTATO).length,
-      conclusi: preventiviAttivi.filter(p => p.stato === StatoPreventivo.CONCLUSO).length,
+      totale: preventiviPeriodo.length,
+      bozze: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.BOZZA).length,
+      daInviare: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.DA_INVIARE).length,
+      inviati: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.INVIATO).length,
+      scaduti: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.SCADUTO).length,
+      inRevisione: preventiviPeriodo.filter(p => p.stato === StatoPreventivo.IN_REVISIONE).length,
     };
-  }, [preventivi]);
+  }, [preventivi, anno, mese]);
 
-  // Preventivi per stato (per dialog filtrati)
+  // Preventivi per stato filtrati per periodo
   const getPreventiviByStato = (stato: StatoPreventivo) => {
-    return preventivi.filter(p => p.stato === stato);
+    return preventivi.filter(p => {
+      if (p.stato !== stato) return false;
+      const dataCreazione = new Date(p.created_at);
+      return dataCreazione.getFullYear() === anno && 
+             dataCreazione.getMonth() + 1 === mese;
+    });
   };
 
   return { 
