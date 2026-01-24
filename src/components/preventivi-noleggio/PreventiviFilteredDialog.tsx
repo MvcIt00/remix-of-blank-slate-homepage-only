@@ -265,13 +265,13 @@ export function PreventiviFilteredDialog({
             </p>
           ) : (
             <ScrollArea className="flex-1 -mx-6 px-6">
-              {/* Header riga - layout ottimizzato con mezzo espanso */}
-              <div className="grid grid-cols-[90px_1.2fr_1.5fr_80px_100px_auto] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b sticky top-0 bg-background z-10">
-                <span>Codice</span>
-                <span>Cliente</span>
-                <span>Mezzo</span>
-                <span>Canone</span>
-                <span>Stato</span>
+              {/* Header riga - layout ottimizzato con allineamento verticale */}
+              <div className="grid grid-cols-[90px_1.2fr_1.5fr_80px_100px_auto] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b sticky top-0 bg-background z-10 items-center">
+                <span className="truncate">Codice</span>
+                <span className="truncate">Cliente</span>
+                <span className="truncate">Mezzo</span>
+                <span className="truncate">Canone</span>
+                <span className="truncate">Stato</span>
                 <span className="text-right">Azioni</span>
               </div>
 
