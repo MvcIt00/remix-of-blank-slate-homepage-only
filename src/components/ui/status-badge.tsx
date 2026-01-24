@@ -89,7 +89,11 @@ export function StatusBadge<T extends string>({
       <PopoverTrigger asChild>
         {badgeContent}
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-1" align="start">
+      <PopoverContent 
+        className="w-auto p-1 z-50 bg-popover border shadow-md" 
+        align="start"
+        sideOffset={4}
+      >
         <div className="flex flex-col gap-1">
           <p className="text-xs text-muted-foreground px-2 py-1">
             Cambia stato:
@@ -99,7 +103,7 @@ export function StatusBadge<T extends string>({
               key={status}
               variant="ghost"
               size="sm"
-              className="justify-start h-8 text-sm font-normal"
+              className="justify-start h-8 text-sm font-normal hover:bg-accent"
               disabled={loading || status === value}
               onClick={() => handleTransition(status)}
             >
