@@ -6,12 +6,9 @@ export function usePreventiviStats() {
   const { preventivi, loading, error } = usePreventiviNoleggio();
 
   const stats = useMemo(() => {
-    const annoCorrente = new Date().getFullYear();
-    
-    // Filtra preventivi dell'anno corrente (non archiviati)
+    // Filtra preventivi non archiviati (tutti gli anni per ora)
     const preventiviAttivi = preventivi.filter(p => {
-      const anno = new Date(p.created_at).getFullYear();
-      return anno === annoCorrente && p.stato !== StatoPreventivo.ARCHIVIATO;
+      return p.stato !== StatoPreventivo.ARCHIVIATO;
     });
 
     return {

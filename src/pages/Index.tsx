@@ -57,30 +57,16 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl font-bold flex items-center gap-2">
-                  Parco Macchine
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ParcoMacchine />
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl font-bold flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Preventivi Noleggio
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PreventiviDashboard />
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl font-bold flex items-center gap-2">
+                Parco Macchine
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ParcoMacchine />
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
@@ -105,6 +91,18 @@ const Index = () => {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-none bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl font-bold flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Preventivi Noleggio
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PreventiviDashboard />
+            </CardContent>
+          </Card>
         </div>
 
         {selectedAnagraficaId && (
