@@ -171,14 +171,15 @@ export function RentalDetailSheet({
                                 Stato del documento formale. Puoi generare, scaricare o caricare il contratto firmato qui.
                             </p>
                             <div className="flex flex-wrap gap-2">
+                            <div className="w-full">
                                 <ContrattoStatusButton
                                     noleggioId={noleggio.id_noleggio}
                                     contrattoFirmato={noleggio.documenti_noleggio?.[0] || null}
                                     richiedeContratto={noleggio.Anagrafiche?.richiede_contratto_noleggio !== false}
                                     hasDraftContract={(noleggio.contratti_noleggio && noleggio.contratti_noleggio.length > 0) || false}
                                     onUploadSuccess={onRefetch}
-                                    fullWidth // Custom prop to make it block? Or just style it
                                 />
+                            </div>
                             </div>
                         </div>
                     </section>

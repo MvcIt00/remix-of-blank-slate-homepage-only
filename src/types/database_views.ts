@@ -153,3 +153,51 @@ export interface PreventivoCompletoView {
     owner_cap?: string;
     owner_provincia?: string;
 }
+
+// ============= ATOMIC DOCUMENT DATA TYPES =============
+// Used for PDF generation and document sections
+
+export interface EntitaAnagraficaDocumentale {
+    id_anagrafica: string;
+    ragione_sociale: string;
+    partita_iva: string | null;
+    cod_fiscale: string | null;
+    pec: string | null;
+    codice_univoco: string | null;
+    iban: string | null;
+    is_owner: boolean;
+    // Sede Legale
+    sede_legale_indirizzo: string | null;
+    sede_legale_citta: string | null;
+    sede_legale_cap: string | null;
+    sede_legale_provincia: string | null;
+    // Contatto Principale
+    nome_contatto_principale: string | null;
+    email_principale: string | null;
+    telefono_principale: string | null;
+}
+
+export interface EntitaMezzoDocumentale {
+    id_mezzo: string;
+    marca: string | null;
+    modello: string | null;
+    matricola: string | null;
+    id_interno: string | null;
+    anno: number | string | null;
+    categoria: string | null;
+    ore_moto: number | null;
+    ubicazione_attuale_dettaglio: string | null;
+}
+
+// ============= PREVENTIVI STATS =============
+
+export interface PreventiviStats {
+    totale_anno: number;
+    inviati: number;
+    scaduti: number;
+    bozze: number;
+    approvati: number;
+    rifiutati: number;
+    conclusi: number;
+    anno: number;
+}

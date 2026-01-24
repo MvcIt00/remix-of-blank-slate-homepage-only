@@ -100,11 +100,11 @@ export function PreventivoPreviewDialog({
                                 document={
                                     <PreventivoPDF
                                         datiOwner={datiOwner}
-                                        datiCliente={{
-                                            ragione_sociale: preventivo.cliente_ragione_sociale || "N/D",
-                                            piva: preventivo.cliente_piva || "",
-                                            email: preventivo.cliente_email || ""
-                                        }}
+                                                datiCliente={{
+                                                    ragione_sociale: preventivo.cliente_ragione_sociale || "N/D",
+                                                    piva: preventivo.cliente_partita_iva || "",
+                                                    email: preventivo.cliente_email || ""
+                                                }}
                                         datiMezzo={{
                                             marca: preventivo.marca || "N/D",
                                             modello: preventivo.modello || "N/D",
@@ -166,7 +166,7 @@ export function PreventivoPreviewDialog({
                                 datiOwner={datiOwner}
                                 datiCliente={{
                                     ragione_sociale: preventivo.cliente_ragione_sociale || "N/D",
-                                    piva: preventivo.cliente_piva || "",
+                                    piva: preventivo.cliente_partita_iva || "",
                                     email: preventivo.cliente_email || ""
                                 }}
                                 datiMezzo={{

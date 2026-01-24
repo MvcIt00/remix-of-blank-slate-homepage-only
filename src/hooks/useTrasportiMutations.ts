@@ -19,7 +19,7 @@ export const useCreateTrasporto = (id_noleggio?: string) => {
         mutationFn: async (data: TrasportoInsert) => {
             // 1. Insert trasporto
             const { data: trasporto, error: trasportoError } = await supabase
-                .from('trasporti')
+                .from('trasporti' as any)
                 .insert(data)
                 .select()
                 .single();
@@ -29,10 +29,10 @@ export const useCreateTrasporto = (id_noleggio?: string) => {
             // 2. Insert bridge table entry if id_noleggio provided
             if (id_noleggio && trasporto) {
                 const { error: bridgeError } = await supabase
-                    .from('noleggi_trasporti')
+                    .from('noleggi_trasporti' as any)
                     .insert({
                         id_noleggio,
-                        id_trasporto: trasporto.id_trasporto,
+                        id_trasporto: (trasporto as any).id_trasporto,
                     });
 
                 if (bridgeError) throw bridgeError;
@@ -63,7 +63,7 @@ export const useUpdateTrasporto = () => {
     return useMutation({
         mutationFn: async ({ id, data }: { id: string; data: TrasportoUpdate }) => {
             const { data: updated, error } = await supabase
-                .from('trasporti')
+                .from('trasporti' as any)
                 .update(data)
                 .eq('id_trasporto', id)
                 .select()
@@ -92,7 +92,7 @@ export const useDeleteTrasporto = () => {
     return useMutation({
         mutationFn: async (id: string) => {
             const { error } = await supabase
-                .from('trasporti')
+                .from('trasporti' as any)
                 .update({ is_cancellato: true })
                 .eq('id_trasporto', id);
 
@@ -118,7 +118,7 @@ export const useConfermaTrasporto = () => {
     return useMutation({
         mutationFn: async (id: string) => {
             const { data, error } = await supabase
-                .from('trasporti')
+                .from('trasporti' as any)
                 .update({ stato: 'confermato' })
                 .eq('id_trasporto', id)
                 .eq('stato', 'richiesto') // Safety check
@@ -149,7 +149,7 @@ export const useCompletaTrasporto = () => {
     return useMutation({
         mutationFn: async ({ id, data_effettiva }: { id: string; data_effettiva?: string }) => {
             const { data, error } = await supabase
-                .from('trasporti')
+                .from('trasporti' as any)
                 .update({
                     stato: 'completato',
                     data_effettiva: data_effettiva || new Date().toISOString(),

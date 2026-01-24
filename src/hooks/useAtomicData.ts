@@ -29,7 +29,7 @@ export function useAtomicAnagrafica(idAnagrafica?: string | null) {
                 console.error("Error fetching atomic anagrafica:", error);
                 throw error;
             }
-            return data as EntitaAnagraficaDocumentale;
+            return data as unknown as EntitaAnagraficaDocumentale;
         },
         enabled: !!idAnagrafica,
         staleTime: 1000 * 60 * 5, // 5 minutes
@@ -55,7 +55,7 @@ export function useAtomicMezzo(idMezzo?: string | null) {
                 console.error("Error fetching atomic mezzo:", error);
                 throw error;
             }
-            return data as EntitaMezzoDocumentale;
+            return data as unknown as EntitaMezzoDocumentale;
         },
         enabled: !!idMezzo,
         staleTime: 1000 * 60 * 5,
@@ -79,7 +79,7 @@ export function useAtomicOwner() {
                 console.error("Error fetching atomic owner:", error);
                 throw error;
             }
-            return data as EntitaAnagraficaDocumentale;
+            return data as unknown as EntitaAnagraficaDocumentale;
         },
         staleTime: 1000 * 60 * 60, // 1 hour (owner data changes rarely)
     });

@@ -170,6 +170,7 @@ export default function TrasportiPage() {
                     trasporti={completati}
                     isLoading={loadingCompletati}
                     onDettaglio={handleDettaglio}
+                    onModifica={handleModifica}
                     onElimina={handleElimina}
                 />
             </div>
