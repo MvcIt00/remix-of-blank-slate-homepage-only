@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Building2, MapPin, Users, FileText } from "lucide-react";
+import { Building2, MapPin, Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -10,7 +10,7 @@ import {
   EditDatiAmministrativiDialog,
   EditContattiDialog,
 } from "@/components/anagrafica";
-import { InfoModal } from "@/components/ui/responsive-modal";
+import { DraggableWindow } from "@/components/ui/draggable-window";
 
 interface AnagraficaCardProps {
   anagraficaId: string;
@@ -146,9 +146,9 @@ export function AnagraficaCard({ anagraficaId, onClose }: AnagraficaCardProps) {
 
   if (loading) {
     return (
-      <InfoModal
+      <DraggableWindow
         open={true}
-        onOpenChange={(v) => !v && onClose()}
+        onClose={onClose}
         title="Caricamento..."
         width="wide"
       >
@@ -157,26 +157,26 @@ export function AnagraficaCard({ anagraficaId, onClose }: AnagraficaCardProps) {
           <div className="h-4 bg-muted rounded w-1/2"></div>
           <div className="h-4 bg-muted rounded w-2/3"></div>
         </div>
-      </InfoModal>
+      </DraggableWindow>
     );
   }
 
   if (!anagrafica) {
     return (
-      <InfoModal
+      <DraggableWindow
         open={true}
-        onOpenChange={(v) => !v && onClose()}
+        onClose={onClose}
         title="Errore"
       >
         <p>Anagrafica non trovata</p>
-      </InfoModal>
+      </DraggableWindow>
     );
   }
 
   return (
-    <InfoModal
+    <DraggableWindow
       open={true}
-      onOpenChange={(v) => !v && onClose()}
+      onClose={onClose}
       title={
         <div className="flex items-center gap-3">
           <Building2 className="h-6 w-6 text-primary" />
@@ -369,6 +369,6 @@ export function AnagraficaCard({ anagraficaId, onClose }: AnagraficaCardProps) {
           )}
         </section>
       </div >
-    </InfoModal >
+    </DraggableWindow >
   );
 }
