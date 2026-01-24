@@ -62,13 +62,11 @@ export function PreventiviDashboard() {
     );
   }
 
-  const annoCorrente = new Date().getFullYear();
-
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {stats.totale} preventivi attivi nel {annoCorrente}
+          {stats.totale} preventivi attivi
         </p>
       </div>
 
