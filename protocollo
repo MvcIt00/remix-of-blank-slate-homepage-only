@@ -1,0 +1,308 @@
+PROTOCOL v1.2 - MACHINE-FIRST DEVELOPMENT
+Gestionale Carrelli Elevatori - Architectural Guidelines
+
+CONTEXT:
+  business_domain: rental_sales_maintenance_industrial_vehicles
+  core_asset: carrelli_elevatori
+  secondary_assets: [piattaforme_aeree, gru, mezzi_industriali_analoghi]
+  fleet_size: ~100_units
+  active_rental_units: 10-20
+
+AXIOMS:
+
+  AX00_SYSTEM_AWARENESS_MANDATORY:
+    rule: |
+      BEFORE ANY response:
+      EXECUTE system_state_verification
+      READ @context file
+      QUERY database.tables
+      QUERY database.views
+      SCAN existing_code_components
+      SCAN existing_centralized_files
+      IDENTIFY reusable_patterns
+    mandatory_sequence:
+      step_1: VERIFY database_schema
+      step_2: CHECK existing_implementations
+      step_3: SCAN centralized_components
+      step_4: LOAD domain_context
+      step_5: THEN propose_solutions
+    violation_condition: |
+      IF response_without_verification THEN invalid_response
+      IF component_creation_without_checking_existing THEN invalid_response
+    verification_artifacts:
+      - table_structures
+      - view_definitions
+      - foreign_key_relationships
+      - existing_enums
+      - code_patterns
+      - centralized_components
+      - reusable_utilities
+      - existing_ui_patterns
+
+  AX00B_CENTRALIZATION_MANDATORY:
+    rule: |
+      EVERY new_component MUST BE:
+      - centralized IN appropriate_directory
+      - reusable ACROSS multiple_contexts
+      - autonomous WITH minimal_dependencies
+      - consistent WITH existing_codebase
+    component_structure:
+      requirement: FOLLOW existing_patterns
+      location: USE centralized_directories
+      naming: MATCH existing_conventions
+      styling: INHERIT application_theme
+    before_creating_component:
+      step_1: SEARCH existing_similar_components
+      step_2: IF exists THEN reuse_or_extend
+      step_3: IF new_needed THEN design_for_reusability
+      step_4: PLACE IN centralized_location
+    validation: |
+      IF component_not_reusable THEN redesign
+      IF component_not_centralized THEN relocate
+      IF component_inconsistent THEN align
+
+  AX00C_UI_CONSISTENCY_MANDATORY:
+    rule: |
+      ALL ui_elements MUST BE:
+      - serious_professional_elegant
+      - consistent WITH existing_design_system
+      - aligned WITH application_visual_identity
+    requirements:
+      style: INHERIT FROM existing_components
+      spacing: MATCH current_layout_patterns
+      colors: USE application_color_palette
+      typography: FOLLOW existing_font_hierarchy
+      interactions: REPLICATE established_ux_patterns
+    violation_condition: |
+      IF ui_deviates_from_existing THEN invalid_implementation
+      IF design_unprofessional THEN invalid_implementation
+
+  AX01_AUTOMATION_INTENTIONAL:
+    rule: |
+      AUTOMATION TRIGGERS ON human_intentional_action
+      NOT ON system_event
+    pattern:
+      INVALID: ON_CREATE(noleggio) -> AUTO_CREATE(trasporto_consegna, trasporto_ritiro)
+      VALID: ON_USER_CLICK("richiedi_trasporto", context=noleggio) -> CREATE(trasporto) WITH precompiled_from_context
+    reason: |
+      operator_knows_real_context
+      system_cannot_predict_all_scenarios
+      automation_must_amplify_intention_not_replace_it
+
+  AX02_DATA_GRANULAR_NO_OVERABSTRACTION:
+    rule: |
+      USE foreign_keys_specific NOT generic_polymorphic
+      FRAGMENT data TO maximum_sensible_level
+      ENABLE analysis ON [past, present, future]
+    pattern:
+      INVALID: {entita_tipo: enum, id_entita: uuid, tipo_evento: enum}
+      VALID: {id_noleggio: uuid FK, id_mezzo: uuid FK, stato: enum}
+    reason: |
+      FK_enable_joins_aggregations_filters
+      abstraction_adds_complexity_without_value
+      if_complex_joins_needed_to_understand_record THEN abstraction_excessive
+
+  AX03_PROGRESSIVE_STATES_NOT_BOOLEAN:
+    rule: |
+      STATES REFLECT operational_phases [propiziatoria, confermata, definitiva]
+      NOT boolean_flags
+    pattern:
+      INVALID: {completato: boolean}
+      VALID: {stato: enum["richiesto", "confermato", "concluso"]}
+    definition:
+      propiziatoria:
+        description: lightweight organizational 1-2_clicks minimal_data
+        purpose: initialize_process_without_full_form
+        example_states: [richiesto, pianificato, bozza]
+      confermata:
+        description: operational validated_externally not_accounting_yet
+        purpose: track_external_validation_before_financial_impact
+        example_states: [confermato, assegnato, in_corso]
+      definitiva:
+        description: accounting immutable historical invoiceable
+        purpose: final_state_for_financial_analysis
+        example_states: [concluso, eseguito, fatturato]
+    reason: |
+      boolean_loses_intermediate_organizational_operational_phases
+      progressive_states_enable_workflow_tracking
+      each_state_has_clear_operational_meaning
+
+  AX04_LAYERED_INFORMATION_NOT_FILTERS:
+    rule: |
+      UX SHOWS all_states_simultaneously
+      NOT filters_or_tabs_requiring_interaction
+    pattern:
+      INVALID: <Dashboard><Filters options={[stato, data, cliente, mezzo]} /><Table data={filtered_results} /></Dashboard>
+      VALID: <PageLayout><Table title="Richiesti" data={filter(stato="richiesto")} always_visible /><Table title="Confermati" data={filter(stato="confermato")} always_visible /><Table title="Conclusi" data={filter(stato="concluso")} always_visible /></PageLayout>
+    reason: |
+      information_must_breathe_in_UI_without_requiring_action
+      complexity_managed_via_visual_structure_NOT_interaction
+      operator_sees_todo_inprogress_done_at_glance
+
+  AX05_TRIPARTITE_UTILITY:
+    rule: |
+      EVERY component_function_field MUST PASS all_three:
+        1. human_utility: operator_understands_and_uses
+        2. mathematical_utility: enables_calculations_aggregations_analysis
+        3. logical_utility: fits_operational_workflow
+    validation: |
+      IF any_false THEN reject_or_redesign
+    reason: |
+      elements_without_human_utility_create_friction
+      elements_without_mathematical_utility_prevent_analysis
+      elements_without_logical_utility_break_workflow
+
+  AX06_CONTEXT_FIRST_NOT_ENTITY_FIRST:
+    rule: |
+      START_FROM context_with_most_preexisting_data
+      NOT empty_entity_form
+    pattern:
+      INVALID: Navigate(section="trasporti") -> Click("nuovo") -> Fill([mezzo, cliente, sede, data, fornitore])
+      VALID: Context(page="noleggi_attivi", row=noleggio) -> Click("richiedi_trasporto") -> Fill([data, fornitore]) PRECOMPILED([mezzo, cliente, sede])
+    reason: |
+      reduce_operator_clicks_and_cognitive_load
+      leverage_existing_context_data
+      follow_natural_operational_flow
+
+  AX07_THE_TRIAD:
+    rule: |
+      EVERY operational_entity TRACKS [stati, importi, date]
+    components:
+      stati:
+        description: operational_lifecycle_phases
+        implementation: enum_progressive_states
+      importi:
+        description: financial_data_with_forecast_and_actual
+        implementation: [costi, ricavi, margini] WITH [previsto, effettivo]
+      date:
+        description: temporal_tracking_with_planning_and_execution
+        implementation: [prevista, effettiva, stimata_fine]
+    reason: |
+      enables_complete_temporal_economic_analysis
+      supports_forecast_before_events_occur
+      tracks_variance_between_planned_and_actual
+
+EVALUATION_CRITERIA:
+  data_classification:
+    living_data:
+      definition: data_that_will_be_aggregated_filtered_analyzed_joined
+      storage: FK columns queryable_schema
+      examples: [id_mezzo, id_cliente, stato, importo, data]
+    dead_data:
+      definition: immutable_historical_events_archive_only
+      storage: JSON snapshot
+      examples: [audit_trail, historical_snapshot, immutable_document]
+  multidimensional_analysis:
+    rule: BEFORE adding_field ASK all_dimensions
+    dimensions:
+      operational: used_by_operator_daily_workflow
+      legal_administrative: compliance_obligations_regulatory_requirements
+      analytical: enables_formulas_calculations_forecasts_aggregations
+      relational: connects_to_existing_data_generates_query_possibilities
+  context_centricity:
+    rule: ALWAYS start_from_context_with_maximum_precompiled_data
+    benefits:
+      - reduces_operator_input
+      - leverages_existing_relationships
+      - follows_natural_mental_model
+      - minimizes_errors
+  implicit_information:
+    rule: information_visible_without_requiring_action
+    pattern: |
+      INVALID: Click(mezzo) -> Open(modal) -> See(is_a_noleggio)
+      VALID: Visual_indicator(yellow_border) ON mezzo_cell WHEN is_a_noleggio
+    reason: |
+      reduces_clicks
+      information_always_present_but_not_invasive
+      leverages_visual_perception_over_interaction
+
+ANTI_PATTERNS:
+  AP01_BLIND_AUTOMATION:
+    description: creating_records_that_probably_will_be_needed
+    example: ON_CREATE(noleggio) -> AUTO_CREATE(trasporto_consegna) -> AUTO_CREATE(trasporto_ritiro)
+    problem: creates_noise_in_system assumes_scenarios_that_may_not_occur generates_records_never_used
+    solution: CREATE_ON_USER_INTENT WITH precompiled_context_data
+  AP02_OVER_ABSTRACTION:
+    description: using_generic_polymorphic_patterns_when_specific_FK_sufficient
+    example: eventi_logistici {tipo_evento: enum, entita_tipo: enum, id_entita: uuid}
+    problem: complex_joins_to_understand_what_record_represents difficult_human_comprehension maintenance_overhead query_complexity_increases
+    solution: trasporti {id_noleggio: uuid FK, stato: enum}
+  AP03_FILTER_HEAVY_DASHBOARDS:
+    description: pages_requiring_multiple_dropdown_filters_to_view_subsets
+    example: <Dashboard><FilterBar filters={[stato, data_from, data_to, cliente, mezzo, fornitore]} /><ResultsTable /></Dashboard>
+    problem: too_many_interactions_to_see_relevant_data hidden_information_until_filters_applied cognitive_complexity_high
+    solution: <LayeredTables><Table title="Richiesti" always_visible /><Table title="Confermati" always_visible /><Table title="Conclusi" always_visible /></LayeredTables>
+  AP04_ENTITY_FIRST_NOT_CONTEXT_FIRST:
+    description: navigate_to_section_create_empty_record_fill_everything
+    example: Navigate("trasporti") -> Click("nuovo_trasporto") -> Fill([mezzo, cliente, sede_origine, sede_dest, data, fornitore])
+    problem: too_many_manual_inputs no_precompiled_data unnecessary_clicks breaks_natural_workflow
+    solution: Context("noleggi_attivi", row) -> Click("richiedi_trasporto") -> Fill([data, fornitore]) PRECOMPILED([mezzo, cliente, sede])
+  AP05_BINARY_STATES_NOT_PROGRESSIVE:
+    description: using_boolean_flags_instead_of_state_enums
+    example: trasporto {completato: boolean}
+    problem: loses_all_intermediate_organizational_operational_phases cannot_track_workflow_progression no_distinction_between_requested_confirmed_executed
+    solution: trasporto {stato: enum["richiesto", "confermato", "concluso"]}
+  AP06_RESPONSE_WITHOUT_VERIFICATION:
+    description: proposing_solutions_without_checking_system_state
+    violation_indicators: [no_database_query_mentioned, no_context_file_reference, no_existing_code_acknowledgment, assumptions_about_current_state, no_component_scan_performed]
+    consequence: invalid_response
+    correction: EXECUTE AX00_SYSTEM_AWARENESS_MANDATORY
+  AP07_ROBOTIC_STRUCTURED_OUTPUT:
+    description: formatted_alternatives_instead_of_narrative_argumentation
+    violation_indicators: ["ALTERNATIVE 1:" structure, "PROS:" lists, separate_evaluation_sections, non_conversational_tone, english_language_usage]
+    consequence: invalid_response
+    correction: APPLY COMMUNICATION_PROTOCOL_ITALIAN
+  AP08_NON_CENTRALIZED_COMPONENTS:
+    description: creating_components_without_checking_existing_or_centralizing_new
+    violation_indicators: [component_created_without_scanning_existing, component_not_placed_in_centralized_location, component_not_designed_for_reusability, component_inconsistent_with_codebase]
+    consequence: invalid_implementation
+    correction: EXECUTE AX00B_CENTRALIZATION_MANDATORY
+  AP09_UI_INCONSISTENCY:
+    description: creating_ui_elements_that_deviate_from_existing_design_system
+    violation_indicators: [different_styling_patterns, inconsistent_spacing, non_matching_colors, unprofessional_appearance, different_interaction_patterns]
+    consequence: invalid_implementation
+    correction: EXECUTE AX00C_UI_CONSISTENCY_MANDATORY
+
+COMMUNICATION_PROTOCOL_ITALIAN:
+  language: ITALIAN
+  tone: COLLABORATIVE_PROFESSIONAL
+  format: NARRATIVE_NOT_STRUCTURED
+  mandatory_flow:
+    phase_1_context_acknowledgment:
+      action: DEMONSTRATE system_state_understanding
+      requirement: REFERENCE verified_artifacts
+      requirement: MENTION scanned_components_and_code
+    phase_2_reasoning_exposition:
+      action: EXPLAIN thought_process
+      requirement: SHOW philosophical_alignment
+      requirement: JUSTIFY reuse_or_new_component_decision
+    phase_3_solution_argumentation:
+      action: ARGUE why_this_approach
+      requirement: LINK_TO axioms_compliance
+      requirement: SPECIFY concrete_applications
+      requirement: EXPLAIN centralization_strategy
+    phase_4_future_expansions:
+      action: PROPOSE enhancement_paths
+      requirement: MAINTAIN philosophical_consistency
+  prohibited_patterns: [robotic_formal_tone, bullet_point_lists_without_narrative, structured_alternatives_format, responses_without_preliminary_analysis, component_proposals_without_existing_scan]
+  required_patterns: [conversational_colleague_style, integrated_narrative_explanation, argumentation_of_superiority, demonstration_of_context_awareness, explicit_component_reuse_discussion]
+  pre_response_checklist:
+    VERIFY database_checked == TRUE
+    VERIFY context_loaded == TRUE
+    VERIFY code_reviewed == TRUE
+    VERIFY components_scanned == TRUE
+    VERIFY centralized_files_checked == TRUE
+    VERIFY tone == CONVERSATIONAL
+    VERIFY reasoning_explained == TRUE
+
+OUTPUT_FORMAT:
+  structure:
+    opening: REFERENCE verified_system_state AND scanned_components
+    body: EXPLAIN reasoning_with_philosophical_justification AND component_strategy
+    conclusion: ARGUE optimal_path WITH centralization_plan
+    closing: SUGGEST future_possibilities
+  axiom_integration:
+    rule: EMBED axiom_references IN narrative
+    prohibition: NO separate_evaluation_section
+    requirement: EXPLAIN compliance WHILE proposing
+
