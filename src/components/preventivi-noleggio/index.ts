@@ -5,4 +5,6 @@ export * from "./PreventivoPreviewDialog";
 export * from "./PreventivoStatusButton";
 export * from "./ConfermaPreventivoDialog";
 export * from "./PreventivoPDF";
+export * from "./PreventiviDashboard";
+export * from "./PreventiviFilteredDialog";
 export type { DatiClientePreventivo, DatiMezzoPreventivo, DatiPreventivo } from "./PreventivoPDF";
