@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 const statoBadgeVariant: Record<StatoPreventivo, "secondary" | "default" | "destructive" | "outline"> = {
   bozza: "secondary",
   inviato: "secondary",
+  scaduto: "destructive", // Evidenzia preventivi scaduti
   in_revisione: "outline",
   approvato: "default",
   rifiutato: "destructive",
@@ -221,6 +222,7 @@ export default function PreventiviNoleggio() {
                 <SelectItem value="tutti">Tutti</SelectItem>
                 <SelectItem value="bozza">Bozza</SelectItem>
                 <SelectItem value="inviato">Inviato</SelectItem>
+                <SelectItem value="scaduto">Scaduto</SelectItem>
                 <SelectItem value="approvato">Approvato</SelectItem>
                 <SelectItem value="rifiutato">Rifiutato</SelectItem>
                 <SelectItem value="concluso">Concluso</SelectItem>

@@ -6662,6 +6662,7 @@ export type Database = {
       stato_preventivo:
         | "bozza"
         | "inviato"
+        | "scaduto"
         | "in_revisione"
         | "approvato"
         | "rifiutato"
@@ -6882,6 +6883,7 @@ export const Constants = {
       stato_preventivo: [
         "bozza",
         "inviato",
+        "scaduto",
         "in_revisione",
         "approvato",
         "rifiutato",

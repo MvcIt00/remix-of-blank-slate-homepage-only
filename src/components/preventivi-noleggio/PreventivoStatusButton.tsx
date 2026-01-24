@@ -56,6 +56,12 @@ export function PreventivoStatusButton({
                     className: "border-orange-300 text-orange-600 hover:bg-orange-50 hover:text-orange-700",
                     label: "Inviato - Attesa Firma",
                 };
+            case "scaduto":
+                return {
+                    icon: <FileWarning className="h-4 w-4" />,
+                    className: "border-amber-400 text-amber-600 hover:bg-amber-50 hover:text-amber-700",
+                    label: "Scaduto - Richiede Attenzione",
+                };
             case "approvato":
                 return {
                     icon: <CheckCircle2 className="h-4 w-4" />,
@@ -232,6 +238,24 @@ export function PreventivoStatusButton({
                             </>
                         )}
 
+                        {preventivo.stato === "scaduto" && (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="justify-start w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50 font-bold"
+                                    onClick={() => handleStatusUpdate(StatoPreventivo.INVIATO)}
+                                >
+                                    <RefreshCw className="h-4 w-4 mr-2" />
+                                    Riattiva (Re-Invia)
+                                </Button>
+                                <Button variant="ghost" size="sm" className="justify-start w-full" onClick={() => { setPopoverOpen(false); onViewPDF(); }}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Vedi Preventivo
+                                </Button>
+                            </>
+                        )}
+
                         {preventivo.stato === "approvato" && (
                             <>
                                 {hasFirmato && (
@@ -265,7 +289,7 @@ export function PreventivoStatusButton({
 
                         <div className="h-px bg-muted my-1" />
 
-                        {preventivo.stato === "inviato" && (
+                        {(preventivo.stato === "inviato" || preventivo.stato === "scaduto") && (
                             <Button
                                 variant="ghost"
                                 size="sm"
