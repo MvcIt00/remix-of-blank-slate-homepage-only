@@ -10,4 +10,5 @@ export { PreventiviDashboard } from "./PreventiviDashboard";
 export { PreventiviFilteredDialog } from "./PreventiviFilteredDialog";
 export { PreventivoStatoBadge } from "./PreventivoStatoBadge";
 export { RinnovaPreventivoDialog } from "./RinnovaPreventivoDialog";
+export { DettaglioModificaDialog } from "./DettaglioModificaDialog";
 export type { DatiClientePreventivo, DatiMezzoPreventivo, DatiPreventivo } from "./PreventivoPDF";

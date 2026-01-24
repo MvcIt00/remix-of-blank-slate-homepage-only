@@ -30,6 +30,8 @@ export interface PreventivoNoleggio {
   pdf_firmato_path: string | null;
   convertito_in_noleggio_id?: string | null;
   is_archiviato?: boolean; // Flag per archiviazione (mantiene stato originale)
+  dettaglio_modifica?: string | null; // Motivo per cui va modificato (popolato quando stato = IN_REVISIONE)
+  data_scadenza?: string | null; // Data scadenza validità preventivo
   created_at: string;
   updated_at: string | null;
   Anagrafiche?: {
