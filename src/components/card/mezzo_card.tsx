@@ -3,7 +3,7 @@ import { Truck, Edit, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { InfoModal } from "@/components/ui/responsive-modal";
+import { DraggableWindow } from "@/components/ui/draggable-window";
 import { ModMezzoForm } from "@/components/form/mod_mezzo_form";
 import { cn } from "@/lib/utils";
 
@@ -106,9 +106,9 @@ export function MezzoCard({ mezzoId, onClose }: MezzoCardProps) {
 
     if (loading) {
         return (
-            <InfoModal
+            <DraggableWindow
                 open={true}
-                onOpenChange={(v) => !v && onClose()}
+                onClose={onClose}
                 title="Caricamento..."
                 width="wide"
             >
@@ -117,19 +117,19 @@ export function MezzoCard({ mezzoId, onClose }: MezzoCardProps) {
                     <div className="h-4 bg-muted rounded w-1/2"></div>
                     <div className="h-4 bg-muted rounded w-2/3"></div>
                 </div>
-            </InfoModal>
+            </DraggableWindow>
         );
     }
 
     if (!cardData) {
         return (
-            <InfoModal
+            <DraggableWindow
                 open={true}
-                onOpenChange={(v) => !v && onClose()}
+                onClose={onClose}
                 title="Errore"
             >
                 <p>Mezzo non trovato</p>
-            </InfoModal>
+            </DraggableWindow>
         );
     }
 
@@ -151,9 +151,9 @@ export function MezzoCard({ mezzoId, onClose }: MezzoCardProps) {
 
 
     return (
-        <InfoModal
+        <DraggableWindow
             open={true}
-            onOpenChange={(v) => !v && onClose()}
+            onClose={onClose}
             title={
                 <div className="flex items-center gap-3">
                     <Truck className="h-6 w-6 text-primary" />
@@ -405,6 +405,6 @@ export function MezzoCard({ mezzoId, onClose }: MezzoCardProps) {
                     </div>
                 )}
             </div>
-        </InfoModal>
+        </DraggableWindow>
     );
 }
