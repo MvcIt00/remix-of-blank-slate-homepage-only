@@ -25,13 +25,13 @@ function StatItem({ label, count, onClick }: StatItemProps) {
       onClick={isDisabled ? undefined : onClick}
       disabled={isDisabled}
       className={cn(
-        "text-sm transition-colors",
+        "text-base font-bold transition-colors",
         isDisabled 
-          ? "text-muted-foreground/50 cursor-not-allowed" 
+          ? "text-muted-foreground/40 cursor-not-allowed" 
           : "text-foreground hover:text-primary cursor-pointer"
       )}
     >
-      <span className="font-semibold">{count}</span> {label}
+      {label} {count}
     </button>
   );
 }
@@ -41,7 +41,7 @@ export function PreventiviDashboard() {
   const meseCorrente = new Date().getMonth() + 1;
 
   const [anno, setAnno] = useState(annoCorrente);
-  const [mese, setMese] = useState(meseCorrente);
+  const [mese, setMese] = useState<number | null>(meseCorrente);
 
   const { stats, loading } = usePreventiviStats(anno, mese);
   const [filterDialog, setFilterDialog] = useState<{
@@ -75,14 +75,18 @@ export function PreventiviDashboard() {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
-          {stats.totale} preventivi in {MESI[mese - 1]} {anno}
+          {stats.totale} preventivi {mese ? `in ${MESI[mese - 1]}` : "nel"} {anno}
         </p>
         <div className="flex items-center gap-2">
-          <Select value={mese.toString()} onValueChange={(v) => setMese(Number(v))}>
+          <Select 
+            value={mese?.toString() ?? "all"} 
+            onValueChange={(v) => setMese(v === "all" ? null : Number(v))}
+          >
             <SelectTrigger className="w-[130px] h-8">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Tutto l'anno</SelectItem>
               {MESI.map((nomeMese, index) => (
                 <SelectItem key={index + 1} value={(index + 1).toString()}>
                   {nomeMese}
