@@ -81,11 +81,11 @@ export const CreaInterventoDialog = ({ mezzo, onSuccess }: CreaInterventoDialogP
           id_mezzo: mezzo.id_mezzo,
           id_anagrafica: mezzo.id_anagrafica,
           descrizione_intervento: descrizioneCompleta,
-          // Se tipo='intervento', imposta stato_intervento='aperto' e stato_preventivo='non preventivato'
+          // Se tipo='intervento', imposta stato_intervento='aperto' e stato_preventivo=null (non preventivato)
           // Se tipo='preventivo', imposta stato_intervento='preventivazione' e stato_preventivo='bozza'
           stato_intervento: tipo === 'intervento' ? 'aperto' : 'preventivazione',
-          stato_preventivo: tipo === 'intervento' ? 'non preventivato' : 'bozza'
-        })
+          stato_preventivo: tipo === 'intervento' ? null : 'bozza'
+        } as any)
         .select()
         .single();
 

@@ -43,11 +43,14 @@ export const StatoPreventivoPopover = ({
     setLoading(true);
 
     try {
+      // Mappa "non preventivato" a null per il DB
+      const dbValue = nuovoStato === "non preventivato" ? null : nuovoStato;
+      
       // Aggiorna lo stato in "Interventi"
       if (interventoId) {
         const { error } = await supabase
           .from("Interventi")
-          .update({ stato_preventivo: nuovoStato })
+          .update({ stato_preventivo: dbValue } as any)
           .eq("id_intervento", interventoId);
         if (error) throw error;
       }
@@ -56,7 +59,7 @@ export const StatoPreventivoPopover = ({
       if (prevInterventoId) {
         const { error } = await supabase
           .from("prev_interventi")
-          .update({ stato_preventivo: nuovoStato })
+          .update({ stato_preventivo: dbValue } as any)
           .eq("id_intervento", prevInterventoId);
         if (error) throw error;
       }
