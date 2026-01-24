@@ -70,7 +70,49 @@ export type Database = {
             foreignKeyName: "an_contatti_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_contatti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_contatti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_contatti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_contatti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_contatti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_contatti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
           {
@@ -86,6 +128,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Sedi"
             referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "an_contatti_id_sede_fkey"
+            columns: ["id_sede"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
           },
           {
             foreignKeyName: "an_contatti_id_sede_fkey"
@@ -159,7 +208,49 @@ export type Database = {
             foreignKeyName: "an_dati_amministrativi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: true
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_dati_amministrativi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_dati_amministrativi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_dati_amministrativi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_dati_amministrativi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_dati_amministrativi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "an_dati_amministrativi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
         ]
@@ -252,8 +343,8 @@ export type Database = {
           id_noleggio: string
           is_cancellato: boolean | null
           modalita_pagamento:
-          | Database["public"]["Enums"]["modalita_pagamento"]
-          | null
+            | Database["public"]["Enums"]["modalita_pagamento"]
+            | null
           note_interne: string | null
           pdf_bozza_path: string | null
           pdf_firmato_path: string | null
@@ -283,14 +374,14 @@ export type Database = {
           id_noleggio: string
           is_cancellato?: boolean | null
           modalita_pagamento?:
-          | Database["public"]["Enums"]["modalita_pagamento"]
-          | null
+            | Database["public"]["Enums"]["modalita_pagamento"]
+            | null
           note_interne?: string | null
           pdf_bozza_path?: string | null
           pdf_firmato_path?: string | null
           stato_contratto?:
-          | Database["public"]["Enums"]["stato_contratto"]
-          | null
+            | Database["public"]["Enums"]["stato_contratto"]
+            | null
           tempo_indeterminato?: boolean | null
           termini_pagamento?: string | null
           tipo_canone?: Database["public"]["Enums"]["tipo_canone"] | null
@@ -316,14 +407,14 @@ export type Database = {
           id_noleggio?: string
           is_cancellato?: boolean | null
           modalita_pagamento?:
-          | Database["public"]["Enums"]["modalita_pagamento"]
-          | null
+            | Database["public"]["Enums"]["modalita_pagamento"]
+            | null
           note_interne?: string | null
           pdf_bozza_path?: string | null
           pdf_firmato_path?: string | null
           stato_contratto?:
-          | Database["public"]["Enums"]["stato_contratto"]
-          | null
+            | Database["public"]["Enums"]["stato_contratto"]
+            | null
           tempo_indeterminato?: boolean | null
           termini_pagamento?: string | null
           tipo_canone?: Database["public"]["Enums"]["tipo_canone"] | null
@@ -347,7 +438,49 @@ export type Database = {
             foreignKeyName: "contratti_noleggio_id_anagrafica_cliente_fkey"
             columns: ["id_anagrafica_cliente"]
             isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_cliente_fkey"
+            columns: ["id_anagrafica_cliente"]
+            isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_cliente_fkey"
+            columns: ["id_anagrafica_cliente"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_cliente_fkey"
+            columns: ["id_anagrafica_cliente"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_cliente_fkey"
+            columns: ["id_anagrafica_cliente"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_cliente_fkey"
+            columns: ["id_anagrafica_cliente"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_cliente_fkey"
+            columns: ["id_anagrafica_cliente"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
           {
@@ -368,7 +501,49 @@ export type Database = {
             foreignKeyName: "contratti_noleggio_id_anagrafica_fornitore_fkey"
             columns: ["id_anagrafica_fornitore"]
             isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
           {
@@ -389,10 +564,93 @@ export type Database = {
             foreignKeyName: "contratti_noleggio_id_noleggio_fkey"
             columns: ["id_noleggio"]
             isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
             referencedRelation: "vw_mezzo_noleggi_attivi"
             referencedColumns: ["id_noleggio"]
           },
+          {
+            foreignKeyName: "contratti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "contratti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_storico"]
+          },
         ]
+      }
+      cose_varie: {
+        Row: {
+          created_at: string | null
+          descrizione: string | null
+          id: string
+          is_cancellato: boolean | null
+          nome: string
+        }
+        Insert: {
+          created_at?: string | null
+          descrizione?: string | null
+          id?: string
+          is_cancellato?: boolean | null
+          nome: string
+        }
+        Update: {
+          created_at?: string | null
+          descrizione?: string | null
+          id?: string
+          is_cancellato?: boolean | null
+          nome?: string
+        }
+        Relationships: []
+      }
+      document_sequences: {
+        Row: {
+          current_value: number
+          doc_type: string
+          id: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          current_value?: number
+          doc_type: string
+          id?: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          current_value?: number
+          doc_type?: string
+          id?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
       }
       documenti_noleggio: {
         Row: {
@@ -450,8 +708,43 @@ export type Database = {
             foreignKeyName: "documenti_noleggio_id_noleggio_fkey"
             columns: ["id_noleggio"]
             isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "documenti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "documenti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
             referencedRelation: "vw_mezzo_noleggi_attivi"
             referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "documenti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "documenti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "documenti_noleggio_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_storico"]
           },
         ]
       }
@@ -490,7 +783,49 @@ export type Database = {
             foreignKeyName: "frn_mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: true
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
         ]
@@ -533,7 +868,49 @@ export type Database = {
             foreignKeyName: "frn_ricambi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: true
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_ricambi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_ricambi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_ricambi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_ricambi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_ricambi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_ricambi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
         ]
@@ -576,7 +953,49 @@ export type Database = {
             foreignKeyName: "frn_servizi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: true
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_servizi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_servizi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_servizi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_servizi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_servizi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_servizi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
         ]
@@ -585,16 +1004,19 @@ export type Database = {
         Row: {
           created_at: string
           id_anagrafica: string
+          id_contatto_whatsapp: string | null
           is_cancellato: boolean | null
         }
         Insert: {
           created_at?: string
           id_anagrafica: string
+          id_contatto_whatsapp?: string | null
           is_cancellato?: boolean | null
         }
         Update: {
           created_at?: string
           id_anagrafica?: string
+          id_contatto_whatsapp?: string | null
           is_cancellato?: boolean | null
         }
         Relationships: [
@@ -616,8 +1038,57 @@ export type Database = {
             foreignKeyName: "frn_trasporti_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: true
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_trasporti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_trasporti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_trasporti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_trasporti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_trasporti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_trasporti_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: true
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "frn_trasporti_id_contatto_whatsapp_fkey"
+            columns: ["id_contatto_whatsapp"]
+            isOneToOne: false
+            referencedRelation: "an_contatti"
+            referencedColumns: ["id_contatto"]
           },
         ]
       }
@@ -690,8 +1161,8 @@ export type Database = {
       int_lavorazioni: {
         Row: {
           competenza_lavorazione:
-          | Database["public"]["Enums"]["competenza_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["competenza_lavorazione"]
+            | null
           created_at: string
           data_a_prevista: string | null
           data_da_prevista: string | null
@@ -708,13 +1179,13 @@ export type Database = {
           prezzo_manodopera: number | null
           ricambi: Json | null
           stato_lavorazione:
-          | Database["public"]["Enums"]["stato_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["stato_lavorazione"]
+            | null
         }
         Insert: {
           competenza_lavorazione?:
-          | Database["public"]["Enums"]["competenza_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["competenza_lavorazione"]
+            | null
           created_at?: string
           data_a_prevista?: string | null
           data_da_prevista?: string | null
@@ -731,13 +1202,13 @@ export type Database = {
           prezzo_manodopera?: number | null
           ricambi?: Json | null
           stato_lavorazione?:
-          | Database["public"]["Enums"]["stato_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["stato_lavorazione"]
+            | null
         }
         Update: {
           competenza_lavorazione?:
-          | Database["public"]["Enums"]["competenza_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["competenza_lavorazione"]
+            | null
           created_at?: string
           data_a_prevista?: string | null
           data_da_prevista?: string | null
@@ -754,26 +1225,26 @@ export type Database = {
           prezzo_manodopera?: number | null
           ricambi?: Json | null
           stato_lavorazione?:
-          | Database["public"]["Enums"]["stato_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["stato_lavorazione"]
+            | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "interventi"
             referencedColumns: ["id_intervento"]
           },
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "Interventi"
             referencedColumns: ["id_intervento"]
           },
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "vw_gestione_interventi"
@@ -793,11 +1264,11 @@ export type Database = {
           is_chiuso: boolean
           is_fatturato: boolean
           stato_intervento:
-          | Database["public"]["Enums"]["stato_intervento"]
-          | null
+            | Database["public"]["Enums"]["stato_intervento"]
+            | null
           stato_preventivo:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Insert: {
           codice_intervento?: string | null
@@ -810,11 +1281,11 @@ export type Database = {
           is_chiuso?: boolean
           is_fatturato?: boolean
           stato_intervento?:
-          | Database["public"]["Enums"]["stato_intervento"]
-          | null
+            | Database["public"]["Enums"]["stato_intervento"]
+            | null
           stato_preventivo?:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Update: {
           codice_intervento?: string | null
@@ -827,60 +1298,137 @@ export type Database = {
           is_chiuso?: boolean
           is_fatturato?: boolean
           stato_intervento?:
-          | Database["public"]["Enums"]["stato_intervento"]
-          | null
+            | Database["public"]["Enums"]["stato_intervento"]
+            | null
           stato_preventivo?:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
             referencedColumns: ["id_mezzo"]
           },
         ]
@@ -953,8 +1501,8 @@ export type Database = {
           ore_moto: number | null
           specifiche_tecniche: Json | null
           stato_funzionamento:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_funzionamento_descrizione: string | null
           ubicazione: string | null
         }
@@ -975,8 +1523,8 @@ export type Database = {
           ore_moto?: number | null
           specifiche_tecniche?: Json | null
           stato_funzionamento?:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_funzionamento_descrizione?: string | null
           ubicazione?: string | null
         }
@@ -997,84 +1545,140 @@ export type Database = {
           ore_moto?: number | null
           specifiche_tecniche?: Json | null
           stato_funzionamento?:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_funzionamento_descrizione?: string | null
           ubicazione?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_assegnata_fkey"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
             columns: ["id_sede_assegnata"]
             isOneToOne: false
             referencedRelation: "sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_assegnata_fkey"
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
             columns: ["id_sede_assegnata"]
             isOneToOne: false
             referencedRelation: "Sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_assegnata_fkey"
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
             columns: ["id_sede_assegnata"]
             isOneToOne: false
             referencedRelation: "vw_sedi_per_anagrafica"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_assegnata_fkey"
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
             columns: ["id_sede_assegnata"]
             isOneToOne: false
             referencedRelation: "vw_sedi_tutte"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "Sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "vw_sedi_per_anagrafica"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "vw_sedi_tutte"
@@ -1098,7 +1702,6 @@ export type Database = {
           prezzo_noleggio: number | null
           prezzo_trasporto: number | null
           sede_operativa: string | null
-          stato_noleggio: Database["public"]["Enums"]["stato_noleggio"] | null
           tempo_indeterminato: boolean | null
           tipo_canone: Database["public"]["Enums"]["tipo_canone"] | null
         }
@@ -1117,7 +1720,6 @@ export type Database = {
           prezzo_noleggio?: number | null
           prezzo_trasporto?: number | null
           sede_operativa?: string | null
-          stato_noleggio?: Database["public"]["Enums"]["stato_noleggio"] | null
           tempo_indeterminato?: boolean | null
           tipo_canone?: Database["public"]["Enums"]["tipo_canone"] | null
         }
@@ -1136,83 +1738,166 @@ export type Database = {
           prezzo_noleggio?: number | null
           prezzo_trasporto?: number | null
           sede_operativa?: string | null
-          stato_noleggio?: Database["public"]["Enums"]["stato_noleggio"] | null
           tempo_indeterminato?: boolean | null
           tipo_canone?: Database["public"]["Enums"]["tipo_canone"] | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_noleggi_anagrafica"
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_noleggi_anagrafica"
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_noleggi_anagrafica"
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_sede_operativa"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
             columns: ["sede_operativa"]
             isOneToOne: false
             referencedRelation: "sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "fk_noleggi_sede_operativa"
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
             columns: ["sede_operativa"]
             isOneToOne: false
             referencedRelation: "Sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "fk_noleggi_sede_operativa"
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
             columns: ["sede_operativa"]
             isOneToOne: false
             referencedRelation: "vw_sedi_per_anagrafica"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "fk_noleggi_sede_operativa"
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
             columns: ["sede_operativa"]
             isOneToOne: false
             referencedRelation: "vw_sedi_tutte"
@@ -1220,115 +1905,85 @@ export type Database = {
           },
         ]
       }
-      noleggi_storico: {
+      noleggi_trasporti: {
         Row: {
-          contratto: string | null
           created_at: string
-          data_evento: string
-          data_fine: string | null
-          data_fine_periodo: string | null
-          data_inizio: string | null
-          data_terminazione_effettiva: string | null
-          id: string | null
-          id_anagrafica: string
-          id_mezzo: string
           id_noleggio: string
-          id_storico: string
-          is_terminato: boolean | null
-          mezzo_descrizione: string | null
-          note: string | null
-          note_evento: string | null
-          prezzo_noleggio: number | null
-          prezzo_trasporto: number | null
-          ragione_sociale_cliente: string | null
-          sede_operativa: string | null
-          sede_operativa_descrizione: string | null
-          sede_precedente_descrizione: string | null
-          sede_precedente_id: string | null
-          stato_noleggio: Database["public"]["Enums"]["stato_noleggio"] | null
-          tempo_indeterminato: boolean | null
-          tipo_canone: Database["public"]["Enums"]["tipo_canone"] | null
-          tipo_evento: Database["public"]["Enums"]["tipo_evento_storico"]
+          id_trasporto: string
         }
         Insert: {
-          contratto?: string | null
           created_at?: string
-          data_evento?: string
-          data_fine?: string | null
-          data_fine_periodo?: string | null
-          data_inizio?: string | null
-          data_terminazione_effettiva?: string | null
-          id?: string | null
-          id_anagrafica: string
-          id_mezzo: string
           id_noleggio: string
-          id_storico?: string
-          is_terminato?: boolean | null
-          mezzo_descrizione?: string | null
-          note?: string | null
-          note_evento?: string | null
-          prezzo_noleggio?: number | null
-          prezzo_trasporto?: number | null
-          ragione_sociale_cliente?: string | null
-          sede_operativa?: string | null
-          sede_operativa_descrizione?: string | null
-          sede_precedente_descrizione?: string | null
-          sede_precedente_id?: string | null
-          stato_noleggio?: Database["public"]["Enums"]["stato_noleggio"] | null
-          tempo_indeterminato?: boolean | null
-          tipo_canone?: Database["public"]["Enums"]["tipo_canone"] | null
-          tipo_evento: Database["public"]["Enums"]["tipo_evento_storico"]
+          id_trasporto: string
         }
         Update: {
-          contratto?: string | null
           created_at?: string
-          data_evento?: string
-          data_fine?: string | null
-          data_fine_periodo?: string | null
-          data_inizio?: string | null
-          data_terminazione_effettiva?: string | null
-          id?: string | null
-          id_anagrafica?: string
-          id_mezzo?: string
           id_noleggio?: string
-          id_storico?: string
-          is_terminato?: boolean | null
-          mezzo_descrizione?: string | null
-          note?: string | null
-          note_evento?: string | null
-          prezzo_noleggio?: number | null
-          prezzo_trasporto?: number | null
-          ragione_sociale_cliente?: string | null
-          sede_operativa?: string | null
-          sede_operativa_descrizione?: string | null
-          sede_precedente_descrizione?: string | null
-          sede_precedente_id?: string | null
-          stato_noleggio?: Database["public"]["Enums"]["stato_noleggio"] | null
-          tempo_indeterminato?: boolean | null
-          tipo_canone?: Database["public"]["Enums"]["tipo_canone"] | null
-          tipo_evento?: Database["public"]["Enums"]["tipo_evento_storico"]
+          id_trasporto?: string
         }
         Relationships: [
           {
-            foreignKeyName: "noleggi_storico_id_noleggio_fkey"
+            foreignKeyName: "noleggi_trasporti_id_noleggio_fkey"
             columns: ["id_noleggio"]
             isOneToOne: false
             referencedRelation: "noleggi"
             referencedColumns: ["id_noleggio"]
           },
           {
-            foreignKeyName: "noleggi_storico_id_noleggio_fkey"
+            foreignKeyName: "noleggi_trasporti_id_noleggio_fkey"
             columns: ["id_noleggio"]
             isOneToOne: false
             referencedRelation: "Noleggi"
             referencedColumns: ["id_noleggio"]
           },
           {
-            foreignKeyName: "noleggi_storico_id_noleggio_fkey"
+            foreignKeyName: "noleggi_trasporti_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "noleggi_trasporti_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "noleggi_trasporti_id_noleggio_fkey"
             columns: ["id_noleggio"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_noleggi_attivi"
             referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "noleggi_trasporti_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "noleggi_trasporti_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "noleggi_trasporti_id_noleggio_fkey"
+            columns: ["id_noleggio"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_storico"]
+          },
+          {
+            foreignKeyName: "noleggi_trasporti_id_trasporto_fkey"
+            columns: ["id_trasporto"]
+            isOneToOne: false
+            referencedRelation: "trasporti"
+            referencedColumns: ["id_trasporto"]
           },
         ]
       }
@@ -1364,8 +2019,8 @@ export type Database = {
           pdf_path: string | null
           pdf_size: number | null
           stato_preventivo:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Insert: {
           created_at?: string
@@ -1377,8 +2032,8 @@ export type Database = {
           pdf_path?: string | null
           pdf_size?: number | null
           stato_preventivo?:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Update: {
           created_at?: string
@@ -1390,8 +2045,8 @@ export type Database = {
           pdf_path?: string | null
           pdf_size?: number | null
           stato_preventivo?:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Relationships: [
           {
@@ -1433,55 +2088,85 @@ export type Database = {
       }
       prev_noleggi: {
         Row: {
+          clausole_speciali: string | null
+          codice: string | null
           convertito_in_noleggio_id: string | null
           created_at: string
           data_fine: string | null
           data_inizio: string | null
+          data_scadenza: string | null
+          dati_azienda: Json | null
+          dati_cliente: Json | null
+          dati_mezzo: Json | null
+          deposito_cauzionale: number | null
           id_anagrafica: string
           id_anagrafica_fornitore: string | null
           id_mezzo: string
           id_preventivo: string
+          modalita_pagamento: string | null
           note: string | null
+          pdf_bozza_path: string | null
+          pdf_firmato_path: string | null
           prezzo_noleggio: number | null
           prezzo_trasporto: number | null
           sede_operativa: string | null
-          stato: string
+          stato: Database["public"]["Enums"]["stato_preventivo"]
           tempo_indeterminato: boolean
           tipo_canone: string | null
           updated_at: string | null
         }
         Insert: {
+          clausole_speciali?: string | null
+          codice?: string | null
           convertito_in_noleggio_id?: string | null
           created_at?: string
           data_fine?: string | null
           data_inizio?: string | null
+          data_scadenza?: string | null
+          dati_azienda?: Json | null
+          dati_cliente?: Json | null
+          dati_mezzo?: Json | null
+          deposito_cauzionale?: number | null
           id_anagrafica: string
           id_anagrafica_fornitore?: string | null
           id_mezzo: string
           id_preventivo?: string
+          modalita_pagamento?: string | null
           note?: string | null
+          pdf_bozza_path?: string | null
+          pdf_firmato_path?: string | null
           prezzo_noleggio?: number | null
           prezzo_trasporto?: number | null
           sede_operativa?: string | null
-          stato?: string
+          stato?: Database["public"]["Enums"]["stato_preventivo"]
           tempo_indeterminato?: boolean
           tipo_canone?: string | null
           updated_at?: string | null
         }
         Update: {
+          clausole_speciali?: string | null
+          codice?: string | null
           convertito_in_noleggio_id?: string | null
           created_at?: string
           data_fine?: string | null
           data_inizio?: string | null
+          data_scadenza?: string | null
+          dati_azienda?: Json | null
+          dati_cliente?: Json | null
+          dati_mezzo?: Json | null
+          deposito_cauzionale?: number | null
           id_anagrafica?: string
           id_anagrafica_fornitore?: string | null
           id_mezzo?: string
           id_preventivo?: string
+          modalita_pagamento?: string | null
           note?: string | null
+          pdf_bozza_path?: string | null
+          pdf_firmato_path?: string | null
           prezzo_noleggio?: number | null
           prezzo_trasporto?: number | null
           sede_operativa?: string | null
-          stato?: string
+          stato?: Database["public"]["Enums"]["stato_preventivo"]
           tempo_indeterminato?: boolean
           tipo_canone?: string | null
           updated_at?: string | null
@@ -1505,10 +2190,45 @@ export type Database = {
             foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
             columns: ["convertito_in_noleggio_id"]
             isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
             referencedRelation: "vw_mezzo_noleggi_attivi"
             referencedColumns: ["id_noleggio"]
           },
           {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_storico"]
+          },
+          {
             foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
@@ -1526,7 +2246,49 @@ export type Database = {
             foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
           {
@@ -1547,7 +2309,49 @@ export type Database = {
             foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
             columns: ["id_anagrafica_fornitore"]
             isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
           {
@@ -1568,7 +2372,35 @@ export type Database = {
             foreignKeyName: "prev_noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
             referencedColumns: ["id_mezzo"]
           },
           {
@@ -1577,6 +2409,62 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
             referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_preventivo_fkey"
+            columns: ["id_preventivo"]
+            isOneToOne: true
+            referencedRelation: "preventivi"
+            referencedColumns: ["id_preventivo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_preventivo_fkey"
+            columns: ["id_preventivo"]
+            isOneToOne: true
+            referencedRelation: "Preventivi"
+            referencedColumns: ["id_preventivo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
           },
         ]
       }
@@ -1601,24 +2489,66 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "preventivi_id_anagrafica_fkey"
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "preventivi_id_anagrafica_fkey"
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "preventivi_id_anagrafica_fkey"
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
         ]
@@ -1719,35 +2649,77 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_sedi_porto"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_porto_fkey"
             columns: ["id_porto"]
             isOneToOne: false
             referencedRelation: "porti"
             referencedColumns: ["id_porto"]
           },
           {
-            foreignKeyName: "fk_sedi_porto"
+            foreignKeyName: "Sedi_id_porto_fkey"
             columns: ["id_porto"]
             isOneToOne: false
             referencedRelation: "Porti"
@@ -1797,52 +2769,129 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_subnoleggi_anagrafica"
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_anagrafica"
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_anagrafica"
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
             referencedColumns: ["id_mezzo"]
           },
         ]
@@ -1882,12 +2931,118 @@ export type Database = {
           },
         ]
       }
+      test: {
+        Row: {
+          codice: string
+          created_at: string
+          created_by: string | null
+          descrizione: string | null
+          id: string
+          id_anagrafica: string
+          is_cancellato: boolean
+          note: string | null
+          stato: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          codice: string
+          created_at?: string
+          created_by?: string | null
+          descrizione?: string | null
+          id?: string
+          id_anagrafica: string
+          is_cancellato?: boolean
+          note?: string | null
+          stato?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          codice?: string
+          created_at?: string
+          created_by?: string | null
+          descrizione?: string | null
+          id?: string
+          id_anagrafica?: string
+          is_cancellato?: boolean
+          note?: string | null
+          stato?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "test_anagrafica_fk"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+        ]
+      }
       transazioni: {
         Row: {
           aggiornato_il: string
           categoria_uscita:
-          | Database["public"]["Enums"]["categoria_uscita"]
-          | null
+            | Database["public"]["Enums"]["categoria_uscita"]
+            | null
           conto_bancario_id: string
           creato_il: string
           data_deposito_riba: string | null
@@ -1906,8 +3061,8 @@ export type Database = {
         Insert: {
           aggiornato_il?: string
           categoria_uscita?:
-          | Database["public"]["Enums"]["categoria_uscita"]
-          | null
+            | Database["public"]["Enums"]["categoria_uscita"]
+            | null
           conto_bancario_id: string
           creato_il?: string
           data_deposito_riba?: string | null
@@ -1926,8 +3081,8 @@ export type Database = {
         Update: {
           aggiornato_il?: string
           categoria_uscita?:
-          | Database["public"]["Enums"]["categoria_uscita"]
-          | null
+            | Database["public"]["Enums"]["categoria_uscita"]
+            | null
           conto_bancario_id?: string
           creato_il?: string
           data_deposito_riba?: string | null
@@ -1957,6 +3112,269 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "transazioni"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      trasporti: {
+        Row: {
+          costo_vettore: number | null
+          created_at: string
+          created_by: string | null
+          data_effettiva: string | null
+          data_programmata: string | null
+          id_mezzo: string | null
+          id_sede_arrivo: string | null
+          id_sede_partenza: string | null
+          id_trasporto: string
+          id_vettore: string | null
+          is_cancellato: boolean | null
+          metadata: Json | null
+          note: string | null
+          prezzo_cliente: number | null
+          stato: string
+          updated_at: string
+          whatsapp_sent_at: string | null
+          whatsapp_sent_by: string | null
+          whatsapp_sent_to: string | null
+        }
+        Insert: {
+          costo_vettore?: number | null
+          created_at?: string
+          created_by?: string | null
+          data_effettiva?: string | null
+          data_programmata?: string | null
+          id_mezzo?: string | null
+          id_sede_arrivo?: string | null
+          id_sede_partenza?: string | null
+          id_trasporto?: string
+          id_vettore?: string | null
+          is_cancellato?: boolean | null
+          metadata?: Json | null
+          note?: string | null
+          prezzo_cliente?: number | null
+          stato?: string
+          updated_at?: string
+          whatsapp_sent_at?: string | null
+          whatsapp_sent_by?: string | null
+          whatsapp_sent_to?: string | null
+        }
+        Update: {
+          costo_vettore?: number | null
+          created_at?: string
+          created_by?: string | null
+          data_effettiva?: string | null
+          data_programmata?: string | null
+          id_mezzo?: string | null
+          id_sede_arrivo?: string | null
+          id_sede_partenza?: string | null
+          id_trasporto?: string
+          id_vettore?: string | null
+          is_cancellato?: boolean | null
+          metadata?: Json | null
+          note?: string | null
+          prezzo_cliente?: number | null
+          stato?: string
+          updated_at?: string
+          whatsapp_sent_at?: string | null
+          whatsapp_sent_by?: string | null
+          whatsapp_sent_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "mezzi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "Mezzi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_guasti"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzo_completo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_arrivo_fkey"
+            columns: ["id_sede_arrivo"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_arrivo_fkey"
+            columns: ["id_sede_arrivo"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_arrivo_fkey"
+            columns: ["id_sede_arrivo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_arrivo_fkey"
+            columns: ["id_sede_arrivo"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_arrivo_fkey"
+            columns: ["id_sede_arrivo"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_partenza_fkey"
+            columns: ["id_sede_partenza"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_partenza_fkey"
+            columns: ["id_sede_partenza"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_partenza_fkey"
+            columns: ["id_sede_partenza"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_partenza_fkey"
+            columns: ["id_sede_partenza"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "trasporti_id_sede_partenza_fkey"
+            columns: ["id_sede_partenza"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "trasporti_id_vettore_fkey"
+            columns: ["id_vettore"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
           },
         ]
       }
@@ -2055,11 +3473,11 @@ export type Database = {
           is_chiuso: boolean | null
           is_fatturato: boolean | null
           stato_intervento:
-          | Database["public"]["Enums"]["stato_intervento"]
-          | null
+            | Database["public"]["Enums"]["stato_intervento"]
+            | null
           stato_preventivo:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Insert: {
           codice_intervento?: string | null
@@ -2072,11 +3490,11 @@ export type Database = {
           is_chiuso?: boolean | null
           is_fatturato?: boolean | null
           stato_intervento?:
-          | Database["public"]["Enums"]["stato_intervento"]
-          | null
+            | Database["public"]["Enums"]["stato_intervento"]
+            | null
           stato_preventivo?:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Update: {
           codice_intervento?: string | null
@@ -2089,60 +3507,137 @@ export type Database = {
           is_chiuso?: boolean | null
           is_fatturato?: boolean | null
           stato_intervento?:
-          | Database["public"]["Enums"]["stato_intervento"]
-          | null
+            | Database["public"]["Enums"]["stato_intervento"]
+            | null
           stato_preventivo?:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
             referencedColumns: ["id_mezzo"]
           },
         ]
@@ -2165,8 +3660,8 @@ export type Database = {
           ore_moto: number | null
           specifiche_tecniche: Json | null
           stato_funzionamento:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_funzionamento_descrizione: string | null
           ubicazione: string | null
         }
@@ -2187,8 +3682,8 @@ export type Database = {
           ore_moto?: number | null
           specifiche_tecniche?: Json | null
           stato_funzionamento?:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_funzionamento_descrizione?: string | null
           ubicazione?: string | null
         }
@@ -2209,84 +3704,140 @@ export type Database = {
           ore_moto?: number | null
           specifiche_tecniche?: Json | null
           stato_funzionamento?:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_funzionamento_descrizione?: string | null
           ubicazione?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_assegnata_fkey"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
             columns: ["id_sede_assegnata"]
             isOneToOne: false
             referencedRelation: "sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_assegnata_fkey"
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
             columns: ["id_sede_assegnata"]
             isOneToOne: false
             referencedRelation: "Sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_assegnata_fkey"
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
             columns: ["id_sede_assegnata"]
             isOneToOne: false
             referencedRelation: "vw_sedi_per_anagrafica"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_assegnata_fkey"
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
             columns: ["id_sede_assegnata"]
             isOneToOne: false
             referencedRelation: "vw_sedi_tutte"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "Sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "vw_sedi_per_anagrafica"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "vw_sedi_tutte"
@@ -2310,7 +3861,6 @@ export type Database = {
           prezzo_noleggio: number | null
           prezzo_trasporto: number | null
           sede_operativa: string | null
-          stato_noleggio: Database["public"]["Enums"]["stato_noleggio"] | null
           tempo_indeterminato: boolean | null
           tipo_canone: Database["public"]["Enums"]["tipo_canone"] | null
         }
@@ -2329,7 +3879,6 @@ export type Database = {
           prezzo_noleggio?: number | null
           prezzo_trasporto?: number | null
           sede_operativa?: string | null
-          stato_noleggio?: Database["public"]["Enums"]["stato_noleggio"] | null
           tempo_indeterminato?: boolean | null
           tipo_canone?: Database["public"]["Enums"]["tipo_canone"] | null
         }
@@ -2348,83 +3897,166 @@ export type Database = {
           prezzo_noleggio?: number | null
           prezzo_trasporto?: number | null
           sede_operativa?: string | null
-          stato_noleggio?: Database["public"]["Enums"]["stato_noleggio"] | null
           tempo_indeterminato?: boolean | null
           tipo_canone?: Database["public"]["Enums"]["tipo_canone"] | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_noleggi_anagrafica"
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_noleggi_anagrafica"
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_noleggi_anagrafica"
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_sede_operativa"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
             columns: ["sede_operativa"]
             isOneToOne: false
             referencedRelation: "sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "fk_noleggi_sede_operativa"
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
             columns: ["sede_operativa"]
             isOneToOne: false
             referencedRelation: "Sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "fk_noleggi_sede_operativa"
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
             columns: ["sede_operativa"]
             isOneToOne: false
             referencedRelation: "vw_sedi_per_anagrafica"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "fk_noleggi_sede_operativa"
+            foreignKeyName: "Noleggi_sede_operativa_fkey"
             columns: ["sede_operativa"]
             isOneToOne: false
             referencedRelation: "vw_sedi_tutte"
@@ -2474,24 +4106,66 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "preventivi_id_anagrafica_fkey"
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "preventivi_id_anagrafica_fkey"
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "preventivi_id_anagrafica_fkey"
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Preventivi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
         ]
@@ -2592,35 +4266,77 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_sedi_porto"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_porto_fkey"
             columns: ["id_porto"]
             isOneToOne: false
             referencedRelation: "porti"
             referencedColumns: ["id_porto"]
           },
           {
-            foreignKeyName: "fk_sedi_porto"
+            foreignKeyName: "Sedi_id_porto_fkey"
             columns: ["id_porto"]
             isOneToOne: false
             referencedRelation: "Porti"
@@ -2670,55 +4386,151 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_subnoleggi_anagrafica"
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_anagrafica"
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_anagrafica"
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
             referencedColumns: ["id_mezzo"]
           },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
         ]
+      }
+      vw_anagrafiche_complete: {
+        Row: {
+          codice_univoco: string | null
+          contatti: Json | null
+          esente_iva: boolean | null
+          iban: string | null
+          id_anagrafica: string | null
+          is_cliente: boolean | null
+          is_fornitore: boolean | null
+          is_owner: boolean | null
+          modalita_pagamento_default: string | null
+          partita_iva: string | null
+          pec: string | null
+          ragione_sociale: string | null
+          sede_legale: Json | null
+          sedi: Json | null
+        }
+        Relationships: []
       }
       vw_anagrafiche_owners: {
         Row: {
@@ -2747,6 +4559,235 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_anagrafiche_selettore: {
+        Row: {
+          id_anagrafica: string | null
+          is_cliente: boolean | null
+          is_fornitore: boolean | null
+          is_owner: boolean | null
+          num_sedi: number | null
+          partita_iva: string | null
+          ragione_sociale: string | null
+          search_text: string | null
+          sede_legale_citta: string | null
+          sede_legale_nome: string | null
+          sede_legale_provincia: string | null
+        }
+        Relationships: []
+      }
+      vw_anagrafiche_trasportatori: {
+        Row: {
+          id_anagrafica: string | null
+          is_cancellato: boolean | null
+          is_cliente: boolean | null
+          is_fornitore: boolean | null
+          is_owner: boolean | null
+          partita_iva: string | null
+          ragione_sociale: string | null
+        }
+        Relationships: []
+      }
+      vw_card_mezzo: {
+        Row: {
+          anno: string | null
+          categoria: Database["public"]["Enums"]["categoria_mezzo"] | null
+          cliente_piva: string | null
+          cliente_ragione_sociale: string | null
+          costo_subnoleggio: number | null
+          fornitore_ragione_sociale: string | null
+          id_anagrafica: string | null
+          id_interno: string | null
+          id_mezzo: string | null
+          id_noleggio: string | null
+          id_sede_assegnata: string | null
+          id_sede_ubicazione: string | null
+          id_subnoleggio: string | null
+          is_disponibile_noleggio: boolean | null
+          marca: string | null
+          margine_noleggio: number | null
+          margine_percentuale: number | null
+          matricola: string | null
+          modello: string | null
+          noleggio_data_fine: string | null
+          noleggio_data_inizio: string | null
+          noleggio_is_terminato: boolean | null
+          noleggio_sede_citta: string | null
+          noleggio_sede_nome: string | null
+          noleggio_tempo_indeterminato: boolean | null
+          ore_moto: number | null
+          owner_ragione_sociale: string | null
+          prezzo_noleggio: number | null
+          sede_assegnata_nome: string | null
+          sede_assegnata_ubicazione_completa: string | null
+          sede_ubicazione_completa: string | null
+          sede_ubicazione_nome: string | null
+          stato_funzionamento:
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
+          stato_funzionamento_descrizione: string | null
+          stato_noleggio: string | null
+          subnoleggio_contratto: string | null
+          subnoleggio_data_fine: string | null
+          subnoleggio_data_inizio: string | null
+          subnoleggio_tempo_indeterminato: boolean | null
+          subnoleggio_valore_residuo: number | null
+          tipo_canone: Database["public"]["Enums"]["tipo_canone"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+        ]
+      }
+      vw_entita_anagrafica_documentale: {
+        Row: {
+          codice_univoco: string | null
+          email_principale: string | null
+          iban: string | null
+          id_anagrafica: string | null
+          modalita_pagamento_default: string | null
+          nome_contatto_principale: string | null
+          partita_iva: string | null
+          pec: string | null
+          ragione_sociale: string | null
+          sede_legale_cap: number | null
+          sede_legale_citta: string | null
+          sede_legale_indirizzo: string | null
+          sede_legale_provincia: string | null
+          telefono_principale: string | null
+        }
+        Relationships: []
+      }
       vw_gestione_interventi: {
         Row: {
           codice_intervento: string | null
@@ -2768,14 +4809,14 @@ export type Database = {
           prima_data_prevista: string | null
           ragione_sociale: string | null
           stato_funzionamento:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_intervento:
-          | Database["public"]["Enums"]["stato_intervento"]
-          | null
+            | Database["public"]["Enums"]["stato_intervento"]
+            | null
           stato_preventivo:
-          | Database["public"]["Enums"]["stato_preventivo"]
-          | null
+            | Database["public"]["Enums"]["stato_preventivo"]
+            | null
           totale_tecnici_assegnati: number | null
           totale_tecnici_previsti: number | null
           ubicazione: string | null
@@ -2783,52 +4824,129 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_anagrafica"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_interventi_mezzo"
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Interventi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
             referencedColumns: ["id_mezzo"]
           },
         ]
@@ -2836,8 +4954,8 @@ export type Database = {
       vw_int_lavorazioni_dettaglio: {
         Row: {
           competenza_lavorazione:
-          | Database["public"]["Enums"]["competenza_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["competenza_lavorazione"]
+            | null
           created_at: string | null
           data_a_prevista: string | null
           data_da_prevista: string | null
@@ -2854,26 +4972,26 @@ export type Database = {
           prezzo_lavorazione: number | null
           prezzo_manodopera: number | null
           stato_lavorazione:
-          | Database["public"]["Enums"]["stato_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["stato_lavorazione"]
+            | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "interventi"
             referencedColumns: ["id_intervento"]
           },
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "Interventi"
             referencedColumns: ["id_intervento"]
           },
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "vw_gestione_interventi"
@@ -2914,8 +5032,8 @@ export type Database = {
       vw_lavorazioni_complete: {
         Row: {
           competenza_lavorazione:
-          | Database["public"]["Enums"]["competenza_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["competenza_lavorazione"]
+            | null
           created_at: string | null
           data_a_prevista: string | null
           data_da_prevista: string | null
@@ -2931,30 +5049,363 @@ export type Database = {
           prezzo_manodopera: number | null
           prodotti: Json | null
           stato_lavorazione:
-          | Database["public"]["Enums"]["stato_lavorazione"]
-          | null
+            | Database["public"]["Enums"]["stato_lavorazione"]
+            | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "interventi"
             referencedColumns: ["id_intervento"]
           },
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "Interventi"
             referencedColumns: ["id_intervento"]
           },
           {
-            foreignKeyName: "fk_lavorazioni_intervento"
+            foreignKeyName: "int_lavorazioni_id_intervento_fkey"
             columns: ["id_intervento"]
             isOneToOne: false
             referencedRelation: "vw_gestione_interventi"
             referencedColumns: ["id_intervento"]
+          },
+        ]
+      }
+      vw_mezzi_completi: {
+        Row: {
+          created_at: string | null
+          id_anagrafica: string | null
+          id_interno: string | null
+          id_mezzo: string | null
+          id_sede_assegnata: string | null
+          id_sede_ubicazione: string | null
+          is_cancellato: boolean | null
+          marca: string | null
+          matricola: string | null
+          modello: string | null
+          nome_sede: string | null
+          nome_sede_ubicazione: string | null
+          ragione_sociale: string | null
+          sede_citta: string | null
+          sede_indirizzo: string | null
+          sede_ubicazione_citta: string | null
+          sede_ubicazione_indirizzo: string | null
+          stato_funzionamento:
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
+          stato_funzionamento_descrizione: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+        ]
+      }
+      vw_mezzi_disponibili_noleggio: {
+        Row: {
+          anno: string | null
+          categoria: Database["public"]["Enums"]["categoria_mezzo"] | null
+          cliente_piva: string | null
+          cliente_ragione_sociale: string | null
+          id_anagrafica: string | null
+          id_interno: string | null
+          id_mezzo: string | null
+          id_noleggio: string | null
+          id_sede_assegnata: string | null
+          id_sede_ubicazione: string | null
+          is_disponibile_noleggio: boolean | null
+          marca: string | null
+          matricola: string | null
+          modello: string | null
+          noleggio_data_fine: string | null
+          noleggio_data_inizio: string | null
+          noleggio_is_terminato: boolean | null
+          noleggio_sede_citta: string | null
+          noleggio_sede_nome: string | null
+          noleggio_tempo_indeterminato: boolean | null
+          ore_moto: number | null
+          owner_partita_iva: string | null
+          owner_ragione_sociale: string | null
+          prezzo_noleggio: number | null
+          sede_assegnata_nome: string | null
+          sede_assegnata_ubicazione_completa: string | null
+          sede_ubicazione_completa: string | null
+          sede_ubicazione_nome: string | null
+          stato_funzionamento:
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
+          stato_funzionamento_descrizione: string | null
+          stato_noleggio: string | null
+          tipo_canone: Database["public"]["Enums"]["tipo_canone"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
           },
         ]
       }
@@ -2970,56 +5421,265 @@ export type Database = {
           num_interventi_attivi: number | null
           proprietario: string | null
           stato_funzionamento:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_funzionamento_descrizione: string | null
           ubicazione: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_mezzi_anagrafica"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "Sedi"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "vw_sedi_per_anagrafica"
             referencedColumns: ["id_sede"]
           },
           {
-            foreignKeyName: "mezzi_id_sede_ubicazione_fkey"
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+        ]
+      }
+      vw_mezzi_selettore: {
+        Row: {
+          anno: string | null
+          categoria: Database["public"]["Enums"]["categoria_mezzo"] | null
+          id_anagrafica: string | null
+          id_interno: string | null
+          id_mezzo: string | null
+          id_sede_assegnata: string | null
+          id_sede_ubicazione: string | null
+          is_disponibile_noleggio: boolean | null
+          marca: string | null
+          matricola: string | null
+          modello: string | null
+          ore_moto: number | null
+          owner_ragione_sociale: string | null
+          search_text: string | null
+          sede_assegnata_nome: string | null
+          sede_assegnata_ubicazione: string | null
+          stato_funzionamento:
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
+          ubicazione_completa: string | null
+          ubicazione_nome: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_assegnata_fkey"
+            columns: ["id_sede_assegnata"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
             columns: ["id_sede_ubicazione"]
             isOneToOne: false
             referencedRelation: "vw_sedi_tutte"
@@ -3046,8 +5706,8 @@ export type Database = {
           sede_ubicazione_nome: string | null
           specifiche_tecniche: Json | null
           stato_funzionamento:
-          | Database["public"]["Enums"]["stato_funzionamento"]
-          | null
+            | Database["public"]["Enums"]["stato_funzionamento"]
+            | null
           stato_funzionamento_descrizione: string | null
           ubicazione: string | null
         }
@@ -3068,31 +5728,66 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_noleggi_mezzo"
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
             referencedColumns: ["id_mezzo"]
           },
         ]
@@ -3111,32 +5806,502 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "Mezzi"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzi_guasti"
             referencedColumns: ["id_mezzo"]
           },
           {
-            foreignKeyName: "fk_subnoleggi_mezzo"
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
             columns: ["id_mezzo"]
             isOneToOne: false
             referencedRelation: "vw_mezzo_completo"
             referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Subnoleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+        ]
+      }
+      vw_noleggi_completi: {
+        Row: {
+          cliente_piva: string | null
+          cliente_ragione_sociale: string | null
+          contratto_bozza_info: Json | null
+          contratto_firmato_info: Json | null
+          created_at: string | null
+          data_fine: string | null
+          data_inizio: string | null
+          data_terminazione_effettiva: string | null
+          id_anagrafica: string | null
+          id_interno: string | null
+          id_mezzo: string | null
+          id_noleggio: string | null
+          id_preventivo: string | null
+          id_sede_operativa: string | null
+          id_sede_ubicazione: string | null
+          is_terminato: boolean | null
+          mezzo_marca: string | null
+          mezzo_matricola: string | null
+          mezzo_modello: string | null
+          note: string | null
+          prezzo_noleggio: number | null
+          prezzo_trasporto: number | null
+          richiede_contratto_noleggio: boolean | null
+          sede_citta: string | null
+          sede_indirizzo: string | null
+          sede_nome: string | null
+          sede_provincia: string | null
+          stato_noleggio: string | null
+          tempo_indeterminato: boolean | null
+          tipo_canone: Database["public"]["Enums"]["tipo_canone"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "Mezzi_id_sede_ubicazione_fkey"
+            columns: ["id_sede_ubicazione"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
+          },
+        ]
+      }
+      vw_owner_info: {
+        Row: {
+          codice_univoco: string | null
+          contatto_email: string | null
+          contatto_telefono: string | null
+          iban: string | null
+          id_anagrafica: string | null
+          partita_iva: string | null
+          pec: string | null
+          ragione_sociale: string | null
+          sede_legale_cap: number | null
+          sede_legale_citta: string | null
+          sede_legale_indirizzo: string | null
+          sede_legale_provincia: string | null
+        }
+        Relationships: []
+      }
+      vw_preventivi_completi: {
+        Row: {
+          anno: string | null
+          clausole_speciali: string | null
+          cliente_partita_iva: string | null
+          cliente_ragione_sociale: string | null
+          codice: string | null
+          convertito_in_noleggio_id: string | null
+          created_at: string | null
+          data_fine: string | null
+          data_inizio: string | null
+          dati_azienda: Json | null
+          dati_cliente: Json | null
+          dati_mezzo: Json | null
+          deposito_cauzionale: number | null
+          id_anagrafica: string | null
+          id_anagrafica_fornitore: string | null
+          id_mezzo: string | null
+          id_preventivo: string | null
+          marca: string | null
+          matricola: string | null
+          modalita_pagamento: string | null
+          modello: string | null
+          note: string | null
+          ore: number | null
+          owner_cap: number | null
+          owner_citta: string | null
+          owner_iban: string | null
+          owner_indirizzo: string | null
+          owner_partita_iva: string | null
+          owner_pec: string | null
+          owner_provincia: string | null
+          owner_ragione_sociale: string | null
+          owner_sdi: string | null
+          pdf_bozza_path: string | null
+          pdf_firmato_path: string | null
+          prezzo_noleggio: number | null
+          prezzo_trasporto: number | null
+          sede_citta: string | null
+          sede_indirizzo: string | null
+          sede_nome: string | null
+          sede_operativa: string | null
+          snapshot_azienda: Json | null
+          snapshot_cliente: Json | null
+          snapshot_mezzo: Json | null
+          stato: Database["public"]["Enums"]["stato_preventivo"] | null
+          tempo_indeterminato: boolean | null
+          tipo_canone: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "noleggi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "Noleggi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzo_noleggi_attivi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_noleggio"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_convertito_in_noleggio_id_fkey"
+            columns: ["convertito_in_noleggio_id"]
+            isOneToOne: false
+            referencedRelation: "vw_storico_noleggi"
+            referencedColumns: ["id_storico"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_anagrafica_fornitore_fkey"
+            columns: ["id_anagrafica_fornitore"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "mezzi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "Mezzi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_guasti"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzo_completo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_preventivo_fkey"
+            columns: ["id_preventivo"]
+            isOneToOne: true
+            referencedRelation: "preventivi"
+            referencedColumns: ["id_preventivo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_id_preventivo_fkey"
+            columns: ["id_preventivo"]
+            isOneToOne: true
+            referencedRelation: "Preventivi"
+            referencedColumns: ["id_preventivo"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "Sedi"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_sede_operativa"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_per_anagrafica"
+            referencedColumns: ["id_sede"]
+          },
+          {
+            foreignKeyName: "prev_noleggi_sede_operativa_fkey"
+            columns: ["sede_operativa"]
+            isOneToOne: false
+            referencedRelation: "vw_sedi_tutte"
+            referencedColumns: ["id_sede"]
           },
         ]
       }
@@ -3154,24 +6319,66 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "Anagrafiche"
             referencedColumns: ["id_anagrafica"]
           },
           {
-            foreignKeyName: "fk_sedi_anagrafica"
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
             columns: ["id_anagrafica"]
             isOneToOne: false
             referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Sedi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
             referencedColumns: ["id_anagrafica"]
           },
         ]
@@ -3206,94 +6413,281 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_storico_noleggi: {
+        Row: {
+          data_evento: string | null
+          data_fine: string | null
+          data_fine_periodo: string | null
+          data_inizio: string | null
+          data_terminazione_effettiva: string | null
+          id_anagrafica: string | null
+          id_mezzo: string | null
+          id_noleggio: string | null
+          id_storico: string | null
+          is_terminato: boolean | null
+          mezzo_descrizione: string | null
+          note: string | null
+          prezzo_noleggio: number | null
+          prezzo_trasporto: number | null
+          ragione_sociale_cliente: string | null
+          sede_operativa_descrizione: string | null
+          tempo_indeterminato: boolean | null
+          tipo_canone: Database["public"]["Enums"]["tipo_canone"] | null
+          tipo_evento: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "Anagrafiche"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_complete"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_owners"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_selettore"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_anagrafiche_trasportatori"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_entita_anagrafica_documentale"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_anagrafica_fkey"
+            columns: ["id_anagrafica"]
+            isOneToOne: false
+            referencedRelation: "vw_owner_info"
+            referencedColumns: ["id_anagrafica"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "mezzi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "Mezzi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_card_mezzo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_disponibili_noleggio"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_guasti"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzi_selettore"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_mezzo_completo"
+            referencedColumns: ["id_mezzo"]
+          },
+          {
+            foreignKeyName: "Noleggi_id_mezzo_fkey"
+            columns: ["id_mezzo"]
+            isOneToOne: false
+            referencedRelation: "vw_noleggi_completi"
+            referencedColumns: ["id_mezzo"]
+          },
+        ]
+      }
     }
     Functions: {
-      has_role: {
+      get_all_tables: {
+        Args: never
+        Returns: {
+          table_name: string
+          table_type: string
+        }[]
+      }
+      get_next_document_code: { Args: { p_doc_type: string }; Returns: string }
+      get_table_columns: {
+        Args: { p_table_name: string }
+        Returns: {
+          column_default: string
+          column_name: string
+          data_type: string
+          is_nullable: boolean
+          ordinal_position: number
+        }[]
+      }
+      get_table_constraints: {
+        Args: { p_table_name: string }
+        Returns: {
+          column_name: string
+          constraint_name: string
+          constraint_type: string
+          foreign_column: string
+          foreign_table: string
+        }[]
+      }
+      hasrole: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_userid: string
         }
         Returns: boolean
       }
+      introspect_schema: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
       categoria_mezzo:
-      | "sollevamento"
-      | "trasporto"
-      | "escavazione"
-      | "compattazione"
-      | "altro"
+        | "sollevamento"
+        | "trasporto"
+        | "escavazione"
+        | "compattazione"
+        | "altro"
       categoria_uscita:
-      | "Spese Bancarie"
-      | "Fornitori"
-      | "Tasse/Imposte"
-      | "Varie"
+        | "Spese Bancarie"
+        | "Fornitori"
+        | "Tasse/Imposte"
+        | "Varie"
       categorie_prodotti:
-      | "ricambio"
-      | "componente"
-      | "materiale_consumo"
-      | "attrezzatura"
-      | "altro"
+        | "ricambio"
+        | "componente"
+        | "materiale_consumo"
+        | "attrezzatura"
+        | "altro"
       competenza_lavorazione:
-      | "meccanica"
-      | "elettrica"
-      | "idraulica"
-      | "generale"
+        | "meccanica"
+        | "elettrica"
+        | "idraulica"
+        | "generale"
       modalita_pagamento:
-      | "bonifico_anticipato"
-      | "bonifico_30gg"
-      | "bonifico_60gg"
-      | "bonifico_90gg"
-      | "riba_30gg"
-      | "riba_60gg"
-      | "riba_90gg"
-      | "rimessa_diretta"
-      | "contrassegno"
+        | "bonifico_anticipato"
+        | "bonifico_30gg"
+        | "bonifico_60gg"
+        | "bonifico_90gg"
+        | "riba_30gg"
+        | "riba_60gg"
+        | "riba_90gg"
+        | "rimessa_diretta"
+        | "contrassegno"
       stato_contratto: "bozza" | "inviato" | "firmato" | "attivo" | "annullato"
       stato_funzionamento: "funzionante" | "intervenire" | "ritirare"
       stato_intervento:
-      | "aperto"
-      | "in lavorazione"
-      | "chiuso"
-      | "preventivazione"
+        | "aperto"
+        | "in lavorazione"
+        | "chiuso"
+        | "preventivazione"
       stato_lavorazione:
-      | "prevista"
-      | "aperta"
-      | "in lavorazione"
-      | "chiusa"
-      | "pronta"
-      | "assegnata"
-      | "in_lavorazione"
-      | "completata"
-      stato_noleggio: "futuro" | "attivo" | "scaduto" | "archiviato" | "terminato"
+        | "prevista"
+        | "aperta"
+        | "in lavorazione"
+        | "chiusa"
+        | "pronta"
+        | "assegnata"
+        | "in_lavorazione"
+        | "completata"
+      stato_noleggio:
+        | "futuro"
+        | "attivo"
+        | "scaduto"
+        | "archiviato"
+        | "terminato"
       stato_preventivo:
-      | "non preventivato"
-      | "bozza"
-      | "inviato"
-      | "approvato"
-      | "rifiutato"
+        | "bozza"
+        | "inviato"
+        | "in_revisione"
+        | "approvato"
+        | "rifiutato"
+        | "concluso"
+        | "archiviato"
       tipo_canone: "giornaliero" | "mensile"
       tipo_documento_noleggio:
-      | "contratto_firmato"
-      | "verbale_consegna"
-      | "ddt"
-      | "foto_consegna"
-      | "foto_ritiro"
-      | "altro"
+        | "contratto_firmato"
+        | "verbale_consegna"
+        | "ddt"
+        | "foto_consegna"
+        | "foto_ritiro"
+        | "altro"
       tipo_evento_storico:
-      | "creazione"
-      | "modifica"
-      | "terminazione"
-      | "cancellazione"
-      | "riattivazione"
-      | "cambio_sede"
+        | "creazione"
+        | "modifica"
+        | "terminazione"
+        | "cancellazione"
+        | "riattivazione"
+        | "cambio_sede"
       tipo_movimento:
-      | "BONIFICO"
-      | "RICEVUTA_BANCARIA"
-      | "ASSEGNO"
-      | "CONTANTI"
-      | "ALTRO"
+        | "BONIFICO"
+        | "RICEVUTA_BANCARIA"
+        | "ASSEGNO"
+        | "CONTANTI"
+        | "ALTRO"
       tipo_transazione: "ENTRATA" | "USCITA" | "TRASFERIMENTO"
     }
     CompositeTypes: {
@@ -3308,116 +6702,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {
@@ -3478,13 +6872,21 @@ export const Constants = {
         "in_lavorazione",
         "completata",
       ],
-      stato_noleggio: ["futuro", "attivo", "scaduto"],
+      stato_noleggio: [
+        "futuro",
+        "attivo",
+        "scaduto",
+        "archiviato",
+        "terminato",
+      ],
       stato_preventivo: [
-        "non preventivato",
         "bozza",
         "inviato",
+        "in_revisione",
         "approvato",
         "rifiutato",
+        "concluso",
+        "archiviato",
       ],
       tipo_canone: ["giornaliero", "mensile"],
       tipo_documento_noleggio: [
