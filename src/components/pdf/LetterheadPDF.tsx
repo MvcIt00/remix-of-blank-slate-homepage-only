@@ -1,36 +1,35 @@
 /**
  * PATTERN CENTRALIZZATO CARTA INTESTATA PDF
  *
- * Versione 4.0 - Premium Modern Design System
+ * Versione 3.1 - Enterprise Design System (Fixed Header & Static Owner Data)
  */
 
 import React from "react";
 import { Page, View, Text, Image, StyleSheet, Document } from "@react-pdf/renderer";
 import logoMvc from "@/assets/logo_mvc.png";
 
-// Costanti per margini standard
+// Costanti per margini standard (COMPATTI)
 export const PDF_MARGINS = {
-  top: 30,
-  bottom: 75,
-  horizontal: 40,
+  top: 25,
+  bottom: 70,
+  horizontal: 35,
   footerPosition: 25,
 };
 
-// Tavolozza colori Premium (Identità Aziendale)
+// Tavolozza colori Premium (Toscana Carrelli Identity)
 export const PDF_COLORS = {
-  primary: "#1a365d", // Blu Scuro Aziendale
-  secondary: "#2d3748",
-  accent: "#FFC107", // Giallo Caterpillar
-  textMain: "#1a202c",
-  textMuted: "#718096",
-  border: "#e2e8f0",
-  borderDark: "#cbd5e0",
-  bgLight: "#f7fafc",
+  primary: "#1a365d", // Blu Profondo Istituzionale (Toscana Carrelli)
+  secondary: "#2d3748", // Slate 800
+  accent: "#FFC107", // Giallo Toscana Carrelli Vivo
+  textMain: "#1a365d",
+  textMuted: "#64748b", // Slate 500
+  border: "#e2e8f0", // Slate 200
+  bgLight: "#f8fafc", // Slate 50
   white: "#ffffff",
-  black: "#000000",
 };
 
 // Dati Aziendali STATIC (Fallback / Legacy)
+// In produzione vengono sovrascritti dai dati della tabella 'Anagrafiche' (is_owner = true)
 export const CONST_OWNER_DATA: DatiAziendaOwner = {
   ragione_sociale: "Mvc Toscana Carrelli",
   partita_iva: "000000001",
@@ -47,313 +46,199 @@ export const CONST_OWNER_DATA: DatiAziendaOwner = {
 
 export const pdfStyles = StyleSheet.create({
   page: {
-    paddingTop: 125,
-    paddingBottom: 75,
+    paddingTop: 115, // Aumentato per l'header fisso (70 header + 25 margine + 20 buffer)
+    paddingBottom: 70,
     paddingHorizontal: PDF_MARGINS.horizontal,
     fontSize: 10,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
   },
-
-  // Header Premium con design moderno
+  // Header Premium con logo e dati aziendali (COMPATTO & FISSO)
   header: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 95,
-  },
-
-  // Banda decorativa superiore
-  headerAccentBand: {
-    height: 6,
-    backgroundColor: PDF_COLORS.accent,
-    width: "100%",
-  },
-
-  headerContent: {
+    top: 25,
+    left: PDF_MARGINS.horizontal,
+    right: PDF_MARGINS.horizontal,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    paddingHorizontal: PDF_MARGINS.horizontal,
-    paddingTop: 20,
-    paddingBottom: 15,
+    marginBottom: 0,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#e2e8f0",
+    paddingBottom: 10,
+    height: 70, // Altezza fissa
   },
-
   logoContainer: {
-    width: 160,
-    position: "relative",
-  },
-
-  logo: {
     width: 150,
+  },
+  logo: {
+    width: 140,
     height: "auto",
   },
-
-  // Accento decorativo sotto il logo
-  logoAccent: {
-    width: 60,
-    height: 3,
-    backgroundColor: PDF_COLORS.accent,
-    marginTop: 8,
-  },
-
   companyInfo: {
     textAlign: "right",
     alignItems: "flex-end",
-    maxWidth: 260,
-    paddingLeft: 20,
+    maxWidth: 250,
   },
-
   companyName: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Helvetica-Bold",
-    color: PDF_COLORS.primary,
-    marginBottom: 8,
+    color: "#000000",
+    marginBottom: 6,
     textTransform: "uppercase",
-    letterSpacing: 1.2,
     textAlign: "right",
   },
-
   companyDetails: {
     fontSize: 7.5,
-    color: PDF_COLORS.textMain,
-    lineHeight: 1.6,
+    color: "#000000",
+    lineHeight: 1.5,
     textAlign: "right",
   },
-
-  // Linea di separazione elegante sotto l'header
-  headerDivider: {
-    position: "absolute",
-    bottom: 0,
-    left: PDF_MARGINS.horizontal,
-    right: PDF_MARGINS.horizontal,
-    height: 1,
-    backgroundColor: PDF_COLORS.border,
-  },
-
-  // Accento giallo sotto l'header (piccolo dettaglio)
-  headerAccentLine: {
-    position: "absolute",
-    bottom: 0,
-    left: PDF_MARGINS.horizontal,
-    width: 80,
-    height: 2,
-    backgroundColor: PDF_COLORS.accent,
-  },
-
-  // Titolo documento con stile moderno
+  // Titolo documento (COMPATTO)
   documentTitle: {
-    fontSize: 16,
+    fontSize: 11,
     fontFamily: "Helvetica-Bold",
-    textAlign: "left",
-    marginTop: 0,
-    marginBottom: 4,
-    color: PDF_COLORS.primary,
+    textAlign: "center",
+    marginTop: 5,
+    marginBottom: 3,
+    color: "#1a365d",
     textTransform: "uppercase",
-    letterSpacing: 1.5,
-    borderLeftWidth: 4,
-    borderLeftColor: PDF_COLORS.accent,
-    paddingLeft: 12,
+    letterSpacing: 1,
   },
-
   documentCode: {
     fontSize: 9,
-    fontFamily: "Helvetica",
-    textAlign: "left",
-    marginBottom: 20,
-    color: PDF_COLORS.textMuted,
-    paddingLeft: 16,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+    marginBottom: 0,
+    color: "#718096",
   },
-
   // Griglia Layout
   contentGrid: {
     flexDirection: "row",
     gap: 20,
     marginBottom: 25,
   },
-
   gridColumn: {
     flex: 1,
   },
-
-  // Sezioni con design contemporaneo
+  // Sezioni (PIÙ SPAZIO SOPRA)
   section: {
     marginTop: 8,
     marginBottom: 20,
   },
-
-  // Sezione Header ridisegnata
+  // Sezione Header (SPAZIO CHIARO + IDENTITÀ)
   sectionHeader: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontFamily: "Helvetica-Bold",
-    color: PDF_COLORS.primary,
+    color: PDF_COLORS.primary, // Navy Blu
     textTransform: "uppercase",
-    letterSpacing: 1.2,
-    marginBottom: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: PDF_COLORS.white,
+    letterSpacing: 1,
+    marginBottom: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    backgroundColor: PDF_COLORS.bgLight,
     borderLeftWidth: 4,
-    borderLeftColor: PDF_COLORS.accent,
-    borderBottomWidth: 1,
-    borderBottomColor: PDF_COLORS.border,
+    borderLeftColor: PDF_COLORS.accent, // Giallo Toscana Carrelli
   },
-
   content: {
     paddingTop: 5,
   },
-
   // Testi
   text: {
     fontSize: 9,
-    lineHeight: 1.5,
-    color: PDF_COLORS.textMain,
+    lineHeight: 1.4,
+    color: "#2d3748",
   },
-
   textBold: {
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    lineHeight: 1.5,
-    color: PDF_COLORS.primary,
+    lineHeight: 1.4,
+    color: "#1a365d",
   },
-
   label: {
     width: 110,
     fontSize: 8.5,
-    color: PDF_COLORS.textMuted,
-    fontFamily: "Helvetica",
+    color: "#718096",
   },
-
   value: {
     fontSize: 8.5,
-    color: PDF_COLORS.textMain,
+    color: "#1a365d",
     fontFamily: "Helvetica-Bold",
   },
-
   row: {
     flexDirection: "row",
-    marginBottom: 5,
-    alignItems: "flex-start",
+    marginBottom: 4,
   },
-
-  // Tabelle con design moderno
+  // Tabelle
   table: {
     width: "100%",
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: PDF_COLORS.border,
+    marginBottom: 10,
   },
-
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: PDF_COLORS.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderBottomWidth: 2,
-    borderBottomColor: PDF_COLORS.accent,
+    backgroundColor: "#1a365d",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-
   tableHeaderText: {
-    color: PDF_COLORS.white,
+    color: "#ffffff", // Bianco Puro (High Contrast)
     fontSize: 8,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
-
   tableRow: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: PDF_COLORS.border,
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    backgroundColor: PDF_COLORS.white,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#e2e8f0",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
-
   tableRowAlt: {
-    backgroundColor: PDF_COLORS.bgLight,
+    backgroundColor: "#f7fafc",
   },
-
   tableCell: {
     fontSize: 8.5,
-    color: PDF_COLORS.textMain,
+    color: "#2d3748",
   },
-
   tableCellText: {
     fontSize: 8.5,
-    color: PDF_COLORS.textMain,
+    color: "#2d3748",
   },
-
-  // Footer ridisegnato
+  // Footer
   footer: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingTop: 12,
-    paddingBottom: PDF_MARGINS.footerPosition,
-    paddingHorizontal: PDF_MARGINS.horizontal,
-    borderTopWidth: 1,
-    borderTopColor: PDF_COLORS.border,
-    backgroundColor: PDF_COLORS.bgLight,
-  },
-
-  footerAccentBand: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    backgroundColor: PDF_COLORS.accent,
-  },
-
-  footerContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  footerText: {
+    bottom: PDF_MARGINS.footerPosition,
+    left: PDF_MARGINS.horizontal,
+    right: PDF_MARGINS.horizontal,
+    textAlign: "center",
     fontSize: 7,
-    color: PDF_COLORS.textMuted,
-    lineHeight: 1.4,
+    color: "#a0aec0",
+    borderTopWidth: 0.5,
+    borderTopColor: "#e2e8f0",
+    paddingTop: 8,
   },
-
-  footerTextBold: {
-    fontSize: 7,
-    fontFamily: "Helvetica-Bold",
-    color: PDF_COLORS.textMain,
-  },
-
-  // Firma
+  // Firma - non spezzabile
   signatureSection: {
-    marginTop: 35,
+    marginTop: 30,
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 30,
   },
-
   signatureBox: {
     width: "45%",
   },
-
   signatureLabel: {
-    fontSize: 8.5,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    marginBottom: 40,
-    color: PDF_COLORS.textMain,
+    marginBottom: 35,
+    color: "#4a5568",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
-
   signatureLine: {
-    borderTopWidth: 1.5,
-    borderTopColor: PDF_COLORS.primary,
-    paddingTop: 5,
+    borderTopWidth: 1,
+    borderTopColor: "#2d3748",
+    paddingTop: 4,
     fontSize: 7,
-    color: PDF_COLORS.textMuted,
-    textAlign: "center",
+    color: "#718096",
   },
 });
 
@@ -381,8 +266,8 @@ interface PageShellProps {
   titolo?: string;
   sottoTitolo?: string;
   datiOwner?: DatiAziendaOwner;
-  documentId?: string;
-  disclaimer?: string;
+  documentId?: string; // ID univoco del documento (es. ID Preventivo)
+  disclaimer?: string; // Disclaimer opzionale
 }
 
 /**
@@ -412,43 +297,32 @@ export function PageShell({ children, titolo, sottoTitolo, datiOwner, documentId
     <Page size="A4" style={pdfStyles.page}>
       {/* HEADER FISSO SU OGNI PAGINA */}
       <View fixed style={pdfStyles.header}>
-        {/* Banda decorativa superiore */}
-        <View style={pdfStyles.headerAccentBand} />
-
-        {/* Contenuto header */}
-        <View style={pdfStyles.headerContent}>
-          {/* Logo a sinistra con accento */}
-          <View style={pdfStyles.logoContainer}>
-            <Image style={pdfStyles.logo} src={logoMvc} />
-            <View style={pdfStyles.logoAccent} />
-          </View>
-
-          {/* Dati aziendali a destra */}
-          <View style={pdfStyles.companyInfo}>
-            <Text style={pdfStyles.companyName}>{effectiveOwner.ragione_sociale}</Text>
-            <Text style={pdfStyles.companyDetails}>
-              {effectiveOwner.partita_iva && `P.IVA: ${effectiveOwner.partita_iva}`}
-              {"\n"}
-              {indirizzoCompleto}
-              {"\n"}
-              {effectiveOwner.telefono && `Tel: ${effectiveOwner.telefono}`}
-              {effectiveOwner.telefono && effectiveOwner.email && " - "}
-              {effectiveOwner.email && `Email: ${effectiveOwner.email}`}
-              {"\n"}
-              {effectiveOwner.pec && `PEC: ${effectiveOwner.pec}`}
-              {"\n"}
-              {effectiveOwner.codice_univoco && `SDI: ${effectiveOwner.codice_univoco}`}
-            </Text>
-          </View>
+        {/* Logo a sinistra */}
+        <View style={pdfStyles.logoContainer}>
+          <Image style={pdfStyles.logo} src={logoMvc} />
         </View>
 
-        {/* Linea di separazione con accento giallo */}
-        <View style={pdfStyles.headerDivider} />
-        <View style={pdfStyles.headerAccentLine} />
+        {/* Dati aziendali a destra */}
+        <View style={pdfStyles.companyInfo}>
+          <Text style={pdfStyles.companyName}>{effectiveOwner.ragione_sociale}</Text>
+          <Text style={pdfStyles.companyDetails}>
+            {effectiveOwner.partita_iva && `P.IVA: ${effectiveOwner.partita_iva}`}
+            {"\n"}
+            {indirizzoCompleto}
+            {"\n"}
+            {effectiveOwner.telefono && `Tel: ${effectiveOwner.telefono}`}
+            {effectiveOwner.telefono && effectiveOwner.email && " - "}
+            {effectiveOwner.email && `Email: ${effectiveOwner.email}`}
+            {"\n"}
+            {effectiveOwner.pec && `PEC: ${effectiveOwner.pec}`}
+            {"\n"}
+            {effectiveOwner.codice_univoco && `SDI: ${effectiveOwner.codice_univoco}`}
+          </Text>
+        </View>
       </View>
 
       <View style={{ marginTop: 0, paddingBottom: 0 }}>
-        {/* TITOLO DEL DOCUMENTO */}
+        {/* TITOLO DEL DOCUMENTO (Non fisso, scorre col contenuto, ma solo a pag 1 di fatto) */}
         {titolo && (
           <View style={{ marginBottom: 20 }}>
             <Text style={pdfStyles.documentTitle}>{titolo}</Text>
@@ -482,57 +356,37 @@ interface LetterheadFooterProps {
 export function LetterheadFooter({ datiOwner, pageNumber = true, validationId, disclaimer }: LetterheadFooterProps) {
   return (
     <View style={pdfStyles.footer} fixed>
-      {/* Banda decorativa superiore */}
-      <View style={pdfStyles.footerAccentBand} />
-
-      {/* Disclaimer opzionale */}
       {disclaimer && (
-        <Text style={{ fontSize: 6, color: PDF_COLORS.textMuted, marginBottom: 6, marginTop: 4, fontStyle: "italic" }}>
-          {disclaimer}
-        </Text>
+        <Text style={{ fontSize: 6, color: "#718096", marginBottom: 4, fontStyle: "italic" }}>{disclaimer}</Text>
       )}
-
-      {/* Contenuto footer */}
-      <View style={pdfStyles.footerContent}>
-        {/* Info azienda a sinistra */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          borderTopWidth: 0.5,
+          borderTopColor: "#e2e8f0",
+          paddingTop: 4,
+        }}
+      >
         <View style={{ flex: 1, textAlign: "left" }}>
-          <Text style={pdfStyles.footerTextBold}>{datiOwner.ragione_sociale}</Text>
-          <Text style={pdfStyles.footerText}>{datiOwner.partita_iva && `P.IVA ${datiOwner.partita_iva}`}</Text>
-          {datiOwner.iban && <Text style={pdfStyles.footerText}>IBAN: {datiOwner.iban}</Text>}
+          <Text>
+            {datiOwner.ragione_sociale}
+            {datiOwner.partita_iva && ` - P.IVA ${datiOwner.partita_iva}`}
+          </Text>
+          {datiOwner.iban && <Text style={{ fontSize: 6 }}>IBAN: {datiOwner.iban}</Text>}
         </View>
 
-        {/* ID Validazione al centro */}
         {validationId && (
-          <View style={{ flex: 1, textAlign: "center", alignItems: "center" }}>
-            <Text
-              style={{
-                fontSize: 6.5,
-                fontFamily: "Helvetica-Bold",
-                color: PDF_COLORS.primary,
-                backgroundColor: PDF_COLORS.white,
-                paddingHorizontal: 6,
-                paddingVertical: 2,
-                borderRadius: 2,
-                borderWidth: 1,
-                borderColor: PDF_COLORS.border,
-              }}
-            >
-              ID: {validationId}
+          <View style={{ flex: 1, textAlign: "center" }}>
+            <Text style={{ fontSize: 6, fontFamily: "Helvetica-Bold", color: "#4a5568" }}>
+              VALIDAZIONE: {validationId}
             </Text>
           </View>
         )}
 
-        {/* Numero pagina a destra */}
-        <View style={{ flex: 1, textAlign: "right", alignItems: "flex-end" }}>
-          {pageNumber && (
-            <Text
-              style={pdfStyles.footerText}
-              render={({ pageNumber: pn, totalPages }) => `Pagina ${pn} di ${totalPages}`}
-            />
-          )}
-          <Text style={{ fontSize: 6, color: PDF_COLORS.textMuted, marginTop: 2 }}>
-            {new Date().toLocaleDateString("it-IT")}
-          </Text>
+        <View style={{ flex: 1, textAlign: "right" }}>
+          {pageNumber && <Text render={({ pageNumber: pn, totalPages }) => `Pagina ${pn} di ${totalPages}`} />}
         </View>
       </View>
     </View>
