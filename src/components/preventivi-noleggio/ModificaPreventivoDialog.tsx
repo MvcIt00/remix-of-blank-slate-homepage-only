@@ -26,6 +26,7 @@ export function ModificaPreventivoDialog({
         id_anagrafica: preventivo.id_anagrafica,
         id_mezzo: preventivo.id_mezzo,
         id_anagrafica_fornitore: preventivo.id_anagrafica_fornitore,
+        sede_operativa: preventivo.sede_operativa,
         data_inizio: preventivo.data_inizio,
         data_fine: preventivo.data_fine,
         tempo_indeterminato: preventivo.tempo_indeterminato,
