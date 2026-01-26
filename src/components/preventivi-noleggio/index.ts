@@ -12,4 +12,5 @@ export { PreventivoStatoBadge } from "./PreventivoStatoBadge";
 export { RinnovaPreventivoDialog } from "./RinnovaPreventivoDialog";
 export { DettaglioModificaDialog } from "./DettaglioModificaDialog";
 export { DettaglioModificaDisplay } from "./DettaglioModificaDisplay";
+export { VersioniPDFDialog } from "./VersioniPDFDialog";
 export type { DatiClientePreventivo, DatiMezzoPreventivo, DatiPreventivo } from "./PreventivoPDF";

@@ -153,6 +153,19 @@ export interface PreventivoCompletoView {
     owner_citta?: string;
     owner_cap?: string;
     owner_provincia?: string;
+
+    // Campi versionamento
+    versione: number;                    // Numero versione corrente del preventivo
+    storico_pdf: any;                    // JSONB → any, parsing in mapPreventivoViewToModel
+
+    // Campi aggiuntivi dalla view
+    data_scadenza?: string | null;       // Data scadenza validità preventivo
+    dettaglio_modifica?: string | null;  // Motivo modifica (popolato quando stato = IN_REVISIONE)
+    id_anagrafica_fornitore?: string | null; // Fornitore (per subnoleggio)
+    pdf_bozza_path?: string | null;      // Path PDF bozza
+    deposito_cauzionale?: number | null;
+    modalita_pagamento?: string | null;
+    clausole_speciali?: string | null;
 }
 
 // ============= ATOMIC DOCUMENT DATA TYPES =============

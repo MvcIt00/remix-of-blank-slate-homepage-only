@@ -12,6 +12,16 @@ export enum StatoPreventivo {
   ARCHIVIATO = "archiviato",
 }
 
+/**
+ * Rappresenta una entry nello storico PDF di un preventivo
+ * Ogni volta che si incrementa la versione, il PDF corrente viene archiviato qui
+ */
+export interface StoricoPDFEntry {
+  versione: number;
+  path: string;
+  created_at: string;
+}
+
 export interface PreventivoNoleggio {
   id_preventivo: string;
   id_mezzo: string;
@@ -27,6 +37,7 @@ export interface PreventivoNoleggio {
   sede_operativa: string | null;
   stato: StatoPreventivo; // Use Enum
   codice: string | null;
+  pdf_bozza_path?: string | null; // Path bozza (non ancora firmata)
   pdf_firmato_path: string | null;
   convertito_in_noleggio_id?: string | null;
   is_archiviato?: boolean; // Flag per archiviazione (mantiene stato originale)
@@ -65,6 +76,10 @@ export interface PreventivoNoleggio {
     provincia?: string | null;
   } | null;
   dati_azienda?: any | null; // Logica Dinamica Owner MVC
+
+  // Campi versionamento
+  versione: number;                    // Numero versione corrente (1, 2, 3...)
+  storico_pdf: StoricoPDFEntry[];      // Array storico versioni PDF archiviate
 }
 
 export interface PreventivoNoleggioInput {

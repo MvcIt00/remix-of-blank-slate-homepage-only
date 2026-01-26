@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button";
 import { usePreventiviNoleggio } from "@/hooks/usePreventiviNoleggio";
 import { PreventivoNoleggio, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { toast } from "@/hooks/use-toast";
-import { Eye, Pencil, Trash2, Archive, RefreshCw, Send, Check, X, MessageSquare } from "lucide-react";
+import { Eye, Pencil, Trash2, Archive, RefreshCw, Send, Check, X, MessageSquare, History } from "lucide-react";
 import { ModificaPreventivoDialog } from "./ModificaPreventivoDialog";
 import { PreventivoPreviewDialog } from "./PreventivoPreviewDialog";
 import { ConfermaPreventivoDialog } from "./ConfermaPreventivoDialog";
 import { RinnovaPreventivoDialog } from "./RinnovaPreventivoDialog";
 import { DettaglioModificaDialog } from "./DettaglioModificaDialog";
 import { DettaglioModificaDisplay } from "./DettaglioModificaDisplay";
+import { VersioniPDFDialog } from "./VersioniPDFDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import {
@@ -55,6 +56,7 @@ export function PreventiviFilteredDialog({
     eliminaPreventivo,
     archiviaPreventivo,
     rinnovaPreventivo,
+    incrementaVersione,
   } = usePreventiviNoleggio();
 
   const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggio | null>(null);
@@ -67,6 +69,8 @@ export function PreventiviFilteredDialog({
   const [preventivoDaRinnovare, setPreventivoDaRinnovare] = useState<PreventivoNoleggio | null>(null);
   const [dettaglioModificaOpen, setDettaglioModificaOpen] = useState(false);
   const [preventivoPerDettaglio, setPreventivoPerDettaglio] = useState<PreventivoNoleggio | null>(null);
+  const [versioniDialogOpen, setVersioniDialogOpen] = useState(false);
+  const [preventivoPerVersioni, setPreventivoPerVersioni] = useState<PreventivoNoleggio | null>(null);
 
   const filteredPreventivi = useMemo(() => {
     return preventivi.filter(p => p.stato === filterStato && !p.is_archiviato);
@@ -275,6 +279,19 @@ export function PreventiviFilteredDialog({
       });
     }
 
+    // === VERSIONI (se ha storico) ===
+    if (p.storico_pdf && p.storico_pdf.length > 0) {
+      actions.push({
+        icon: <History className="h-4 w-4" />,
+        label: `Versioni (${p.storico_pdf.length + 1})`,
+        onClick: () => {
+          setPreventivoPerVersioni(p);
+          setVersioniDialogOpen(true);
+        },
+        variant: "ghost"
+      });
+    }
+
     // === ELIMINA (sempre presente per tutti i 5 stati operativi) ===
     actions.push({
       icon: <Trash2 className="h-4 w-4" />,
@@ -409,15 +426,28 @@ export function PreventiviFilteredDialog({
         onSave={async (values) => {
           if (!preventivoDaModificare) return;
 
-          // Se era in revisione o bozza, dopo modifica va a da_inviare
+          // LOGICA VERSIONAMENTO
+          if (preventivoDaModificare.stato === StatoPreventivo.IN_REVISIONE) {
+            // 1. Archivia versione corrente (V1) e incrementa (V2)
+            await incrementaVersione(
+              preventivoDaModificare.id_preventivo,
+              preventivoDaModificare.pdf_bozza_path || preventivoDaModificare.pdf_firmato_path
+            );
+            // dopo incrementaVersione lo stato è resettato a DA_INVIARE dal backend/hook
+          }
+
+          // 2. Salva le modifiche ai dati
           let nuovoStato = preventivoDaModificare.stato;
+          // Se era bozza passa a da inviare. Se era revisione è già stato resettato a da inviare dal incrementaVersione
+          // o lo forziamo qui per sicurezza
           if ([StatoPreventivo.IN_REVISIONE, StatoPreventivo.BOZZA].includes(preventivoDaModificare.stato)) {
             nuovoStato = StatoPreventivo.DA_INVIARE;
           }
 
           await aggiornaPreventivo(preventivoDaModificare.id_preventivo, {
             ...values,
-            stato: nuovoStato
+            stato: nuovoStato,
+            dettaglio_modifica: null // Reset motivo modifica
           });
 
           toast({ title: "Preventivo aggiornato" });
@@ -487,6 +517,21 @@ export function PreventiviFilteredDialog({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Storico versioni PDF */}
+      {preventivoPerVersioni && (
+        <VersioniPDFDialog
+          open={versioniDialogOpen}
+          onOpenChange={(open) => {
+            setVersioniDialogOpen(open);
+            if (!open) setPreventivoPerVersioni(null);
+          }}
+          codice={preventivoPerVersioni.codice || "Preventivo"}
+          versioneCorrente={preventivoPerVersioni.versione}
+          storico={preventivoPerVersioni.storico_pdf || []}
+          pdfCorrentePath={null} // PDF corrente non salvato in questo contesto
+        />
+      )}
     </>
   );
 }

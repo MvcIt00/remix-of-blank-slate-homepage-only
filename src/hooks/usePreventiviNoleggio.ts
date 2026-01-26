@@ -5,6 +5,7 @@ import {
   PreventivoNoleggio,
   PreventivoNoleggioInput,
   StatoPreventivo,
+  StoricoPDFEntry,
 } from "@/types/preventiviNoleggio";
 import { PreventivoCompletoView } from "@/types/database_views";
 import { toast } from "@/hooks/use-toast";
@@ -35,6 +36,7 @@ function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleg
     note: view.note || undefined,
     stato: view.stato || StatoPreventivo.BOZZA,
     codice: view.codice || null,
+    pdf_bozza_path: view.pdf_bozza_path || null,
     pdf_firmato_path: view.pdf_firmato_path || null,
     convertito_in_noleggio_id: view.convertito_in_noleggio_id || undefined,
     is_archiviato: view.is_archiviato ?? false,
@@ -88,7 +90,15 @@ function mapPreventivoViewToModel(view: PreventivoCompletoView): PreventivoNoleg
       provincia: view.owner_provincia || snapshotAzienda.provincia,
       telefono: "0586.000000",
       email: "info@toscanacarrelli.it"
-    }
+    },
+
+    // Campi versionamento
+    versione: view.versione ?? 1,
+    storico_pdf: Array.isArray(view.storico_pdf)
+      ? view.storico_pdf
+      : (typeof view.storico_pdf === 'string'
+        ? JSON.parse(view.storico_pdf || '[]')
+        : (view.storico_pdf || [])),
   } as PreventivoNoleggio;
 }
 
@@ -226,7 +236,7 @@ export function usePreventiviNoleggio() {
         note: `Rinnovo da ${originale.codice || 'BOZZA'}`,
         stato: StatoPreventivo.BOZZA, // Nuovo preventivo parte da bozza
       };
-      
+
       const { data, error: childError } = await supabase
         .from("prev_noleggi" as any)
         .insert(payload)
@@ -249,15 +259,76 @@ export function usePreventiviNoleggio() {
     mutationFn: async ({ id, nuovaDataScadenza }: { id: string; nuovaDataScadenza: string }) => {
       const { error } = await supabase
         .from("prev_noleggi" as any)
-        .update({ 
+        .update({
           data_scadenza: nuovaDataScadenza,
-          stato: StatoPreventivo.INVIATO 
+          stato: StatoPreventivo.INVIATO
         })
         .eq("id_preventivo", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] });
+    }
+  });
+
+  // 8. MUTATION: Incrementa versione preventivo (per workflow IN_REVISIONE → nuova versione)
+  const incrementaVersioneMutation = useMutation({
+    mutationFn: async ({
+      id,
+      currentPdfPath
+    }: {
+      id: string;
+      currentPdfPath?: string | null;
+    }) => {
+      // 1. Recupera preventivo corrente per aggiornare storico
+      const preventivo = preventivi.find(p => p.id_preventivo === id);
+      if (!preventivo) throw new Error("Preventivo non trovato");
+
+      // 2. Prepara nuovo storico con PDF corrente (se esiste)
+      const nuovoStorico: StoricoPDFEntry[] = [...(preventivo.storico_pdf || [])];
+      if (currentPdfPath) {
+        nuovoStorico.push({
+          versione: preventivo.versione,
+          path: currentPdfPath,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      // 3. Chiama RPC per incrementare versione (aggiorna codice e versione nel DB)
+      // Nota: cast as any perché i tipi Supabase non sono ancora rigenerati
+      const { data, error } = await (supabase as any)
+        .rpc('increment_preventivo_version', { p_preventivo_id: id });
+
+      if (error) throw error;
+
+      // 4. Aggiorna storico_pdf e resetta stato
+      const { error: updateError } = await supabase
+        .from("prev_noleggi" as any)
+        .update({
+          storico_pdf: nuovoStorico,
+          pdf_bozza_path: null, // Reset path bozza per nuova versione
+          stato: StatoPreventivo.DA_INVIARE, // Reset a "da inviare"
+          dettaglio_modifica: null // Reset motivo modifica
+        })
+        .eq("id_preventivo", id);
+
+      if (updateError) throw updateError;
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] });
+      toast({
+        title: "Versione incrementata",
+        description: "Il preventivo è stato aggiornato alla nuova versione."
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
@@ -328,18 +399,20 @@ export function usePreventiviNoleggio() {
     fetchPreventivi: async () => queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] }),
     creaPreventivo: creaMutation.mutateAsync,
     aggiornaPreventivo: (id: string, v: any) => aggiornaMutation.mutateAsync({ id, updates: v }),
-    aggiornaStato: (id: string, s: StatoPreventivo, dettaglioModifica?: string) => 
-      aggiornaMutation.mutateAsync({ 
-        id, 
-        updates: { 
-          stato: s, 
+    aggiornaStato: (id: string, s: StatoPreventivo, dettaglioModifica?: string) =>
+      aggiornaMutation.mutateAsync({
+        id,
+        updates: {
+          stato: s,
           ...(dettaglioModifica !== undefined && { dettaglio_modifica: dettaglioModifica })
-        } 
+        }
       }),
     eliminaPreventivo: eliminaMutation.mutateAsync,
     archiviaPreventivo: archiviaMutation.mutateAsync,
     duplicaPreventivo: duplicaMutation.mutateAsync,
     rinnovaPreventivo: (id: string, nuovaDataScadenza: string) => rinnovaMutation.mutateAsync({ id, nuovaDataScadenza }),
+    incrementaVersione: (id: string, currentPdfPath?: string | null) =>
+      incrementaVersioneMutation.mutateAsync({ id, currentPdfPath }),
     convertiInNoleggio,
   };
 }
