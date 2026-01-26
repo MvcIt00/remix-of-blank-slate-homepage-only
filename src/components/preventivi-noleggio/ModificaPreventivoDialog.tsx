@@ -2,8 +2,9 @@ import { useState } from "react";
 import { FormModal } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { PreventivoNoleggioForm } from "./PreventivoNoleggioForm";
-import { PreventivoNoleggio, PreventivoNoleggioInput } from "@/types/preventiviNoleggio";
+import { PreventivoNoleggio, PreventivoNoleggioInput, StatoPreventivo } from "@/types/preventiviNoleggio";
 import { Loader2, Edit } from "lucide-react";
+import { DettaglioModificaDisplay } from "./DettaglioModificaDisplay";
 
 interface ModificaPreventivoDialogProps {
     open: boolean;
@@ -76,7 +77,14 @@ export function ModificaPreventivoDialog({
             size="lg"
         // No sticky footer for now, the form has its own button.
         >
-            <div className="p-1">
+            <div className="p-1 space-y-4">
+                {/* Banner modifica richiesta - solo per stato IN_REVISIONE */}
+                {preventivo.stato === StatoPreventivo.IN_REVISIONE && preventivo.dettaglio_modifica && (
+                    <DettaglioModificaDisplay
+                        dettaglio={preventivo.dettaglio_modifica}
+                        variant="banner"
+                    />
+                )}
                 <PreventivoNoleggioForm
                     key={preventivo.id_preventivo} // Force re-render on change
                     defaultValues={defaultValues}

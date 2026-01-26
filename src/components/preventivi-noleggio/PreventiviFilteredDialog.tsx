@@ -16,7 +16,9 @@ import { PreventivoPreviewDialog } from "./PreventivoPreviewDialog";
 import { ConfermaPreventivoDialog } from "./ConfermaPreventivoDialog";
 import { RinnovaPreventivoDialog } from "./RinnovaPreventivoDialog";
 import { DettaglioModificaDialog } from "./DettaglioModificaDialog";
+import { DettaglioModificaDisplay } from "./DettaglioModificaDisplay";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,15 +48,15 @@ export function PreventiviFilteredDialog({
   filterStato,
   title,
 }: PreventiviFilteredDialogProps) {
-  const { 
-    preventivi, 
-    aggiornaPreventivo, 
+  const {
+    preventivi,
+    aggiornaPreventivo,
     convertiInNoleggio,
     eliminaPreventivo,
     archiviaPreventivo,
     rinnovaPreventivo,
   } = usePreventiviNoleggio();
-  
+
   const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggio | null>(null);
   const [preventivoPerPDF, setPreventivoPerPDF] = useState<PreventivoNoleggio | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -143,14 +145,14 @@ export function PreventiviFilteredDialog({
   // Handler per cambio stato rapido
   const handleCambiaStato = async (p: PreventivoNoleggio, nuovoStato: StatoPreventivo) => {
     await aggiornaPreventivo(p.id_preventivo, { stato: nuovoStato });
-    
+
     const messaggi: Partial<Record<StatoPreventivo, string>> = {
       [StatoPreventivo.INVIATO]: "Preventivo segnato come inviato",
       [StatoPreventivo.APPROVATO]: "Preventivo approvato",
       [StatoPreventivo.RIFIUTATO]: "Preventivo rifiutato",
       [StatoPreventivo.IN_REVISIONE]: "Preventivo in revisione",
     };
-    
+
     toast({ title: messaggi[nuovoStato] || "Stato aggiornato" });
   };
 
@@ -322,10 +324,16 @@ export function PreventiviFilteredDialog({
           ) : (
             <>
               {/* Header FUORI da ScrollArea per allineamento perfetto */}
-              <div className="grid grid-cols-[90px_minmax(120px,1.2fr)_minmax(150px,1.5fr)_80px_100px] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b">
+              <div className={cn(
+                "grid gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b",
+                filterStato === StatoPreventivo.IN_REVISIONE
+                  ? "grid-cols-[90px_minmax(100px,1fr)_minmax(120px,1.2fr)_minmax(140px,1fr)_80px_100px]"
+                  : "grid-cols-[90px_minmax(120px,1.2fr)_minmax(150px,1.5fr)_80px_100px]"
+              )}>
                 <span>Codice</span>
                 <span>Cliente</span>
                 <span>Mezzo</span>
+                {filterStato === StatoPreventivo.IN_REVISIONE && <span>Motivo</span>}
                 <span>Canone</span>
                 <span className="text-right">Azioni</span>
               </div>
@@ -336,7 +344,12 @@ export function PreventiviFilteredDialog({
                   {filteredPreventivi.map((p) => (
                     <div
                       key={p.id_preventivo}
-                      className="grid grid-cols-[90px_minmax(120px,1.2fr)_minmax(150px,1.5fr)_80px_100px] gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors"
+                      className={cn(
+                        "grid gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors",
+                        filterStato === StatoPreventivo.IN_REVISIONE
+                          ? "grid-cols-[90px_minmax(100px,1fr)_minmax(120px,1.2fr)_minmax(140px,1fr)_80px_100px]"
+                          : "grid-cols-[90px_minmax(120px,1.2fr)_minmax(150px,1.5fr)_80px_100px]"
+                      )}
                     >
                       {/* Codice */}
                       <span className="font-mono text-xs font-bold text-muted-foreground truncate">
@@ -358,6 +371,15 @@ export function PreventiviFilteredDialog({
                           {(p.Mezzi as any)?.id_interno && ` • Int: ${(p.Mezzi as any).id_interno}`}
                         </span>
                       </div>
+
+                      {/* Motivo (solo IN_REVISIONE) */}
+                      {filterStato === StatoPreventivo.IN_REVISIONE && (
+                        <DettaglioModificaDisplay
+                          dettaglio={p.dettaglio_modifica}
+                          variant="snippet"
+                          maxLength={50}
+                        />
+                      )}
 
                       {/* Canone */}
                       <span className="text-sm">
@@ -386,18 +408,18 @@ export function PreventiviFilteredDialog({
         preventivo={preventivoDaModificare}
         onSave={async (values) => {
           if (!preventivoDaModificare) return;
-          
+
           // Se era in revisione o bozza, dopo modifica va a da_inviare
           let nuovoStato = preventivoDaModificare.stato;
           if ([StatoPreventivo.IN_REVISIONE, StatoPreventivo.BOZZA].includes(preventivoDaModificare.stato)) {
             nuovoStato = StatoPreventivo.DA_INVIARE;
           }
-          
-          await aggiornaPreventivo(preventivoDaModificare.id_preventivo, { 
-            ...values, 
-            stato: nuovoStato 
+
+          await aggiornaPreventivo(preventivoDaModificare.id_preventivo, {
+            ...values,
+            stato: nuovoStato
           });
-          
+
           toast({ title: "Preventivo aggiornato" });
           setPreventivoDaModificare(null);
         }}
@@ -427,9 +449,9 @@ export function PreventiviFilteredDialog({
         onOpenChange={setDettaglioModificaOpen}
         onConfirm={async (dettaglio) => {
           if (!preventivoPerDettaglio) return;
-          await aggiornaPreventivo(preventivoPerDettaglio.id_preventivo, { 
+          await aggiornaPreventivo(preventivoPerDettaglio.id_preventivo, {
             stato: StatoPreventivo.IN_REVISIONE,
-            dettaglio_modifica: dettaglio 
+            dettaglio_modifica: dettaglio
           });
           toast({ title: "Preventivo in revisione", description: "Motivo registrato" });
           setPreventivoPerDettaglio(null);
