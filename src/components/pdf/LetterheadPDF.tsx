@@ -5,10 +5,8 @@
  */
 
 import React from "react";
-import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
-
-// Use the public URL for the logo (react-pdf requires a direct URL, not ES6 module import)
-const LOGO_URL = "/logo_mvc.png";
+import { Page, View, Text, Image, StyleSheet, Document } from "@react-pdf/renderer";
+import logoMvc from "@/assets/logo_mvc.png";
 
 // Costanti per margini standard
 export const PDF_MARGINS = {
@@ -421,7 +419,7 @@ export function PageShell({ children, titolo, sottoTitolo, datiOwner, documentId
         <View style={pdfStyles.headerContent}>
           {/* Logo a sinistra con accento */}
           <View style={pdfStyles.logoContainer}>
-            <Image style={pdfStyles.logo} src={LOGO_URL} />
+            <Image style={pdfStyles.logo} src={logoMvc} />
             <View style={pdfStyles.logoAccent} />
           </View>
 
