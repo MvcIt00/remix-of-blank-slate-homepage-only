@@ -461,7 +461,24 @@ export function PreventiviFilteredDialog({
           open={previewOpen}
           onOpenChange={setPreviewOpen}
           {...getPreviewData(preventivoPerPDF)}
-          onSave={async () => setPreviewOpen(false)}
+          preventivoId={preventivoPerPDF.id_preventivo}
+          statoCorrente={preventivoPerPDF.stato}
+          versioneCorrente={preventivoPerPDF.versione}
+          pdfBozzaPath={preventivoPerPDF.pdf_bozza_path || null}
+          onSave={async (uploadedPath) => {
+            // 1. Aggiorna il path PDF nel database
+            await aggiornaPreventivo(preventivoPerPDF.id_preventivo, {
+              pdf_bozza_path: uploadedPath
+            });
+
+            // 2. Se era in revisione, incrementa versione E archivia PDF precedente
+            if (preventivoPerPDF.stato === StatoPreventivo.IN_REVISIONE && preventivoPerPDF.pdf_bozza_path) {
+              await incrementaVersione(preventivoPerPDF.id_preventivo, preventivoPerPDF.pdf_bozza_path);
+            }
+
+            toast({ title: "PDF salvato", description: "Il preventivo è stato salvato con successo" });
+            setPreviewOpen(false);
+          }}
         />
       )}
 
