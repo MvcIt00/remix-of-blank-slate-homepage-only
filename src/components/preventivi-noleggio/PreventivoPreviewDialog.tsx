@@ -15,11 +15,13 @@ interface PreventivoPreviewDialogProps {
   datiCliente: DatiClientePreventivo;
   datiMezzo: DatiMezzoPreventivo;
   datiPreventivo: DatiPreventivo;
-  preventivoId: string;           // ID per upload
-  statoCorrente: StatoPreventivo; // Per logica versionamento
-  versioneCorrente: number;       // Versione attuale
-  pdfBozzaPath: string | null;    // Path attuale (per archiviazione)
-  onSave: (uploadedPath: string) => Promise<void>; // Passa il path del PDF caricato
+  // Props opzionali per modalità "upload su Storage" (quando si modifica record esistente)
+  preventivoId?: string;
+  statoCorrente?: StatoPreventivo;
+  versioneCorrente?: number;
+  pdfBozzaPath?: string | null;
+  // Callback compatibile con entrambe le modalità
+  onSave?: (uploadedPath?: string) => Promise<void>;
 }
 
 export function PreventivoPreviewDialog({
@@ -50,19 +52,24 @@ export function PreventivoPreviewDialog({
 
     setSaving(true);
     try {
-      // Upload su Storage
-      const path = await uploadPreventivoPDF(
-        currentBlob,
-        preventivoId,
-        datiPreventivo.codice_preventivo
-      );
+      // MODALITÀ 1: Upload su Storage (se preventivoId presente)
+      if (preventivoId) {
+        const path = await uploadPreventivoPDF(
+          currentBlob,
+          preventivoId,
+          datiPreventivo.codice_preventivo
+        );
+        await onSave?.(path);
+      }
+      // MODALITÀ 2: Preview-only (per flow "Nuovo Preventivo")
+      else {
+        await onSave?.();
+      }
 
-      // Callback al parent con il path
-      await onSave(path);
       onOpenChange(false);
     } catch (error) {
       toast({
-        title: "Errore upload",
+        title: "Errore",
         description: String(error),
         variant: "destructive"
       });
@@ -80,16 +87,19 @@ export function PreventivoPreviewDialog({
     />
   );
 
-  const saveAction = (
+  // Etichetta dinamica basata sulla modalità
+  const saveLabel = preventivoId ? "Salva PDF" : "Salva Preventivo";
+
+  const saveAction = onSave ? (
     <Button size="sm" onClick={handleSave} disabled={saving || !currentBlob}>
       {saving ? (
         <Loader2 className="h-4 w-4 mr-1 animate-spin" />
       ) : (
         <Save className="h-4 w-4 mr-1" />
       )}
-      Salva Preventivo
+      {saveLabel}
     </Button>
-  );
+  ) : null;
 
   return (
     <DocumentPreviewDialog
