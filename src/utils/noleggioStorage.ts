@@ -4,9 +4,12 @@
  * Elimina l'hardcoding nei componenti e garantisce la coerenza dell'architettura.
  */
 
+import { supabase } from "@/integrations/supabase/client";
+
 export const NOLEGGIO_BUCKET = "noleggio_docs";
 
 export type NoleggioPathType =
+    | "PREVENTIVO_BOZZA"       // PDF bozza (non ancora firmato)
     | "PREVENTIVO_FIRMATO"
     | "PREVENTIVO_VERSIONE"  // Per archiviare versioni storiche PDF
     | "CONTRATTO_FIRMATO"
@@ -20,8 +23,8 @@ export type NoleggioPathType =
  * @param version - Numero versione opzionale (per PREVENTIVO_VERSIONE)
  */
 export function getNoleggioPath(
-    type: NoleggioPathType, 
-    identifier: string, 
+    type: NoleggioPathType,
+    identifier: string,
     timestamp?: number,
     version?: number
 ): string {
@@ -29,6 +32,9 @@ export function getNoleggioPath(
     const cleanId = identifier.replace(/\//g, "-"); // Normalizzazione per i codici con '/'
 
     switch (type) {
+        case "PREVENTIVO_BOZZA":
+            return `preventivi/bozze/preventivo_${cleanId}_${ts}.pdf`;
+
         case "PREVENTIVO_FIRMATO":
             return `preventivi/firmati/preventivo_firmato_${cleanId}_${ts}.pdf`;
 
@@ -55,4 +61,39 @@ export function getNoleggioPath(
 export function getNoleggioPublicUrl(path: string): string {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     return `${supabaseUrl}/storage/v1/object/public/${NOLEGGIO_BUCKET}/${path}`;
+}
+
+/**
+ * Upload centralizzato di PDF preventivo su Supabase Storage
+ * @param blob - Blob del PDF generato
+ * @param preventivoId - ID del preventivo
+ * @param codice - Codice preventivo (es. PN-2025-00001-V1)
+ * @param isVersionArchive - Se true, salva come versione archiviata
+ * @param versione - Numero versione (opzionale, per archivio)
+ * @returns Path del file caricato
+ */
+export async function uploadPreventivoPDF(
+    blob: Blob,
+    preventivoId: string,
+    codice: string,
+    isVersionArchive: boolean = false,
+    versione?: number
+): Promise<string> {
+    const type: NoleggioPathType = isVersionArchive ? "PREVENTIVO_VERSIONE" : "PREVENTIVO_BOZZA";
+    const path = getNoleggioPath(
+        type,
+        codice || preventivoId,
+        Date.now(),
+        versione
+    );
+
+    const { error } = await supabase.storage
+        .from(NOLEGGIO_BUCKET)
+        .upload(path, blob, {
+            contentType: 'application/pdf',
+            upsert: true // Sovrascrive se esiste già
+        });
+
+    if (error) throw error;
+    return path;
 }
