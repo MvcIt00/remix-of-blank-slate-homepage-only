@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,8 @@ import { ConfermaPreventivoDialog } from "./ConfermaPreventivoDialog";
 import { RinnovaPreventivoDialog } from "./RinnovaPreventivoDialog";
 import { DettaglioModificaDialog } from "./DettaglioModificaDialog";
 import { DettaglioModificaDisplay } from "./DettaglioModificaDisplay";
-import { VersioniPDFDialog } from "./VersioniPDFDialog";
+import { VersionePreviewButton } from "./VersionePreviewButton";
+import { PreventivoWorkflowInviaDialog } from "./PreventivoWorkflowInviaDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import {
@@ -57,6 +58,8 @@ export function PreventiviFilteredDialog({
     archiviaPreventivo,
     rinnovaPreventivo,
     incrementaVersione,
+    isFetching,
+    refresh
   } = usePreventiviNoleggio();
 
   const [preventivoDaModificare, setPreventivoDaModificare] = useState<PreventivoNoleggio | null>(null);
@@ -69,8 +72,25 @@ export function PreventiviFilteredDialog({
   const [preventivoDaRinnovare, setPreventivoDaRinnovare] = useState<PreventivoNoleggio | null>(null);
   const [dettaglioModificaOpen, setDettaglioModificaOpen] = useState(false);
   const [preventivoPerDettaglio, setPreventivoPerDettaglio] = useState<PreventivoNoleggio | null>(null);
-  const [versioniDialogOpen, setVersioniDialogOpen] = useState(false);
-  const [preventivoPerVersioni, setPreventivoPerVersioni] = useState<PreventivoNoleggio | null>(null);
+  const [triggerPreviewId, setTriggerPreviewId] = useState<string | null>(null);
+  const [workflowInviaOpen, setWorkflowInviaOpen] = useState(false);
+  const [preventivoPerWorkflowInvia, setPreventivoPerWorkflowInvia] = useState<PreventivoNoleggio | null>(null);
+
+  // Forza l'apertura della preview dopo il salvataggio dei dati aggiornati
+  useEffect(() => {
+    if (triggerPreviewId && !preventivoDaModificare && !isFetching) {
+      const updated = preventivi.find(p => p.id_preventivo === triggerPreviewId);
+      if (updated) {
+        setPreventivoPerPDF(updated);
+        setPreviewOpen(true);
+        setTriggerPreviewId(null);
+        toast({
+          title: "Dati salvati con successo",
+          description: "Generazione del nuovo PDF obbligatoria per riflettere le modifiche."
+        });
+      }
+    }
+  }, [triggerPreviewId, preventivi, preventivoDaModificare, isFetching]);
 
   const filteredPreventivi = useMemo(() => {
     return preventivi.filter(p => p.stato === filterStato && !p.is_archiviato);
@@ -177,27 +197,18 @@ export function PreventiviFilteredDialog({
         onClick: () => setPreventivoDaModificare(p),
         variant: "ghost"
       });
-      actions.push({
-        icon: <Eye className="h-4 w-4" />,
-        label: "Anteprima",
-        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
-        variant: "ghost"
-      });
     }
 
     // === DA_INVIARE ===
     if (p.stato === StatoPreventivo.DA_INVIARE) {
       actions.push({
         icon: <Send className="h-4 w-4" />,
-        label: "Segna Inviato",
-        onClick: () => handleCambiaStato(p, StatoPreventivo.INVIATO),
+        label: "Invia / Segna Inviato",
+        onClick: () => {
+          setPreventivoPerWorkflowInvia(p);
+          setWorkflowInviaOpen(true);
+        },
         variant: "default"
-      });
-      actions.push({
-        icon: <Eye className="h-4 w-4" />,
-        label: "Anteprima",
-        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
-        variant: "ghost"
       });
       actions.push({
         icon: <Pencil className="h-4 w-4" />,
@@ -230,12 +241,6 @@ export function PreventiviFilteredDialog({
         },
         variant: "ghost"
       });
-      actions.push({
-        icon: <Eye className="h-4 w-4" />,
-        label: "Anteprima",
-        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
-        variant: "ghost"
-      });
     }
 
     // === IN_REVISIONE (Da Modificare) ===
@@ -245,12 +250,6 @@ export function PreventiviFilteredDialog({
         label: "Modifica",
         onClick: () => setPreventivoDaModificare(p),
         variant: "default" // Azione primaria
-      });
-      actions.push({
-        icon: <Eye className="h-4 w-4" />,
-        label: "Anteprima",
-        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
-        variant: "ghost"
       });
     }
 
@@ -271,25 +270,6 @@ export function PreventiviFilteredDialog({
         onClick: () => handleArchivia(p),
         variant: "ghost"
       });
-      actions.push({
-        icon: <Eye className="h-4 w-4" />,
-        label: "Anteprima",
-        onClick: () => { setPreventivoPerPDF(p); setPreviewOpen(true); },
-        variant: "ghost"
-      });
-    }
-
-    // === VERSIONI (se ha storico) ===
-    if (p.storico_pdf && p.storico_pdf.length > 0) {
-      actions.push({
-        icon: <History className="h-4 w-4" />,
-        label: `Versioni (${p.storico_pdf.length + 1})`,
-        onClick: () => {
-          setPreventivoPerVersioni(p);
-          setVersioniDialogOpen(true);
-        },
-        variant: "ghost"
-      });
     }
 
     // === ELIMINA (sempre presente per tutti i 5 stati operativi) ===
@@ -302,6 +282,13 @@ export function PreventiviFilteredDialog({
 
     return (
       <div className="flex items-center gap-1">
+        <VersionePreviewButton
+          preventivo={p}
+          onGeneratePreview={(p) => {
+            setPreventivoPerPDF(p);
+            setPreviewOpen(true);
+          }}
+        />
         {actions.map((action, idx) => (
           <Tooltip key={idx}>
             <TooltipTrigger asChild>
@@ -340,7 +327,7 @@ export function PreventiviFilteredDialog({
             </p>
           ) : (
             <>
-            {/* Header FUORI da ScrollArea per allineamento perfetto */}
+              {/* Header FUORI da ScrollArea per allineamento perfetto */}
               <div className={cn(
                 "grid gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b",
                 filterStato === StatoPreventivo.IN_REVISIONE
@@ -463,7 +450,11 @@ export function PreventiviFilteredDialog({
             dettaglio_modifica: null // Reset motivo modifica
           });
 
-          toast({ title: "Preventivo aggiornato" });
+          // Forza il refresh dei dati per caricare i join corretti (Anagrafica, Mezzo, etc.)
+          await refresh();
+
+          // TRIGGER PREVIEW GUIDATA
+          setTriggerPreviewId(preventivoDaModificare.id_preventivo);
           setPreventivoDaModificare(null);
         }}
       />
@@ -548,20 +539,14 @@ export function PreventiviFilteredDialog({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Storico versioni PDF */}
-      {preventivoPerVersioni && (
-        <VersioniPDFDialog
-          open={versioniDialogOpen}
-          onOpenChange={(open) => {
-            setVersioniDialogOpen(open);
-            if (!open) setPreventivoPerVersioni(null);
-          }}
-          codice={preventivoPerVersioni.codice || "Preventivo"}
-          versioneCorrente={preventivoPerVersioni.versione}
-          storico={preventivoPerVersioni.storico_pdf || []}
-          pdfCorrentePath={null} // PDF corrente non salvato in questo contesto
-        />
-      )}
+      {/* Workflow Invia (Verifica PDF) */}
+      <PreventivoWorkflowInviaDialog
+        open={workflowInviaOpen}
+        onOpenChange={setWorkflowInviaOpen}
+        preventivo={preventivoPerWorkflowInvia}
+        getPreviewData={getPreviewData}
+      />
+
     </>
   );
 }

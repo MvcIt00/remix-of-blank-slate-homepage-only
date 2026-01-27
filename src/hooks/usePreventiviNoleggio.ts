@@ -106,7 +106,7 @@ export function usePreventiviNoleggio() {
   const queryClient = useQueryClient();
 
   // 1. FETCH con React Query su VIEW
-  const { data: preventivi = [], isLoading: loading, error } = useQuery({
+  const { data: preventivi = [], isLoading: loading, isFetching, error, refetch } = useQuery({
     queryKey: ["preventivi_noleggio"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -395,7 +395,9 @@ export function usePreventiviNoleggio() {
   return {
     preventivi,
     loading,
+    isFetching,
     error: error ? (error as Error).message : null,
+    refresh: refetch,
     fetchPreventivi: async () => queryClient.invalidateQueries({ queryKey: ["preventivi_noleggio"] }),
     creaPreventivo: creaMutation.mutateAsync,
     aggiornaPreventivo: (id: string, v: any) => aggiornaMutation.mutateAsync({ id, updates: v }),

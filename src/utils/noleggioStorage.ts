@@ -56,11 +56,18 @@ export function getNoleggioPath(
 }
 
 /**
- * Helper per generare l'URL pubblico (per iframe o download diretti)
+ * Genera un Signed URL valido per accedere a un file nel bucket noleggio_docs.
+ * Validità: 5 minuti.
  */
-export function getNoleggioPublicUrl(path: string): string {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    return `${supabaseUrl}/storage/v1/object/public/${NOLEGGIO_BUCKET}/${path}`;
+export async function createNoleggioSignedUrl(path: string): Promise<string> {
+    const { data, error } = await supabase.storage
+        .from(NOLEGGIO_BUCKET)
+        .createSignedUrl(path, 60 * 5); // 5 minuti
+
+    if (error) throw error;
+    if (!data?.signedUrl) throw new Error("Errore generazione Signed URL");
+
+    return data.signedUrl;
 }
 
 /**

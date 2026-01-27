@@ -89,7 +89,7 @@ export function ModificaPreventivoDialog({
                     key={preventivo.id_preventivo} // Force re-render on change
                     defaultValues={defaultValues}
                     onSubmit={onSave}
-                    submitLabel="Salva Modifiche"
+                    submitLabel="Salva e Aggiorna PDF"
                 />
             </div>
         </FormModal>
