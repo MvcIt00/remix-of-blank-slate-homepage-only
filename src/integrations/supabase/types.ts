@@ -2112,9 +2112,11 @@ export type Database = {
           prezzo_trasporto: number | null
           sede_operativa: string | null
           stato: Database["public"]["Enums"]["stato_preventivo"]
+          storico_pdf: Json | null
           tempo_indeterminato: boolean
           tipo_canone: string | null
           updated_at: string | null
+          versione: number
         }
         Insert: {
           clausole_speciali?: string | null
@@ -2141,9 +2143,11 @@ export type Database = {
           prezzo_trasporto?: number | null
           sede_operativa?: string | null
           stato?: Database["public"]["Enums"]["stato_preventivo"]
+          storico_pdf?: Json | null
           tempo_indeterminato?: boolean
           tipo_canone?: string | null
           updated_at?: string | null
+          versione?: number
         }
         Update: {
           clausole_speciali?: string | null
@@ -2170,9 +2174,11 @@ export type Database = {
           prezzo_trasporto?: number | null
           sede_operativa?: string | null
           stato?: Database["public"]["Enums"]["stato_preventivo"]
+          storico_pdf?: Json | null
           tempo_indeterminato?: boolean
           tipo_canone?: string | null
           updated_at?: string | null
+          versione?: number
         }
         Relationships: [
           {
@@ -5972,10 +5978,12 @@ export type Database = {
           created_at: string | null
           data_fine: string | null
           data_inizio: string | null
+          data_scadenza: string | null
           dati_azienda: Json | null
           dati_cliente: Json | null
           dati_mezzo: Json | null
           deposito_cauzionale: number | null
+          dettaglio_modifica: string | null
           id_anagrafica: string | null
           id_anagrafica_fornitore: string | null
           id_mezzo: string | null
@@ -6007,9 +6015,11 @@ export type Database = {
           snapshot_cliente: Json | null
           snapshot_mezzo: Json | null
           stato: Database["public"]["Enums"]["stato_preventivo"] | null
+          storico_pdf: Json | null
           tempo_indeterminato: boolean | null
           tipo_canone: string | null
           updated_at: string | null
+          versione: number | null
         }
         Relationships: [
           {
@@ -6597,12 +6607,23 @@ export type Database = {
           foreign_table: string
         }[]
       }
+      get_versioned_document_code: {
+        Args: { p_doc_type: string; p_version?: number }
+        Returns: string
+      }
       hasrole: {
         Args: {
           p_role: Database["public"]["Enums"]["app_role"]
           p_userid: string
         }
         Returns: boolean
+      }
+      increment_preventivo_version: {
+        Args: { p_preventivo_id: string }
+        Returns: {
+          new_code: string
+          new_version: number
+        }[]
       }
       introspect_schema: { Args: never; Returns: Json }
     }

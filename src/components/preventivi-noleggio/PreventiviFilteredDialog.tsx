@@ -340,16 +340,17 @@ export function PreventiviFilteredDialog({
             </p>
           ) : (
             <>
-              {/* Header FUORI da ScrollArea per allineamento perfetto */}
+            {/* Header FUORI da ScrollArea per allineamento perfetto */}
               <div className={cn(
                 "grid gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b",
                 filterStato === StatoPreventivo.IN_REVISIONE
-                  ? "grid-cols-[90px_minmax(100px,1fr)_minmax(120px,1.2fr)_minmax(140px,1fr)_80px_100px]"
-                  : "grid-cols-[90px_minmax(120px,1.2fr)_minmax(150px,1.5fr)_80px_100px]"
+                  ? "grid-cols-[130px_minmax(100px,1fr)_minmax(120px,1.2fr)_minmax(100px,0.8fr)_minmax(140px,1fr)_80px_110px]"
+                  : "grid-cols-[130px_minmax(100px,1fr)_minmax(130px,1.2fr)_minmax(100px,0.8fr)_80px_110px]"
               )}>
                 <span>Codice</span>
                 <span>Cliente</span>
                 <span>Mezzo</span>
+                <span>Date</span>
                 {filterStato === StatoPreventivo.IN_REVISIONE && <span>Motivo</span>}
                 <span>Canone</span>
                 <span className="text-right">Azioni</span>
@@ -364,12 +365,12 @@ export function PreventiviFilteredDialog({
                       className={cn(
                         "grid gap-2 px-3 py-2 items-center hover:bg-muted/30 transition-colors",
                         filterStato === StatoPreventivo.IN_REVISIONE
-                          ? "grid-cols-[90px_minmax(100px,1fr)_minmax(120px,1.2fr)_minmax(140px,1fr)_80px_100px]"
-                          : "grid-cols-[90px_minmax(120px,1.2fr)_minmax(150px,1.5fr)_80px_100px]"
+                          ? "grid-cols-[130px_minmax(100px,1fr)_minmax(120px,1.2fr)_minmax(100px,0.8fr)_minmax(140px,1fr)_80px_110px]"
+                          : "grid-cols-[130px_minmax(100px,1fr)_minmax(130px,1.2fr)_minmax(100px,0.8fr)_80px_110px]"
                       )}
                     >
                       {/* Codice */}
-                      <span className="font-mono text-xs font-bold text-muted-foreground truncate">
+                      <span className="font-mono text-xs font-bold text-muted-foreground">
                         {p.codice || "BOZZA"}
                       </span>
 
@@ -387,6 +388,18 @@ export function PreventiviFilteredDialog({
                           {p.Mezzi?.matricola && `Matr: ${p.Mezzi.matricola}`}
                           {(p.Mezzi as any)?.id_interno && ` • Int: ${(p.Mezzi as any).id_interno}`}
                         </span>
+                      </div>
+
+                      {/* Date */}
+                      <div className="flex flex-col min-w-0 text-xs">
+                        {p.tempo_indeterminato ? (
+                          <span className="text-muted-foreground">Indeterminato</span>
+                        ) : (
+                          <>
+                            <span>{p.data_inizio ? new Date(p.data_inizio).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '-'}</span>
+                            <span className="text-muted-foreground">{p.data_fine ? new Date(p.data_fine).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '-'}</span>
+                          </>
+                        )}
                       </div>
 
                       {/* Motivo (solo IN_REVISIONE) */}
