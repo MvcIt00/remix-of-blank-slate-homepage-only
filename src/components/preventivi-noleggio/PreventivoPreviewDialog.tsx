@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Save, Loader2 } from "lucide-react";
 import { DocumentPreviewDialog } from "@/components/pdf";
@@ -78,14 +78,16 @@ export function PreventivoPreviewDialog({
     }
   };
 
-  const pdfDocument = (
+  // MEMOIZZA il documento PDF per evitare rigenerazioni continue
+  const pdfDocument = useMemo(() => (
     <PreventivoPDF
       datiOwner={datiOwner}
       datiCliente={datiCliente}
       datiMezzo={datiMezzo}
       datiPreventivo={datiPreventivo}
     />
-  );
+  ), [datiOwner, datiCliente, datiMezzo, datiPreventivo]);
+
 
   // Etichetta dinamica basata sulla modalità
   const saveLabel = preventivoId ? "Salva PDF" : "Salva Preventivo";
