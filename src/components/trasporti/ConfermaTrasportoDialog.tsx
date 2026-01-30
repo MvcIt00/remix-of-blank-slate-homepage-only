@@ -19,6 +19,7 @@ interface ConfermaTrasportoDialogProps {
         tratta: string;
         prezzo: string;
     };
+    onSuccess?: () => void; // Callback per refresh dashboard
 }
 
 export function ConfermaTrasportoDialog({
@@ -26,6 +27,7 @@ export function ConfermaTrasportoDialog({
     onOpenChange,
     trasportoId,
     trasportoInfo,
+    onSuccess,
 }: ConfermaTrasportoDialogProps) {
     const confermaMutation = useConfermaTrasporto();
 
@@ -33,6 +35,7 @@ export function ConfermaTrasportoDialog({
         if (!trasportoId) return;
         await confermaMutation.mutateAsync(trasportoId);
         onOpenChange(false);
+        if (onSuccess) onSuccess();
     };
 
     return (

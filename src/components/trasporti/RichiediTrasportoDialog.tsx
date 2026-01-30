@@ -44,11 +44,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface RichiediTrasportoDialogProps {
     idNoleggio: string;
+    trasportoId?: string | null; // Per edit mode
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-export function RichiediTrasportoDialog({ idNoleggio, open, onOpenChange }: RichiediTrasportoDialogProps) {
+export function RichiediTrasportoDialog({ idNoleggio, trasportoId, open, onOpenChange }: RichiediTrasportoDialogProps) {
     const queryClient = useQueryClient();
     const [manualAnagraficaPartenza, setManualAnagraficaPartenza] = useState<boolean>(false);
     const [manualAnagraficaArrivo, setManualAnagraficaArrivo] = useState<boolean>(false);
@@ -93,6 +94,24 @@ export function RichiediTrasportoDialog({ idNoleggio, open, onOpenChange }: Rich
             return sedeLegale;
         },
         enabled: open
+    });
+
+    // Fetch trasporto esistente (per edit mode)
+    const { data: existingTrasporto, isLoading: trasportoLoading } = useQuery({
+        queryKey: ['trasporto', trasportoId],
+        queryFn: async () => {
+            if (!trasportoId) return null;
+
+            const { data, error } = await supabase
+                .from('trasporti')
+                .select('*')
+                .eq('id_trasporto', trasportoId)
+                .single();
+
+            if (error) throw error;
+            return data;
+        },
+        enabled: open && !!trasportoId,
     });
 
     // Fetch anagrafica partenza (based on noleggio.id_sede_ubicazione)
@@ -199,6 +218,61 @@ export function RichiediTrasportoDialog({ idNoleggio, open, onOpenChange }: Rich
         }
     }, [tipoTrasporto, noleggio, ownerSedeLegale, form, manualAnagraficaArrivo]);
 
+    // Pre-populate form in EDIT MODE
+    useEffect(() => {
+        const loadExistingData = async () => {
+            if (existingTrasporto) {
+                // Precompila campi diretti
+                form.setValue('id_mezzo', existingTrasporto.id_mezzo || '');
+                form.setValue('id_vettore', existingTrasporto.id_vettore || '');
+                form.setValue(
+                    'data_programmata',
+                    existingTrasporto.data_programmata
+                        ? new Date(existingTrasporto.data_programmata).toISOString().split('T')[0]
+                        : ''
+                );
+                form.setValue('prezzo_cliente', existingTrasporto.prezzo_cliente ? String(existingTrasporto.prezzo_cliente) : '');
+                form.setValue('costo_vettore', existingTrasporto.costo_vettore ? String(existingTrasporto.costo_vettore) : '');
+                form.setValue('note', existingTrasporto.note || '');
+
+                // Precompila sedi (e fetcha anagrafica IDs per reactive fetching)
+                if (existingTrasporto.id_sede_partenza) {
+                    form.setValue('id_sede_partenza', existingTrasporto.id_sede_partenza);
+
+                    // Fetch anagrafica ID dalla sede
+                    const { data: sedeData } = await supabase
+                        .from('Sedi')
+                        .select('id_anagrafica')
+                        .eq('id_sede', existingTrasporto.id_sede_partenza)
+                        .single();
+
+                    if (sedeData?.id_anagrafica) {
+                        form.setValue('id_anagrafica_partenza', sedeData.id_anagrafica);
+                    }
+                }
+
+                if (existingTrasporto.id_sede_arrivo) {
+                    form.setValue('id_sede_arrivo', existingTrasporto.id_sede_arrivo);
+
+                    // Fetch anagrafica ID dalla sede
+                    const { data: sedeData } = await supabase
+                        .from('Sedi')
+                        .select('id_anagrafica')
+                        .eq('id_sede', existingTrasporto.id_sede_arrivo)
+                        .single();
+
+                    if (sedeData?.id_anagrafica) {
+                        form.setValue('id_anagrafica_arrivo', sedeData.id_anagrafica);
+                    }
+                }
+            }
+        };
+
+        if (trasportoId && existingTrasporto) {
+            loadExistingData();
+        }
+    }, [existingTrasporto, trasportoId, form]);
+
     // Create trasporto mutation
     const createMutation = useMutation({
         mutationFn: async (values: FormValues) => {
@@ -244,15 +318,59 @@ export function RichiediTrasportoDialog({ idNoleggio, open, onOpenChange }: Rich
         },
     });
 
+    // Update trasporto mutation (per edit mode)
+    const updateMutation = useMutation({
+        mutationFn: async (values: FormValues) => {
+            if (!trasportoId) throw new Error("trasportoId required for update");
+
+            const updateData = {
+                id_mezzo: values.id_mezzo,
+                id_vettore: values.id_vettore || null,
+                id_sede_partenza: values.id_sede_partenza,
+                id_sede_arrivo: values.id_sede_arrivo,
+                data_programmata: values.data_programmata || null,
+                prezzo_cliente: values.prezzo_cliente ? parseFloat(values.prezzo_cliente) : null,
+                costo_vettore: values.costo_vettore ? parseFloat(values.costo_vettore) : null,
+                note: values.note || null,
+                updated_at: new Date().toISOString(),
+            };
+
+            const { error } = await supabase
+                .from('trasporti')
+                .update(updateData)
+                .eq('id_trasporto', trasportoId);
+
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            toast.success("Trasporto aggiornato con successo");
+            form.reset();
+            setTipoTrasporto(null);
+            onOpenChange(false);
+            queryClient.invalidateQueries({ queryKey: ['noleggi'] });
+        },
+        onError: (error: Error) => {
+            toast.error(`Errore: ${error.message}`);
+        },
+    });
+
     const onSubmit = (values: FormValues) => {
-        createMutation.mutate(values);
+        if (trasportoId) {
+            // Edit mode → UPDATE
+            updateMutation.mutate(values);
+        } else {
+            // Create mode → INSERT
+            createMutation.mutate(values);
+        }
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Richiedi Trasporto</DialogTitle>
+                    <DialogTitle>
+                        {trasportoId ? "Modifica Trasporto" : "Richiedi Trasporto"}
+                    </DialogTitle>
                 </DialogHeader>
 
                 <Form {...form}>

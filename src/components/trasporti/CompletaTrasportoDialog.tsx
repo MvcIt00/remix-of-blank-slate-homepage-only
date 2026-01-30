@@ -30,6 +30,7 @@ interface CompletaTrasportoDialogProps {
         mezzo: string;
         tratta: string;
     };
+    onSuccess?: () => void; // Callback per refresh dashboard
 }
 
 export function CompletaTrasportoDialog({
@@ -37,6 +38,7 @@ export function CompletaTrasportoDialog({
     onOpenChange,
     trasportoId,
     trasportoInfo,
+    onSuccess,
 }: CompletaTrasportoDialogProps) {
     const completaMutation = useCompletaTrasporto();
 
@@ -55,6 +57,7 @@ export function CompletaTrasportoDialog({
         });
         onOpenChange(false);
         form.reset();
+        if (onSuccess) onSuccess();
     };
 
     return (
