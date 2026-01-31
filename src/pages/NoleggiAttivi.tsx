@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit, Trash2, Archive, MoreHorizontal, Eye, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Archive, MoreHorizontal, Eye, FileText, Loader2, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -25,6 +25,8 @@ import { TerminaNoleggioDialog } from "@/components/noleggi/termina_noleggio_dia
 import { RentalDetailSheet } from "@/components/noleggi/RentalDetailSheet";
 import { ContrattoStatusButton } from "@/components/contratti/ContrattoStatusButton";
 import { PreventivoPreviewDialog } from "@/components/preventivi/PreventivoPreviewDialog";
+import { NoleggiDashboard } from "@/components/noleggi/NoleggiDashboard";
+import { EmailComposerDialog } from "@/components/email/EmailComposerDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,6 +96,10 @@ export default function NoleggiAttivi() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [preventivoPreviewData, setPreventivoPreviewData] = useState<any | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+
+  // Stati per Email Composer (AX06 - Context First)
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [emailContext, setEmailContext] = useState<any>(null);
 
   const { data: noleggi = [], isLoading: loading, refetch } = useQuery({
     queryKey: ["noleggi-attivi-view"],
@@ -344,6 +350,24 @@ export default function NoleggiAttivi() {
                 <Edit className="mr-2 h-4 w-4" /> Modifica Dati
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              {/* AX06 - Context First: composizione email con dati pre-compilati dal contesto */}
+              <DropdownMenuItem onClick={() => {
+                const cliente = row.cliente_ragione_sociale || "Cliente";
+                const mezzo = `${row.mezzo_marca} ${row.mezzo_modello}`;
+                const sede = row.sede_nome || "sede";
+
+                setEmailContext({
+                  to: row.cliente_piva || "", // In realtà andrebbe preso l'email del cliente
+                  subject: `Noleggio ${row.codice_noleggio || mezzo} - ${cliente}`,
+                  body: `Gentile ${cliente},\n\ncon riferimento al noleggio del mezzo ${mezzo} presso ${sede}.\n\n`,
+                  id_cliente: row.id_anagrafica,
+                  id_noleggio: row.id_noleggio,
+                });
+                setComposerOpen(true);
+              }}>
+                <Mail className="mr-2 h-4 w-4" /> Invia Email Cliente
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               {!row.is_terminato && (
                 <DropdownMenuItem onClick={() => {
                   setNoleggioSelezionato(adapted);
@@ -394,6 +418,9 @@ export default function NoleggiAttivi() {
             </div>
           </div>
         </div>
+
+        {/* Dashboard Stati e Allarmi Operativi */}
+        <NoleggiDashboard />
 
         <Card>
           <CardHeader>
@@ -485,6 +512,18 @@ export default function NoleggiAttivi() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* AX06 - Context First: Email Composer con dati pre-compilati dal noleggio */}
+      <EmailComposerDialog
+        open={composerOpen}
+        onOpenChange={setComposerOpen}
+        defaultValues={emailContext}
+        onEmailSent={() => {
+          setComposerOpen(false);
+          setEmailContext(null);
+          toast({ title: "Email inviata", description: "Email inviata con successo al cliente" });
+        }}
+      />
     </div>
   );
 }

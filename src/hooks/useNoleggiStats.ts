@@ -3,6 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
+ * AI GUIDANCE:
+ * Per comprendere la logica concettuale degli allarmi intelligenti (±7gg, richiede_contratto),
+ * consultare il file di contesto: src/components/noleggi/.context.md
+ */
+
+/**
  * FILOSOFIA (Protocollo AX04/AX05/AX06):
  * Hook per statistiche operative noleggi con sistema di allarmi proattivo.
  * 
@@ -174,36 +180,32 @@ function buildTrasportiMap(data: any[] | null): Map<string, TrasportoNoleggio[]>
  * 4. Trasporto ritiro pendente: stato terminato AND no trasporto completato verso sede MVC
  */
 function calcolaAllarmi(
-    noleggio: NoleggioView,
+    noleggio: any,  // Include campi da vw_noleggi_allarmi
     trasporti: TrasportoNoleggio[]
 ): Allarmi {
-    // TODO: ID sede MVC owner (hardcoded per ora, da config o query)
-    const ID_SEDE_MVC = "ff4eef0a-1cad-4e3b-9f17-84b9448feea8";
-
-    const richiedeContratto = noleggio.richiede_contratto_noleggio !== false; // Default true
-    const hasBozza = !!noleggio.contratto_bozza_info;
-    const hasFirmato = !!noleggio.contratto_firmato_info;
+    // ========================================================================
+    // ALLARMI DA VISTA (pre-calcolati con logica intelligente DB-side)
+    // ========================================================================
+    const contrattoDaGenerare = noleggio.allarme_contratto_da_generare || false;
+    const contrattoDaAllegare = noleggio.allarme_contratto_da_allegare || false;
+    const trasportoConsegnaPendente = noleggio.allarme_trasporto_consegna || false;
+    const trasportoRitiroPendente = noleggio.allarme_trasporto_ritiro || false;
 
     // Trasporto consegna = arrivo presso cliente (sede_operativa)
     const trasportoConsegna = trasporti.find(
         (t) => t.id_sede_arrivo === noleggio.id_sede_operativa
     );
-    const hasConsegnaCompletata = trasportoConsegna?.stato === "completato";
 
-    // Trasporto ritiro = arrivo presso MVC
+    // Trasporto ritiro = NON arrivo presso cliente
     const trasportoRitiro = trasporti.find(
-        (t) => t.id_sede_arrivo === ID_SEDE_MVC
+        (t) => t.id_sede_arrivo && t.id_sede_arrivo !== noleggio.id_sede_operativa
     );
-    const hasRitiroCompletato = trasportoRitiro?.stato === "completato";
 
     return {
-        contrattoDaGenerare: richiedeContratto && !hasBozza && !hasFirmato,
-        contrattoDaAllegare: richiedeContratto && hasBozza && !hasFirmato,
-        trasportoConsegnaPendente:
-            ["futuro", "attivo"].includes(noleggio.stato_noleggio) &&
-            !hasConsegnaCompletata,
-        trasportoRitiroPendente:
-            noleggio.stato_noleggio === "terminato" && !hasRitiroCompletato,
+        contrattoDaGenerare,
+        contrattoDaAllegare,
+        trasportoConsegnaPendente,
+        trasportoRitiroPendente,
 
         // INFO TRASPORTI per azioni contestuali
         trasportoConsegnaInfo: {
@@ -224,12 +226,12 @@ function calcolaAllarmi(
 // ============================================================================
 
 export function useNoleggiStats() {
-    // 1. Fetch tutti i noleggi dalla VIEW (esclusi archiviati)
+    // 1. Fetch tutti i noleggi dalla VIEW con allarmi intelligenti
     const noleggiQuery = useQuery({
         queryKey: ["noleggi-dashboard"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("vw_noleggi_completi")
+                .from("vw_noleggi_allarmi" as any)  // View non ancora in types generati
                 .select("*")
                 .neq("stato_noleggio", "archiviato");
 

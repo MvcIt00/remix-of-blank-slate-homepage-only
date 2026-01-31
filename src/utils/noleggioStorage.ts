@@ -12,6 +12,7 @@ export type NoleggioPathType =
     | "PREVENTIVO_BOZZA"       // PDF bozza (non ancora firmato)
     | "PREVENTIVO_FIRMATO"
     | "PREVENTIVO_VERSIONE"  // Per archiviare versioni storiche PDF
+    | "CONTRATTO_BOZZA"       // PDF bozza contratto (non ancora firmato)
     | "CONTRATTO_FIRMATO"
     | "STATIC_ASSETS";
 
@@ -43,6 +44,9 @@ export function getNoleggioPath(
             // Formato: preventivi/versioni/PN-2025-00001-V1_timestamp.pdf
             const versionSuffix = version ? `-V${version}` : '';
             return `preventivi/versioni/${cleanId}${versionSuffix}_${ts}.pdf`;
+
+        case "CONTRATTO_BOZZA":
+            return `contratti/bozze/contratto_${cleanId}_${ts}.pdf`;
 
         case "CONTRATTO_FIRMATO":
             return `contratti/firmati/contratto_firmato_${cleanId}_${ts}.pdf`;
@@ -92,6 +96,35 @@ export async function uploadPreventivoPDF(
         codice || preventivoId,
         Date.now(),
         versione
+    );
+
+    const { error } = await supabase.storage
+        .from(NOLEGGIO_BUCKET)
+        .upload(path, blob, {
+            contentType: 'application/pdf',
+            upsert: true // Sovrascrive se esiste già
+        });
+
+    if (error) throw error;
+    return path;
+}
+
+/**
+ * Upload centralizzato di PDF contratto su Supabase Storage
+ * @param blob - Blob del PDF generato
+ * @param contrattoId - ID del contratto
+ * @param codice - Codice contratto (es. CNT-2026-00001)
+ * @returns Path del file caricato
+ */
+export async function uploadContrattoPDF(
+    blob: Blob,
+    contrattoId: string,
+    codice: string
+): Promise<string> {
+    const path = getNoleggioPath(
+        "CONTRATTO_BOZZA",
+        codice || contrattoId,
+        Date.now()
     );
 
     const { error } = await supabase.storage

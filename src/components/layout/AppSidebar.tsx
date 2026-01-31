@@ -1,4 +1,4 @@
-import { Home, Truck, Wallet, LogOut, PackageOpen } from "lucide-react";
+import { Home, Truck, Wallet, LogOut, PackageOpen, Mail } from "lucide-react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -20,6 +20,7 @@ const menuItems = [
   { title: "Start", url: "/", icon: Home },
   { title: "Noleggi", url: "/noleggi", icon: Truck },
   { title: "Trasporti", url: "/trasporti", icon: PackageOpen },
+  { title: "Posta", url: "/posta", icon: Mail },
   { title: "Fabbisogno", url: "/fabbisogno", icon: Wallet },
 ];
 

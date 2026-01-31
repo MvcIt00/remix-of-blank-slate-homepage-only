@@ -19,6 +19,7 @@ import NoleggiAttivi from "./pages/NoleggiAttivi";
 import Fabbisogno from "./pages/Fabbisogno";
 import PreventiviNoleggio from "./pages/PreventiviNoleggio";
 import TrasportiPage from "./pages/TrasportiPage";
+import EmailPage from "./pages/EmailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
                       </Route>
 
                       <Route path="/trasporti" element={<TrasportiPage />} />
+                      <Route path="/posta" element={<EmailPage />} />
                       <Route path="/fabbisogno" element={<Fabbisogno />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
