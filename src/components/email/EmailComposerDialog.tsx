@@ -40,8 +40,9 @@ interface EmailComposerDialogProps {
         to?: string;
         subject?: string;
         body?: string;
-        id_cliente?: string;
+        id_anagrafica?: string;
         id_noleggio?: string;
+        id_preventivo?: string;
     };
     onEmailSent?: () => void;
 }
@@ -142,6 +143,9 @@ export function EmailComposerDialog({
                     body: data.body,
                     html: data.body.replace(/\n/g, "<br>"),
                     attachments: attachmentsData.length > 0 ? attachmentsData : undefined,
+                    id_anagrafica: defaultValues?.id_anagrafica,
+                    id_noleggio: defaultValues?.id_noleggio,
+                    id_preventivo: defaultValues?.id_preventivo,
                 },
             });
 

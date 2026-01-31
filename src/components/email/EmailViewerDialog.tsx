@@ -18,6 +18,7 @@ import { useEffect, useRef } from "react";
 
 interface EmailViewerDialogProps {
     emailId: string;
+    direzione: 'ricevuta' | 'inviata';
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onMarkAsRead?: () => void;
@@ -25,6 +26,7 @@ interface EmailViewerDialogProps {
 
 export function EmailViewerDialog({
     emailId,
+    direzione,
     open,
     onOpenChange,
     onMarkAsRead,
@@ -33,19 +35,22 @@ export function EmailViewerDialog({
     const hasMarkedAsRead = useRef(false);
 
     const { data: email, isLoading } = useQuery({
-        queryKey: ["email", emailId],
+        queryKey: ["email", emailId, direzione],
         queryFn: async () => {
+            const tableName = direzione === 'ricevuta' ? 'emails_ricevute' : 'emails_inviate';
+            const attachmentFk = direzione === 'ricevuta' ? 'id_email_ricevuta' : 'id_email_inviata';
+
             const { data, error } = await supabase
-                .from("messaggi_email" as any)
+                .from(tableName as any)
                 .select(`
                     *,
-                    allegati:allegati_email(*)
+                    allegati:allegati_email(${attachmentFk})
                 `)
                 .eq("id", emailId)
                 .single();
 
             if (error) throw error;
-            return data;
+            return { ...data, direzione } as any;
         },
         enabled: !!emailId && open,
     });
@@ -61,10 +66,9 @@ export function EmailViewerDialog({
 
             // Update con nuovo campo ENUM
             const { error } = await supabase
-                .from("messaggi_email" as any)
+                .from("emails_ricevute")
                 .update({
                     stato: "letta",
-                    stato_ricevuta: "letta",
                     data_lettura: new Date().toISOString(),
                 })
                 .eq("id", emailId);
@@ -125,12 +129,12 @@ export function EmailViewerDialog({
     if (!email) return null;
 
     const destinatari = email.a_emails?.map((d: any) => d.email).join(", ") || "";
-    const displayDate = email.data_invio_effettiva || email.data_ricezione || email.data_creazione;
+    const displayDate = email.data_invio_effettiva || email.data_rice_server || email.data_creazione || email.data_ricezione_server;
 
     // Determina stato leggibile
     const statoDisplay = email.direzione === "ricevuta"
-        ? (email.stato_ricevuta === "letta" ? "Letta" : "Non letta")
-        : (email.stato_inviata || "Inviata");
+        ? (email.stato === "letta" ? "Letta" : "Non letta")
+        : (email.stato || "Inviata");
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

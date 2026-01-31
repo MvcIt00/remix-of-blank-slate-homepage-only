@@ -17,14 +17,13 @@ interface Email {
     da_email: string;
     da_nome: string;
     a_emails: any[];
-    direzione: string;
-    stato_ricevuta: "non_letta" | "letta" | "archiviata" | null;
-    stato_inviata: "bozza" | "in_coda" | "inviata" | "archiviata" | null;
+    direzione: 'ricevuta' | 'inviata';
+    stato: string;
     corpo_text: string;
     corpo_html: string;
-    data_creazione: string;
-    data_ricezione?: string;
+    data_ricezione_server?: string;
     data_invio_effettiva?: string;
+    data_creazione: string;
 }
 
 export function EmailInbox() {
@@ -49,38 +48,34 @@ export function EmailInbox() {
         },
     });
 
-    // NUOVO: Query email ricevute usando stato_ricevuta ENUM
     const { data: emailsRicevute = [], isLoading: loadingRicevute, refetch: refetchRicevute } = useQuery({
         queryKey: ["emails-ricevute"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("messaggi_email" as any)
+                .from("emails_ricevute" as any)
                 .select("*")
-                .eq("direzione", "ricevuta")
-                .neq("stato_ricevuta", "archiviata")
-                .order("data_creazione", { ascending: false })
+                .neq("stato", "archiviata")
+                .order("data_ricezione_server", { ascending: false })
                 .limit(50);
 
             if (error) throw error;
-            return data as Email[];
+            return (data as any[]).map(e => ({ ...e, direzione: 'ricevuta' })) as Email[];
         },
         enabled: !!account,
     });
 
-    // NUOVO: Query email inviate usando stato_inviata ENUM
     const { data: emailsInviate = [], isLoading: loadingInviate, refetch: refetchInviate } = useQuery({
         queryKey: ["emails-inviate"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("messaggi_email" as any)
+                .from("emails_inviate" as any)
                 .select("*")
-                .eq("direzione", "inviata")
-                .neq("stato_inviata", "archiviata")
-                .order("data_invio_effettiva", { ascending: false })
+                .neq("stato", "archiviata")
+                .order("data_creazione", { ascending: false })
                 .limit(50);
 
             if (error) throw error;
-            return data as Email[];
+            return (data as any[]).map(e => ({ ...e, direzione: 'inviata' })) as Email[];
         },
         enabled: !!account,
     });
@@ -121,12 +116,11 @@ export function EmailInbox() {
         setViewerOpen(true);
 
         // Mark as read SUBITO al click (se email ricevuta e non letta)
-        if (email.direzione === "ricevuta" && email.stato_ricevuta === "non_letta") {
+        if (email.direzione === "ricevuta" && email.stato === "non_letta") {
             await supabase
-                .from("messaggi_email" as any)
+                .from("emails_ricevute" as any)
                 .update({
                     stato: "letta",
-                    stato_ricevuta: "letta",
                     data_lettura: new Date().toISOString(),
                 })
                 .eq("id", email.id);
@@ -144,9 +138,8 @@ export function EmailInbox() {
         }
     }, [viewerOpen, selectedEmailId, refetchRicevute]);
 
-    // NUOVO: Filtra usando stato_ricevuta ENUM
-    const emailsDaLeggere = emailsRicevute.filter((e) => e.stato_ricevuta === "non_letta");
-    const emailsLette = emailsRicevute.filter((e) => e.stato_ricevuta === "letta");
+    const emailsDaLeggere = emailsRicevute.filter((e) => e.stato === "non_letta");
+    const emailsLette = emailsRicevute.filter((e) => e.stato === "letta");
 
     if (!account) {
         return (
@@ -256,6 +249,7 @@ export function EmailInbox() {
             {selectedEmailId && (
                 <EmailViewerDialog
                     emailId={selectedEmailId}
+                    direzione={emailsRicevute.find(e => e.id === selectedEmailId) ? 'ricevuta' : 'inviata'}
                     open={viewerOpen}
                     onOpenChange={setViewerOpen}
                     onMarkAsRead={() => refetchRicevute()}
@@ -275,8 +269,8 @@ function EmailRow({
     onClick: () => void;
     isOutgoing?: boolean;
 }) {
-    const displayDate = email.data_invio_effettiva || email.data_ricezione || email.data_creazione;
-    const isUnread = email.stato_ricevuta === "non_letta" && !isOutgoing;
+    const displayDate = email.data_invio_effettiva || email.data_ricezione_server || email.data_creazione;
+    const isUnread = email.stato === "non_letta" && !isOutgoing;
 
     return (
         <div

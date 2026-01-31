@@ -31,10 +31,9 @@ interface Email {
     corpo_text: string | null;
     corpo_html: string | null;
     direzione: "ricevuta" | "inviata";
-    stato_ricevuta: "non_letta" | "letta" | "archiviata" | null;
-    stato_inviata: "bozza" | "in_coda" | "inviata" | "archiviata" | null;
+    stato: string;
     data_creazione: string;
-    data_ricezione: string | null;
+    data_ricezione_server: string | null;
     data_invio_effettiva: string | null;
 }
 
@@ -66,14 +65,13 @@ export function EmailClientPage() {
         queryKey: ["emails-ricevute"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("messaggi_email" as any)
+                .from("emails_ricevute" as any)
                 .select("*")
-                .eq("direzione", "ricevuta")
-                .neq("stato_ricevuta", "archiviata")
-                .order("data_creazione", { ascending: false })
+                .neq("stato", "archiviata")
+                .order("data_ricezione_server", { ascending: false })
                 .limit(100);
             if (error) throw error;
-            return data as Email[];
+            return (data as any[]).map(e => ({ ...e, direzione: 'ricevuta' })) as Email[];
         },
         enabled: !!account,
     });
@@ -83,14 +81,13 @@ export function EmailClientPage() {
         queryKey: ["emails-inviate"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("messaggi_email" as any)
+                .from("emails_inviate" as any)
                 .select("*")
-                .eq("direzione", "inviata")
-                .neq("stato_inviata", "archiviata")
+                .neq("stato", "archiviata")
                 .order("data_creazione", { ascending: false })
                 .limit(100);
             if (error) throw error;
-            return data as Email[];
+            return (data as any[]).map(e => ({ ...e, direzione: 'inviata' })) as Email[];
         },
         enabled: !!account,
     });
@@ -131,12 +128,11 @@ export function EmailClientPage() {
     const handleSelectEmail = async (email: Email) => {
         setSelectedEmailId(email.id);
 
-        if (email.direzione === "ricevuta" && email.stato_ricevuta === "non_letta") {
+        if (email.direzione === "ricevuta" && email.stato === "non_letta") {
             await supabase
-                .from("messaggi_email" as any)
+                .from("emails_ricevute" as any)
                 .update({
                     stato: "letta",
-                    stato_ricevuta: "letta",
                     data_lettura: new Date().toISOString(),
                 })
                 .eq("id", email.id);
@@ -163,7 +159,7 @@ export function EmailClientPage() {
     };
 
     // Conteggio non lette
-    const unreadCount = emailsRicevute.filter((e) => e.stato_ricevuta === "non_letta").length;
+    const unreadCount = emailsRicevute.filter((e) => e.stato === "non_letta").length;
 
     if (!account) {
         return (
@@ -360,10 +356,10 @@ function EmailListItem({
     getSnippet,
     isSent
 }: EmailListItemProps) {
-    const isUnread = email.direzione === "ricevuta" && email.stato_ricevuta === "non_letta";
+    const isUnread = email.direzione === "ricevuta" && email.stato === "non_letta";
     const displayDate = isSent
         ? email.data_invio_effettiva || email.data_creazione
-        : email.data_ricezione || email.data_creazione;
+        : email.data_ricezione_server || email.data_creazione;
 
     // Per email inviate mostra i destinatari
     const sender = isSent
@@ -413,7 +409,7 @@ interface EmailPreviewProps {
 function EmailPreview({ email }: EmailPreviewProps) {
     const displayDate = email.direzione === "inviata"
         ? email.data_invio_effettiva || email.data_creazione
-        : email.data_ricezione || email.data_creazione;
+        : email.data_ricezione_server || email.data_creazione;
 
     const recipients = email.a_emails?.map((r) => r.email).join(", ") || "";
 
