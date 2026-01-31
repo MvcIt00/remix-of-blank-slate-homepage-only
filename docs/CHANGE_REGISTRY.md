@@ -4,6 +4,79 @@ Registro cronologico delle modifiche al codebase secondo AX08_CHANGE_REGISTRY_MA
 
 ---
 
+## V024 - 2026-01-31 18:18
+
+### Scope
+- Database: Tabella `emails_inviate`
+- Componenti: Edge Function `email-smtp-send`
+
+### Stato Precedente
+**Funzionalità operative:**
+- Invio email tramite SMTP funzionante (consegna al destinatario).
+
+**Problemi esistenti:**
+- Le email inviate **non venivano salvate nel database**.
+- Cause: Colonne `da_email` e `da_nome` mancanti nello schema; campo data denominato erroneamente `data_invio` invece di `data_invio_effettiva`.
+- Errore runtime: Variabile `messageId` non definita nella risposta della funzione.
+
+### Modifiche Effettuate
+- **Database**: Aggiunte colonne `da_email` e `da_nome` alla tabella `emails_inviate` via migrazione.
+- **Edge Function**: Corretto il codice per usare i nomi colonna corretti e risolto il bug sulla variabile `messageId`.
+- **Deploy**: Effettuata nuova release (v14) della funzione SMTP.
+
+### Reasoning
+**Assiomi applicati:**
+- AX02: Mantenuta la simmetria dei dati tra ricevute ed inviate per permettere analisi storiche e unificazioni (UNION) semplici.
+
+**Problema risolto:**
+- Ora ogni email inviata genera correttamente una riga in `emails_inviate`, permettendo la visualizzazione dei thread completi.
+
+### Testing & Stato
+**Testato:**
+- Deploy effettuato via MCP.
+- Schema verificato post-migrazione.
+
+**Funziona:**
+- Salvataggio email inviate nel database ripristinato.
+
+---
+
+## V023 - 2026-01-31 18:15
+
+### Scope
+- Database: RPC `sync_emails_ricevute_batch`
+- Componenti: Sincronizzazione IMAP, Threading
+
+### Stato Precedente
+**Funzionalità operative:**
+- Sincronizzazione email base funzionante.
+- Struttura threading presente ma non popolata correttamente.
+
+**Problemi esistenti:**
+- Errore 500 durante il re-sync: `references_chain` di tipo `text[]` riceveva `jsonb`.
+- Errore "cannot extract elements from a scalar" quando `references_chain` non era un array (es. null o stringa).
+
+### Modifiche Effettuate
+- **Database (RPC)**: Modificata la funzione `sync_emails_ricevute_batch` per gestire correttamente il tipo di dato `references_chain`.
+- **Logica di Conversione**: Aggiunto cast esplicito da `jsonb` array a `text[]` e gestione preventiva dei tipi scalar/null tramite `jsonb_typeof`.
+
+### Reasoning
+**Assiomi applicati:**
+- AX02: Garantita la granularità dei dati mantenendo il tipo `text[]` corretto nel database per facilitare analisi future.
+
+**Problema risolto:**
+- Ripristinata la stabilità della sincronizzazione dopo il reset per il threading.
+
+### Testing & Stato
+**Testato:**
+- Esecuzione migrazione SQL correttiva.
+- Verifica tipi tramite `information_schema`.
+
+**Funziona:**
+- Sincronizzazione IMAP stabile e in grado di popolare i campi threading senza errori.
+
+---
+
 ## V022 - 2026-01-31 17:47
 
 ### Scope

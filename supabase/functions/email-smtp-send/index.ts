@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
                 corpo_text: text || "",
                 corpo_html: html || "",
                 stato: "inviata",
-                data_invio: new Date().toISOString(),
+                data_invio_effettiva: new Date().toISOString(),
                 // THREADING
                 id_conversazione: convId,
                 in_reply_to: inReplyTo,
@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
         return new Response(
             JSON.stringify({
                 success: true,
-                messageId: message.header?.["message-id"] || messageId,
+                messageId: message.header?.["message-id"] || localMessageId,
                 savedId: savedEmail?.id,
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
