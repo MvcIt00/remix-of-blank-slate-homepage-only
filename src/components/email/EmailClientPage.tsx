@@ -11,7 +11,13 @@ import {
     ChevronDown,
     ChevronRight,
     Paperclip,
-    Settings
+    Settings,
+    Reply,
+    ReplyAll,
+    Forward,
+    Trash2,
+    Archive,
+    MailOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -44,6 +50,11 @@ export function EmailClientPage() {
     const [sentExpanded, setSentExpanded] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const [composerOpen, setComposerOpen] = useState(false);
+    const [composerDefaults, setComposerDefaults] = useState<{
+        to?: string;
+        subject?: string;
+        body?: string;
+    }>({});
     const [accountDialogOpen, setAccountDialogOpen] = useState(false);
 
     // Fetch account email
@@ -138,6 +149,117 @@ export function EmailClientPage() {
                 .eq("id", email.id);
             refetchRicevute();
         }
+    };
+
+    // === AZIONI EMAIL (Thunderbird-style) ===
+
+    // Rispondi al mittente
+    const handleReply = (email: Email) => {
+        const quotedBody = `\n\n--- Messaggio originale ---\nDa: ${email.da_nome || email.da_email}\nData: ${format(new Date(email.data_ricezione_server || email.data_creazione), "dd/MM/yyyy HH:mm")}\nOggetto: ${email.oggetto}\n\n${email.corpo_text || ""}`;
+
+        setComposerDefaults({
+            to: email.da_email,
+            subject: email.oggetto?.startsWith("Re:") ? email.oggetto : `Re: ${email.oggetto || ""}`,
+            body: quotedBody,
+        });
+        setComposerOpen(true);
+    };
+
+    // Rispondi a tutti
+    const handleReplyAll = (email: Email) => {
+        // Includi mittente + tutti i destinatari originali (escludendo il nostro account)
+        const allRecipients = [
+            email.da_email,
+            ...(email.a_emails?.map((r) => r.email) || [])
+        ].filter((e) => e !== account?.email_address);
+
+        const quotedBody = `\n\n--- Messaggio originale ---\nDa: ${email.da_nome || email.da_email}\nA: ${email.a_emails?.map((r) => r.email).join(", ") || ""}\nData: ${format(new Date(email.data_ricezione_server || email.data_creazione), "dd/MM/yyyy HH:mm")}\nOggetto: ${email.oggetto}\n\n${email.corpo_text || ""}`;
+
+        setComposerDefaults({
+            to: allRecipients.join(", "),
+            subject: email.oggetto?.startsWith("Re:") ? email.oggetto : `Re: ${email.oggetto || ""}`,
+            body: quotedBody,
+        });
+        setComposerOpen(true);
+    };
+
+    // Inoltra
+    const handleForward = (email: Email) => {
+        const forwardBody = `\n\n--- Messaggio inoltrato ---\nDa: ${email.da_nome || email.da_email}\nData: ${format(new Date(email.data_ricezione_server || email.data_creazione), "dd/MM/yyyy HH:mm")}\nOggetto: ${email.oggetto}\nA: ${email.a_emails?.map((r) => r.email).join(", ") || ""}\n\n${email.corpo_text || ""}`;
+
+        setComposerDefaults({
+            to: "",
+            subject: email.oggetto?.startsWith("Fwd:") ? email.oggetto : `Fwd: ${email.oggetto || ""}`,
+            body: forwardBody,
+        });
+        setComposerOpen(true);
+    };
+
+    // Elimina
+    const handleDelete = async (email: Email) => {
+        const table = email.direzione === "ricevuta" ? "emails_ricevute" : "emails_inviate";
+
+        const { error } = await supabase
+            .from(table as any)
+            .update({ stato: "eliminata" })
+            .eq("id", email.id);
+
+        if (error) {
+            toast.error("Errore durante l'eliminazione");
+            return;
+        }
+
+        toast.success("Email spostata nel cestino");
+        setSelectedEmailId(null);
+        if (email.direzione === "ricevuta") {
+            refetchRicevute();
+        } else {
+            refetchInviate();
+        }
+    };
+
+    // Archivia
+    const handleArchive = async (email: Email) => {
+        const table = email.direzione === "ricevuta" ? "emails_ricevute" : "emails_inviate";
+
+        const { error } = await supabase
+            .from(table as any)
+            .update({ stato: "archiviata" })
+            .eq("id", email.id);
+
+        if (error) {
+            toast.error("Errore durante l'archiviazione");
+            return;
+        }
+
+        toast.success("Email archiviata");
+        setSelectedEmailId(null);
+        if (email.direzione === "ricevuta") {
+            refetchRicevute();
+        } else {
+            refetchInviate();
+        }
+    };
+
+    // Segna come non letto
+    const handleMarkUnread = async (email: Email) => {
+        if (email.direzione !== "ricevuta") {
+            toast.info("Solo le email ricevute possono essere segnate come non lette");
+            return;
+        }
+
+        const { error } = await supabase
+            .from("emails_ricevute" as any)
+            .update({ stato: "non_letta", data_lettura: null })
+            .eq("id", email.id);
+
+        if (error) {
+            toast.error("Errore durante l'aggiornamento");
+            return;
+        }
+
+        toast.success("Email segnata come non letta");
+        refetchRicevute();
     };
 
     // Formatta data
@@ -310,7 +432,15 @@ export function EmailClientPage() {
             {/* Preview Pane */}
             <div className="flex-1 flex flex-col bg-background">
                 {selectedEmail ? (
-                    <EmailPreview email={selectedEmail} />
+                    <EmailPreview
+                        email={selectedEmail}
+                        onReply={handleReply}
+                        onReplyAll={handleReplyAll}
+                        onForward={handleForward}
+                        onDelete={handleDelete}
+                        onArchive={handleArchive}
+                        onMarkUnread={handleMarkUnread}
+                    />
                 ) : (
                     <div className="flex-1 flex items-center justify-center text-muted-foreground">
                         <div className="text-center">
@@ -324,10 +454,15 @@ export function EmailClientPage() {
             {/* Dialogs */}
             <EmailComposerDialog
                 open={composerOpen}
-                onOpenChange={setComposerOpen}
+                onOpenChange={(open) => {
+                    setComposerOpen(open);
+                    if (!open) setComposerDefaults({});
+                }}
+                defaultValues={composerDefaults}
                 onEmailSent={() => {
                     refetchInviate();
                     setComposerOpen(false);
+                    setComposerDefaults({});
                 }}
             />
             <EmailAccountConfigDialog
@@ -401,20 +536,102 @@ function EmailListItem({
     );
 }
 
-// Componente EmailPreview
+// Componente EmailPreview con Toolbar Azioni
 interface EmailPreviewProps {
     email: Email;
+    onReply: (email: Email) => void;
+    onReplyAll: (email: Email) => void;
+    onForward: (email: Email) => void;
+    onDelete: (email: Email) => void;
+    onArchive: (email: Email) => void;
+    onMarkUnread: (email: Email) => void;
 }
 
-function EmailPreview({ email }: EmailPreviewProps) {
+function EmailPreview({
+    email,
+    onReply,
+    onReplyAll,
+    onForward,
+    onDelete,
+    onArchive,
+    onMarkUnread
+}: EmailPreviewProps) {
     const displayDate = email.direzione === "inviata"
         ? email.data_invio_effettiva || email.data_creazione
         : email.data_ricezione_server || email.data_creazione;
 
     const recipients = email.a_emails?.map((r) => r.email).join(", ") || "";
+    const isReceived = email.direzione === "ricevuta";
 
     return (
         <>
+            {/* Toolbar Azioni */}
+            <div className="flex items-center gap-1 p-2 border-b bg-muted/30">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onReply(email)}
+                    className="gap-1.5"
+                >
+                    <Reply className="h-4 w-4" />
+                    <span className="hidden sm:inline">Rispondi</span>
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onReplyAll(email)}
+                    className="gap-1.5"
+                >
+                    <ReplyAll className="h-4 w-4" />
+                    <span className="hidden sm:inline">Rispondi a tutti</span>
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onForward(email)}
+                    className="gap-1.5"
+                >
+                    <Forward className="h-4 w-4" />
+                    <span className="hidden sm:inline">Inoltra</span>
+                </Button>
+
+                <Separator orientation="vertical" className="h-6 mx-1" />
+
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(email)}
+                    className="gap-1.5 text-destructive hover:text-destructive"
+                >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Elimina</span>
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onArchive(email)}
+                    className="gap-1.5"
+                >
+                    <Archive className="h-4 w-4" />
+                    <span className="hidden sm:inline">Archivia</span>
+                </Button>
+
+                {isReceived && (
+                    <>
+                        <Separator orientation="vertical" className="h-6 mx-1" />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onMarkUnread(email)}
+                            className="gap-1.5"
+                        >
+                            <MailOpen className="h-4 w-4" />
+                            <span className="hidden sm:inline">Non letto</span>
+                        </Button>
+                    </>
+                )}
+            </div>
+
             {/* Header */}
             <div className="p-4 border-b">
                 <h2 className="text-xl font-semibold mb-3">

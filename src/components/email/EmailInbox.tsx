@@ -11,19 +11,15 @@ import { Mail, MailOpen, Send, RefreshCw, Loader2 } from "lucide-react";
 import { EmailViewerDialog } from "./EmailViewerDialog";
 import { toast } from "sonner";
 
-interface Email {
+interface Conversation {
     id: string;
-    oggetto: string;
-    da_email: string;
-    da_nome: string;
-    a_emails: any[];
-    direzione: 'ricevuta' | 'inviata';
-    stato: string;
-    corpo_text: string;
-    corpo_html: string;
-    data_ricezione_server?: string;
-    data_invio_effettiva?: string;
-    data_creazione: string;
+    subject_normalized: string;
+    ultimo_mittente: string;
+    anteprima_testo: string;
+    data_ultimo_messaggio: string;
+    count_messaggi: number;
+    ha_non_lette: boolean;
+    direzione?: 'ricevuta' | 'inviata'; // Per compatibilità temporanea
 }
 
 export function EmailInbox() {
@@ -37,45 +33,27 @@ export function EmailInbox() {
         queryKey: ["email-account"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("account_email" as any)
+                .from("account_email")
                 .select("*")
                 .eq("stato", "attivo")
                 .limit(1)
                 .maybeSingle();
 
             if (error) throw error;
-            return data;
+            return data as any;
         },
     });
 
-    const { data: emailsRicevute = [], isLoading: loadingRicevute, refetch: refetchRicevute } = useQuery({
-        queryKey: ["emails-ricevute"],
+    const { data: conversazioni = [], isLoading: loadingConversazioni, refetch: refetchConversazioni } = useQuery({
+        queryKey: ["emails-conversazioni"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("emails_ricevute" as any)
+                .from("vw_conversazioni_email_list" as any)
                 .select("*")
-                .neq("stato", "archiviata")
-                .order("data_ricezione_server", { ascending: false })
-                .limit(50);
+                .limit(100);
 
             if (error) throw error;
-            return (data as any[]).map(e => ({ ...e, direzione: 'ricevuta' })) as Email[];
-        },
-        enabled: !!account,
-    });
-
-    const { data: emailsInviate = [], isLoading: loadingInviate, refetch: refetchInviate } = useQuery({
-        queryKey: ["emails-inviate"],
-        queryFn: async () => {
-            const { data, error } = await supabase
-                .from("emails_inviate" as any)
-                .select("*")
-                .neq("stato", "archiviata")
-                .order("data_creazione", { ascending: false })
-                .limit(50);
-
-            if (error) throw error;
-            return (data as any[]).map(e => ({ ...e, direzione: 'inviata' })) as Email[];
+            return (data as unknown) as Conversation[];
         },
         enabled: !!account,
     });
@@ -97,9 +75,7 @@ export function EmailInbox() {
 
             if (data.success) {
                 toast.success(`Sincronizzate ${data.count} email`);
-                // Refresh esplicito delle query
-                await refetchRicevute();
-                await refetchInviate();
+                await refetchConversazioni();
             } else {
                 throw new Error(data.error || "Errore sincronizzazione");
             }
@@ -111,35 +87,12 @@ export function EmailInbox() {
         }
     };
 
-    const handleOpenEmail = async (email: Email) => {
-        setSelectedEmailId(email.id);
-        setViewerOpen(true);
-
-        // Mark as read SUBITO al click (se email ricevuta e non letta)
-        if (email.direzione === "ricevuta" && email.stato === "non_letta") {
-            await supabase
-                .from("emails_ricevute" as any)
-                .update({
-                    stato: "letta",
-                    data_lettura: new Date().toISOString(),
-                })
-                .eq("id", email.id);
-
-            // Refresh immediato della lista
-            refetchRicevute();
-        }
+    const handleOpenConversation = (conv: Conversation) => {
+        // Al momento il viewer apre un singolo messaggio
+        // Dovremmo evolverlo per aprire la conversazione.
+        // Per ora cerchiamo l'ultimo messaggio della conversazione.
+        toast.info("Apertura conversazione: " + conv.subject_normalized);
     };
-
-    // Quando chiudiamo il viewer, refresh la lista
-    useEffect(() => {
-        if (!viewerOpen && selectedEmailId) {
-            // Refresh esplicito dopo chiusura dialog
-            refetchRicevute();
-        }
-    }, [viewerOpen, selectedEmailId, refetchRicevute]);
-
-    const emailsDaLeggere = emailsRicevute.filter((e) => e.stato === "non_letta");
-    const emailsLette = emailsRicevute.filter((e) => e.stato === "letta");
 
     if (!account) {
         return (
@@ -153,6 +106,9 @@ export function EmailInbox() {
         );
     }
 
+    const convDaLeggere = conversazioni.filter(c => c.ha_non_lette);
+    const convLette = conversazioni.filter(c => !c.ha_non_lette);
+
     return (
         <div className="space-y-6">
             {/* Toolbar */}
@@ -160,7 +116,7 @@ export function EmailInbox() {
                 <div className="flex items-center gap-2">
                     <Badge variant="outline">{account.email}</Badge>
                     <Badge variant="secondary" className="text-xs">
-                        IMAP: {account.imap_host}
+                        Threading: Attivo (v20.2)
                     </Badge>
                 </div>
                 <Button onClick={syncEmails} disabled={isSyncing} variant="outline" size="sm">
@@ -173,104 +129,67 @@ export function EmailInbox() {
                 </Button>
             </div>
 
-            {/* Da Leggere - stato_ricevuta = 'non_letta' */}
+            {/* Conversazioni con nuovi messaggi */}
             <Card>
                 <CardHeader className="py-3">
                     <CardTitle className="text-base flex items-center gap-2">
                         <Mail className="h-4 w-4 text-blue-600" />
-                        Da Leggere ({emailsDaLeggere.length})
+                        In Arrivo ({convDaLeggere.length})
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                    {loadingRicevute ? (
+                    {loadingConversazioni ? (
                         <div className="p-4 space-y-2">
                             <Skeleton className="h-12 w-full" />
                             <Skeleton className="h-12 w-full" />
                         </div>
-                    ) : emailsDaLeggere.length === 0 ? (
-                        <p className="p-4 text-sm text-muted-foreground">Nessuna email da leggere</p>
+                    ) : convDaLeggere.length === 0 ? (
+                        <p className="p-4 text-sm text-muted-foreground">Nessun nuovo messaggio</p>
                     ) : (
                         <div className="divide-y">
-                            {emailsDaLeggere.map((email) => (
-                                <EmailRow key={email.id} email={email} onClick={() => handleOpenEmail(email)} />
+                            {convDaLeggere.map((conv) => (
+                                <ConversationRow key={conv.id} conv={conv} onClick={() => handleOpenConversation(conv)} />
                             ))}
                         </div>
                     )}
                 </CardContent>
             </Card>
 
-            {/* Lette - stato_ricevuta = 'letta' */}
+            {/* Archivio Conversazioni */}
             <Card>
                 <CardHeader className="py-3">
                     <CardTitle className="text-base flex items-center gap-2">
                         <MailOpen className="h-4 w-4 text-gray-500" />
-                        Lette ({emailsLette.length})
+                        Lette ({convLette.length})
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                    {loadingRicevute ? (
+                    {loadingConversazioni ? (
                         <Skeleton className="h-12 w-full m-4" />
-                    ) : emailsLette.length === 0 ? (
-                        <p className="p-4 text-sm text-muted-foreground">Nessuna email letta</p>
+                    ) : convLette.length === 0 ? (
+                        <p className="p-4 text-sm text-muted-foreground">Nessuna conversazione letta</p>
                     ) : (
-                        <div className="divide-y max-h-[300px] overflow-y-auto">
-                            {emailsLette.slice(0, 20).map((email) => (
-                                <EmailRow key={email.id} email={email} onClick={() => handleOpenEmail(email)} />
+                        <div className="divide-y max-h-[500px] overflow-y-auto">
+                            {convLette.map((conv) => (
+                                <ConversationRow key={conv.id} conv={conv} onClick={() => handleOpenConversation(conv)} />
                             ))}
                         </div>
                     )}
                 </CardContent>
             </Card>
-
-            {/* Inviate - direzione = 'inviata' */}
-            <Card>
-                <CardHeader className="py-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                        <Send className="h-4 w-4 text-green-600" />
-                        Inviate ({emailsInviate.length})
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                    {loadingInviate ? (
-                        <Skeleton className="h-12 w-full m-4" />
-                    ) : emailsInviate.length === 0 ? (
-                        <p className="p-4 text-sm text-muted-foreground">Nessuna email inviata</p>
-                    ) : (
-                        <div className="divide-y max-h-[300px] overflow-y-auto">
-                            {emailsInviate.slice(0, 20).map((email) => (
-                                <EmailRow key={email.id} email={email} onClick={() => handleOpenEmail(email)} isOutgoing />
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Viewer Dialog */}
-            {selectedEmailId && (
-                <EmailViewerDialog
-                    emailId={selectedEmailId}
-                    direzione={emailsRicevute.find(e => e.id === selectedEmailId) ? 'ricevuta' : 'inviata'}
-                    open={viewerOpen}
-                    onOpenChange={setViewerOpen}
-                    onMarkAsRead={() => refetchRicevute()}
-                />
-            )}
         </div>
     );
 }
 
-// Componente riga email
-function EmailRow({
-    email,
+// Componente riga conversazione
+function ConversationRow({
+    conv,
     onClick,
-    isOutgoing = false,
 }: {
-    email: Email;
+    conv: Conversation;
     onClick: () => void;
-    isOutgoing?: boolean;
 }) {
-    const displayDate = email.data_invio_effettiva || email.data_ricezione_server || email.data_creazione;
-    const isUnread = email.stato === "non_letta" && !isOutgoing;
+    const isUnread = conv.ha_non_lette;
 
     return (
         <div
@@ -280,15 +199,21 @@ function EmailRow({
         >
             <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                    <p className={`text-sm truncate ${isUnread ? "font-semibold" : ""}`}>
-                        {isOutgoing
-                            ? `A: ${email.a_emails?.[0]?.email || "Destinatario"}`
-                            : email.da_nome || email.da_email}
-                    </p>
-                    <p className="text-sm text-muted-foreground truncate">{email.oggetto}</p>
+                    <div className="flex items-center gap-2">
+                        <p className={`text-sm truncate ${isUnread ? "font-semibold" : ""}`}>
+                            {conv.ultimo_mittente}
+                        </p>
+                        {conv.count_messaggi > 1 && (
+                            <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                {conv.count_messaggi}
+                            </Badge>
+                        )}
+                    </div>
+                    <p className="text-sm font-medium truncate">{conv.subject_normalized}</p>
+                    <p className="text-xs text-muted-foreground truncate">{conv.anteprima_testo}</p>
                 </div>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {formatDistanceToNow(new Date(displayDate), { addSuffix: true, locale: it })}
+                    {formatDistanceToNow(new Date(conv.data_ultimo_messaggio), { addSuffix: true, locale: it })}
                 </span>
             </div>
         </div>

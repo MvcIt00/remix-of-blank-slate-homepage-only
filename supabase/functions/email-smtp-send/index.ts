@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
 
     try {
         const body = await req.json();
-        const { accountId, to, subject, text, html } = body;
+        const { accountId, to, subject, text, html, inReplyTo, references } = body;
 
         if (!accountId || !to || !subject) {
             return new Response(
@@ -70,12 +70,26 @@ Deno.serve(async (req) => {
             typeof t === "string" ? t : t.email
         ).join(", ");
 
+        // Generazione Message-ID locale per coerenza database
+        const localMessageId = `<${Date.now()}.${Math.random().toString(36).substring(7)}@antigravity.system>`;
+
         const messageConfig: any = {
             from: `${account.nome_account || account.email} <${account.email}>`,
             to: toAddresses,
             subject: subject,
             text: text || "",
+            // THREADING: Header RFC
+            headers: {
+                "Message-ID": localMessageId,
+            }
         };
+
+        if (inReplyTo) {
+            messageConfig.headers["In-Reply-To"] = inReplyTo;
+        }
+        if (references && Array.isArray(references) && references.length > 0) {
+            messageConfig.headers["References"] = references.join(" ");
+        }
 
         if (html) {
             messageConfig.attachment = [
@@ -85,14 +99,26 @@ Deno.serve(async (req) => {
 
         const message = await smtpClient.sendAsync(messageConfig);
 
-        // Salva con stati tipizzati
-        const messageId = `smtp-${accountId}-${Date.now()}`;
+        // THREADING: Lookup/Create Conversazione tramite RPC
+        const { data: convId, error: convErr } = await supabaseClient.rpc("get_or_create_conversation_by_refs", {
+            p_subject: subject,
+            p_message_id: localMessageId,
+            p_references: references || [],
+            p_id_anagrafica: body.id_anagrafica || null,
+            p_id_noleggio: body.id_noleggio || null,
+            p_id_preventivo: body.id_preventivo || null
+        });
+
+        if (convErr) {
+            console.error("[SMTP] Errore lookup conversazione:", convErr.message);
+        }
+
+        // Salva nella NUOVA TABELLA emails_inviate
         const { data: savedEmail, error: saveError } = await supabaseClient
-            .from("messaggi_email")
+            .from("emails_inviate")
             .insert({
                 id_account: accountId,
-                message_id_esterno: messageId,
-                direzione: "inviata",
+                message_id: localMessageId,
                 da_email: account.email,
                 da_nome: account.nome_account || account.email,
                 a_emails: toList.map((t: any) => ({
@@ -102,17 +128,22 @@ Deno.serve(async (req) => {
                 oggetto: subject,
                 corpo_text: text || "",
                 corpo_html: html || "",
-                // Vecchio campo per retrocompatibilità
                 stato: "inviata",
-                // NUOVO: Campo tipizzato ENUM
-                stato_inviata: "inviata",
-                data_invio_effettiva: new Date().toISOString(),
+                data_invio: new Date().toISOString(),
+                // THREADING
+                id_conversazione: convId,
+                in_reply_to: inReplyTo,
+                references_chain: references || [],
+                // FK business
+                id_anagrafica: body.id_anagrafica || null,
+                id_noleggio: body.id_noleggio || null,
+                id_preventivo: body.id_preventivo || null
             })
             .select()
             .single();
 
         if (saveError) {
-            console.error("Errore salvataggio:", saveError);
+            console.error("Errore salvataggio emails_inviate:", saveError);
         }
 
         return new Response(

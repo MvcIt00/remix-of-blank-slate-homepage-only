@@ -69,46 +69,96 @@ Deno.serve(async (req) => {
         const currentValidity = inbox.uidValidity || 0;
         const totalMessages = inbox.exists || 0;
 
+        console.log(`[IMAP] Mailbox: INBOX, Messages: ${totalMessages}, Validity: ${currentValidity}`);
+
         // 3. Verifica Validità UID (se cambiata, resetta sync)
         if (currentValidity !== lastValidity) {
             console.log(`[IMAP] UIDValidity changed (${lastValidity} -> ${currentValidity}). Resetting sync.`);
             lastUid = 0;
+            lastValidity = currentValidity;
         }
 
         // 4. Determina range da scaricare
-        // Se lastUid è 0, scarichiamo solo gli ultimi 'limit' messaggi
-        // Altrimenti, scarichiamo tutto da lastUid + 1
-        let fetchQuery: string;
-        if (lastUid === 0) {
-            const startSeq = Math.max(1, totalMessages - limit + 1);
-            fetchQuery = `${startSeq}:${totalMessages}`;
-        } else {
-            // IMAP FETCH UID usa i numeri UID, non sequenziali
-            // Ma per semplicità con questa libreria useremo UID FETCH
-            // Nota: deno-imap supporta UID nelle opzioni? 
-            // In questa libreria .fetch() usa sequenziali, per UID serve .uidFetch()
-            fetchQuery = `${lastUid + 1}:*`;
+        if (totalMessages === 0) {
+            console.log("[IMAP] Mailbox is empty. Skipping fetch.");
+            client.disconnect();
+            return new Response(
+                JSON.stringify({ success: true, count: 0, totalInbox: 0 }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
         }
 
-        console.log(`[IMAP] Fetching range: ${fetchQuery} (Last UID: ${lastUid})`);
+        let fetchQuery: string;
+        let useUid = false;
 
-        // Esegui FETCH UID (incremental)
-        const messages = await client.fetch(fetchQuery, {
-            envelope: true,
-            flags: true,
-            uid: true,
-            full: true,
-        }, { uid: true }); // Attiva modalità UID se supportata dal metodo
+        if (lastUid === 0) {
+            // Primo sync o reset: prendi gli ultimi N messaggi per sequenza
+            const startSeq = Math.max(1, totalMessages - limit + 1);
+            fetchQuery = `${startSeq}:${totalMessages}`;
+            useUid = false; // Sequence numbers
+        } else {
+            // Delta sync: prendi tutto dal UID successivo
+            // Usiamo UID FETCH lastUid+1:*
+            fetchQuery = `${lastUid + 1}:*`;
+            useUid = true; // UID numbers
+        }
 
-        console.log(`[IMAP] Fetched ${messages.length} new messages`);
+        console.log(`[IMAP] Fetching range: ${fetchQuery} (Mode: ${useUid ? 'UID' : 'SEQ'})`);
+
+        // Esegui FETCH con fallback automatico
+        let messages = [];
+        try {
+            messages = await client.fetch(fetchQuery, {
+                envelope: true,
+                flags: true,
+                uid: true,
+                full: true,
+            }, { uid: useUid });
+        } catch (fetchErr: any) {
+            // Alcuni server IMAP (es. Libero, Yahoo) restituiscono "Invalid messageset" o "NOT FOUND"
+            // se chiedi un range UID (es. 10:*) che non contiene alcun messaggio.
+            // In questo caso non è un errore e non dobbiamo resettare il sync, ma solo dire che ci sono 0 messaggi.
+            const isNoNewMessages = fetchErr.message?.includes("Invalid messageset") ||
+                fetchErr.message?.includes("not found") ||
+                fetchErr.message?.includes("None of the messages");
+
+            if (isNoNewMessages) {
+                console.log("[IMAP] No new messages in requested range.");
+                messages = [];
+            } else {
+                throw fetchErr;
+            }
+        }
+
+        console.log(`[IMAP] Fetched ${messages.length} messages`);
 
         if (messages.length === 0) {
             client.disconnect();
+
+            // Aggiorna comunque la data di ultima sincronizzazione per l'account
+            await sb.from("account_email").update({
+                ultima_sincronizzazione: new Date().toISOString(),
+                imap_last_uid_validity: currentValidity
+            }).eq("id", accountId);
+
             return new Response(
                 JSON.stringify({ success: true, count: 0, totalInbox: totalMessages }),
                 { headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
+
+        // --- FILTRAGGIO EMAIL GIÀ PRESENTI (per conteggio toast accurato) ---
+        // Recuperiamo gli UID presenti nel range fetchato per evitare di contare i duplicati nel toast
+        const uidsInBatch = messages.map(m => m.uid).filter(u => !!u);
+        const { data: existingUids } = await sb
+            .from("emails_ricevute")
+            .select("uid_imap")
+            .eq("id_account", accountId)
+            .eq("uid_validity", currentValidity)
+            .in("uid_imap", uidsInBatch);
+
+        const existingUidSet = new Set(existingUids?.map(r => r.uid_imap) || []);
+        let actuallyNewCount = 0;
 
         const batch: any[] = [];
         let maxSeenUid = lastUid;
@@ -118,6 +168,11 @@ Deno.serve(async (req) => {
                 const uid = msg.uid;
                 if (!uid) continue;
                 if (uid > maxSeenUid) maxSeenUid = uid;
+
+                // Controlla se è davvero nuova per il conteggio
+                if (!existingUidSet.has(uid)) {
+                    actuallyNewCount++;
+                }
 
                 // Estrai raw data
                 let rawData: any = msg.raw;
@@ -138,6 +193,25 @@ Deno.serve(async (req) => {
 
                 const isSeen = msg.flags?.includes("\\Seen") || msg.flags?.includes("Seen") || false;
 
+                // THREADING: Estrazione header RFC
+                const messageId = parsed.messageId || null;
+                const inReplyTo = parsed.inReplyTo || null;
+                const references = parsed.references || [];
+
+                // THREADING: Lookup/Create Conversazione tramite RPC
+                const { data: convId, error: convErr } = await sb.rpc("get_or_create_conversation_by_refs", {
+                    p_subject: parsed.subject || "(Nessun oggetto)",
+                    p_message_id: messageId,
+                    p_references: references,
+                    p_id_anagrafica: null,
+                    p_id_noleggio: null,
+                    p_id_preventivo: null
+                });
+
+                if (convErr) {
+                    console.error(`[IMAP] Errore threading per messaggio ${uid}:`, convErr.message);
+                }
+
                 // Prepara oggetto per batch RPC
                 batch.push({
                     id_account: accountId,
@@ -151,12 +225,12 @@ Deno.serve(async (req) => {
                     corpo_html: (parsed.html || "").substring(0, 100000),
                     data_ricezione_server: parsed.date ? new Date(parsed.date).toISOString() : new Date().toISOString(),
                     stato: isSeen ? "letta" : "non_letta",
-                    ha_allegati: (parsed.attachments && parsed.attachments.length > 0) || false
+                    ha_allegati: (parsed.attachments && parsed.attachments.length > 0) || false,
+                    message_id: messageId,
+                    in_reply_to: inReplyTo,
+                    references_chain: references,
+                    id_conversazione: convId
                 });
-
-                // Gestione allegati (opzionale qui, o in un secondo step)
-                // Se implementiamo upload allegati, va fatto qui o via background job.
-                // Per ora ci concentriamo sulla struttura messaggi.
 
             } catch (msgErr) {
                 console.error(`[IMAP] Error parsing message:`, msgErr);
@@ -174,7 +248,7 @@ Deno.serve(async (req) => {
             }
 
             // 6. Aggiorna metadati account nel DB
-            const { error: updErr } = await sb
+            await sb
                 .from("account_email")
                 .update({
                     imap_last_uid_fetch: maxSeenUid,
@@ -182,10 +256,6 @@ Deno.serve(async (req) => {
                     ultima_sincronizzazione: new Date().toISOString()
                 })
                 .eq("id", accountId);
-
-            if (updErr) {
-                console.error(`[IMAP] Errore update account:`, updErr.message);
-            }
         }
 
         client.disconnect();
@@ -193,7 +263,7 @@ Deno.serve(async (req) => {
         return new Response(
             JSON.stringify({
                 success: true,
-                count: batch.length,
+                count: actuallyNewCount, // CONTEGGIO REALE PER IL TOAST
                 totalInbox: totalMessages,
                 lastUid: maxSeenUid
             }),
