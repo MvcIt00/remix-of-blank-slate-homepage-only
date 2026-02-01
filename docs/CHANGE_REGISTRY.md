@@ -5,7 +5,7 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 ---
 
 ## [V027] 2026-02-01 05:15
-**commit_hash**: `PENDING_SWITCH_V27`
+**commit_hash**: `8789c8d`
 
 ### Functional State
 - **Multi-Account Manager**: Implementata gestione completa di più account email simultanei. Introdotto uno switcher nella sidebar che permette di cambiare contesto istantaneamente tra diversi indirizzi.
