@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -17,7 +17,10 @@ import {
     Forward,
     Trash2,
     Archive,
-    MailOpen
+    MailOpen,
+    ArrowUpRight,
+    ArrowDownLeft,
+    MessagesSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { EmailComposerDialog } from "./EmailComposerDialog";
 import { EmailAccountConfigDialog } from "./EmailAccountConfigDialog";
+import { useEmailThreads } from "@/hooks/useEmailThreads";
 
 interface Email {
     id: string;
@@ -56,6 +60,7 @@ export function EmailClientPage() {
         body?: string;
     }>({});
     const [accountDialogOpen, setAccountDialogOpen] = useState(false);
+    const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
 
     // Fetch account email
     const { data: account } = useQuery({
@@ -107,6 +112,19 @@ export function EmailClientPage() {
     const selectedEmail = [...emailsRicevute, ...emailsInviate].find(
         (e) => e.id === selectedEmailId
     );
+
+    // Raggruppa email per thread
+    const threads = useEmailThreads(emailsRicevute, emailsInviate);
+
+    // Toggle espansione thread
+    const toggleThread = (threadId: string) => {
+        setExpandedThreads(prev => {
+            const next = new Set(prev);
+            if (next.has(threadId)) next.delete(threadId);
+            else next.add(threadId);
+            return next;
+        });
+    };
 
     // Sync IMAP
     const syncEmails = async () => {
@@ -363,17 +381,72 @@ export function EmailClientPage() {
 
                         {inboxExpanded && (
                             <div className="space-y-px">
-                                {emailsRicevute.map((email) => (
-                                    <EmailListItem
-                                        key={email.id}
-                                        email={email}
-                                        isSelected={selectedEmailId === email.id}
-                                        onClick={() => handleSelectEmail(email)}
-                                        formatDate={formatEmailDate}
-                                        getSnippet={getSnippet}
-                                    />
-                                ))}
-                                {emailsRicevute.length === 0 && (
+                                {threads.map(thread => {
+                                    const isExpanded = expandedThreads.has(thread.id);
+
+                                    return (
+                                        <div key={thread.id} className={cn(
+                                            "group transition-all rounded-md mx-1 my-0.5",
+                                            isExpanded && "bg-muted/40 shadow-sm"
+                                        )}>
+                                            {/* Thread header (latest email) */}
+                                            <div className="relative">
+                                                <EmailListItem
+                                                    email={thread.latest}
+                                                    isSelected={selectedEmailId === thread.latest.id}
+                                                    onClick={() => {
+                                                        const isCurrentlySelected = selectedEmailId === thread.latest.id;
+                                                        handleSelectEmail(thread.latest);
+                                                        if (!isCurrentlySelected || !isExpanded) {
+                                                            if (!isExpanded) toggleThread(thread.id);
+                                                        } else {
+                                                            toggleThread(thread.id);
+                                                        }
+                                                    }}
+                                                    formatDate={formatEmailDate}
+                                                    getSnippet={getSnippet}
+                                                />
+                                                {thread.count > 1 && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); toggleThread(thread.id); }}
+                                                        className={cn(
+                                                            "absolute right-2 top-2 flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold transition-all z-10 border shadow-sm",
+                                                            isExpanded
+                                                                ? "bg-primary text-primary-foreground border-primary"
+                                                                : "bg-background hover:bg-muted border-muted-foreground/20"
+                                                        )}
+                                                    >
+                                                        <MessagesSquare className="h-3 w-3" />
+                                                        <span>{thread.count}</span>
+                                                        <ChevronDown className={cn(
+                                                            "h-3 w-3 transition-transform duration-200",
+                                                            isExpanded ? "rotate-0" : "-rotate-90"
+                                                        )} />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Thread emails (quando espanso) */}
+                                            {isExpanded && thread.count > 1 && (
+                                                <div className="ml-6 border-l-2 border-primary/20 space-y-px pb-1">
+                                                    {thread.emails.slice(0, -1).reverse().map(email => (
+                                                        <div key={email.id} className="relative opacity-90 scale-[0.98] origin-left transition-all">
+                                                            <EmailListItem
+                                                                email={email}
+                                                                isSelected={selectedEmailId === email.id}
+                                                                onClick={() => handleSelectEmail(email)}
+                                                                formatDate={formatEmailDate}
+                                                                getSnippet={getSnippet}
+                                                                isSent={email.direzione === 'inviata'}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                {threads.length === 0 && (
                                     <p className="px-4 py-3 text-sm text-muted-foreground">
                                         Nessuna email
                                     </p>
@@ -496,42 +569,66 @@ function EmailListItem({
         ? email.data_invio_effettiva || email.data_creazione
         : email.data_ricezione_server || email.data_creazione;
 
-    // Per email inviate mostra i destinatari
-    const sender = isSent
-        ? `A: ${email.a_emails?.[0]?.email || "Destinatario"}`
-        : email.da_nome || email.da_email;
+    const senderName = isSent
+        ? (email.a_emails?.[0]?.name || email.a_emails?.[0]?.email || "Destinatario")
+        : (email.da_nome || email.da_email || "Sconosciuto");
+
+    const initial = senderName.charAt(0).toUpperCase();
 
     return (
         <button
             onClick={onClick}
             className={cn(
-                "w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-l-2",
+                "w-full text-left px-3 py-2.5 hover:bg-black/5 dark:hover:bg-white/5 transition-all relative border-l-4",
                 isSelected
-                    ? "bg-primary/5 border-l-primary"
+                    ? "bg-primary/10 border-l-primary"
                     : "border-l-transparent",
-                isUnread && "bg-primary/5"
+                isUnread && "bg-primary/5 font-semibold"
             )}
         >
-            <div className="flex items-start justify-between gap-2">
-                <span className={cn(
-                    "text-sm truncate",
-                    isUnread ? "font-semibold" : "font-normal"
-                )}>
-                    {sender}
-                </span>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {formatDate(displayDate)}
-                </span>
+            <div className="flex items-start gap-3">
+                <div className="relative shrink-0">
+                    <div className={cn(
+                        "h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold",
+                        isSent ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" : "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                    )}>
+                        {initial}
+                    </div>
+                    {/* Direction Dot */}
+                    <div className={cn(
+                        "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background shadow-sm",
+                        isSent ? "bg-blue-500 shadow-blue-500/50" : "bg-orange-500 shadow-orange-500/50"
+                    )} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            {isSent ? <ArrowUpRight className="h-3 w-3 shrink-0 opacity-60" /> : <ArrowDownLeft className="h-3 w-3 shrink-0 opacity-60" />}
+                            <span className={cn(
+                                "text-sm truncate",
+                                isUnread ? "text-foreground" : "text-muted-foreground"
+                            )}>
+                                {senderName}
+                            </span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap uppercase tracking-tighter">
+                            {formatDate(displayDate)}
+                        </span>
+                    </div>
+
+                    <h4 className={cn(
+                        "text-xs truncate font-medium mt-0.5",
+                        isUnread ? "text-foreground" : "text-foreground/80"
+                    )}>
+                        {email.oggetto || "(Nessun oggetto)"}
+                    </h4>
+
+                    <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5 opacity-80">
+                        {getSnippet(email)}
+                    </p>
+                </div>
             </div>
-            <p className={cn(
-                "text-sm truncate mt-0.5",
-                isUnread ? "font-medium" : "font-normal text-muted-foreground"
-            )}>
-                {email.oggetto || "(Nessun oggetto)"}
-            </p>
-            <p className="text-xs text-muted-foreground truncate mt-0.5">
-                {getSnippet(email)}
-            </p>
         </button>
     );
 }
