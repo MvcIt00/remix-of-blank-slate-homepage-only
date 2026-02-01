@@ -27,14 +27,17 @@ export function EmailAttachmentGallery({ attachments, isSent, className }: Email
         return "grid-cols-1";
     };
 
+    const isHeroLayout = count === 1;
+
     return (
-        <div className={cn("mt-4 space-y-2", className)}>
-            <div className={cn("grid gap-3", getGridCols())}>
+        <div className={cn(isHeroLayout ? "mt-2" : "mt-4 space-y-2", className)}>
+            <div className={cn("grid gap-3", !isHeroLayout && getGridCols())}>
                 {attachments.map((att) => (
                     <EmailAttachmentCard
                         key={att.id}
                         attachment={att}
                         isSent={isSent}
+                        variant={isHeroLayout ? "hero" : "default"}
                     />
                 ))}
             </div>

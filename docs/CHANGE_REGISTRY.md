@@ -4,6 +4,27 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 
 ---
 
+## [V028.2] 2026-02-01 06:20
+**commit_hash**: `PENDING`
+
+### Functional State
+- **Anteprime WhatsApp Style**: Implementazione anteprime visuali 'full-bleed' per immagini e bolle 'Document-First' per PDF e file generici nel thread della chat.
+- **Lightbox Interattivo**: Le immagini singole si espandono a pieno schermo tramite un visualizzatore (Radix Dialog) che integra dettagli del file e opzioni di download.
+- **Bolla Documento**: I file non-immagine (es. PDF) appaiono ora come oggetti interattivi prominenti con icona grande e metadati puliti, eliminando la riga classica di download.
+- **Hero Layout Universale**: Qualsiasi allegato singolo (immagine o documento) attiva automaticamente il layout Hero per massimizzare l'impatto visivo e l'usabilità.
+
+### Structural Changes
+- **Components**:
+  - `src/components/email/EmailAttachmentCard.tsx`: Re-design completo della variante `hero`. Introdotto `Dialog` per Lightbox, logica sdoppiata Immagine/Documento, rimozione testi di disturbo dall'anteprima.
+  - `src/components/email/EmailAttachmentGallery.tsx`: Aggiornata logica `isHeroLayout` per estendere il formato prominente a TUTTI i tipi di file (non solo immagini).
+
+### Complete Rollback
+- **steps**:
+    1. `git checkout 7a79242` (Versione V028.1)
+- **verification**: Gli allegati tornano a mostrare solo icone generiche senza miniature.
+
+---
+
 ## [V028.1] 2026-02-01 06:15
 **commit_hash**: `7a79242`
 
