@@ -46,6 +46,8 @@ interface EmailComposerDialogProps {
         threadId?: string;
     };
     onEmailSent?: () => void;
+    accountId?: string;
+    targetAccountId?: string;
 }
 
 export function EmailComposerDialog({
@@ -53,26 +55,28 @@ export function EmailComposerDialog({
     onOpenChange,
     defaultValues,
     onEmailSent,
+    accountId,
+    targetAccountId,
 }: EmailComposerDialogProps) {
     const [isSending, setIsSending] = useState(false);
     const [attachments, setAttachments] = useState<File[]>([]);
     const queryClient = useQueryClient();
 
-    // Recupera account configurato
+    // Recupera account configurato per i parametri (SMTP host, port, etc)
     const { data: account } = useQuery({
-        queryKey: ["email-account"],
+        queryKey: ["email-account", accountId],
         queryFn: async () => {
+            if (!accountId) return null;
             const { data, error } = await supabase
                 .from("account_email" as any)
                 .select("*")
-                .eq("stato", "attivo")
-                .limit(1)
-                .maybeSingle();
+                .eq("id", accountId)
+                .single();
 
             if (error) throw error;
             return data;
         },
-        enabled: open,
+        enabled: open && !!accountId,
     });
 
     const form = useForm<EmailFormData>({
@@ -139,6 +143,7 @@ export function EmailComposerDialog({
             const { data: result, error } = await supabase.functions.invoke("email-smtp-send", {
                 body: {
                     accountId: (account as any).id,
+                    targetAccountId: targetAccountId,
                     to: data.to,
                     subject: data.subject,
                     text: data.body,

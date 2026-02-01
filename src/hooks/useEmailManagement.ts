@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { EmailThread } from "./useEmailThreads";
 
@@ -22,13 +23,20 @@ export function useEmailManagement(
 ): EmailManagementActions {
     const queryClient = useQueryClient();
 
-    const invalidate = () => {
-        queryClient.invalidateQueries({ queryKey: ["emails_ricevute"] });
-        queryClient.invalidateQueries({ queryKey: ["emails_inviate"] });
-    };
+    const invalidate = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ["emails-ricevute"] });
+        queryClient.invalidateQueries({ queryKey: ["emails-inviate"] });
+    }, [queryClient]);
 
-    const archive = async (id: string, direzione: 'ricevuta' | 'inviata') => {
+    const archive = useCallback(async (id: string, direzione: 'ricevuta' | 'inviata') => {
         const table = direzione === 'ricevuta' ? 'emails_ricevute' : 'emails_inviate';
+        const queryKey = direzione === 'ricevuta' ? ["emails-ricevute", accountId] : ["emails-inviate", accountId];
+
+        // Optimistic Update
+        queryClient.setQueryData(queryKey, (old: any[] | undefined) =>
+            old?.filter(e => e.id !== id)
+        );
+
         const { error } = await supabase
             .from(table as any)
             .update({ stato: 'archiviata' } as any)
@@ -36,14 +44,21 @@ export function useEmailManagement(
 
         if (error) {
             toast.error(`Errore archiviazione: ${error.message}`);
+            invalidate(); // Rollback/Refetch on error
         } else {
             toast.success("Email archiviata");
-            invalidate();
         }
-    };
+    }, [accountId, queryClient, invalidate]);
 
-    const trash = async (id: string, direzione: 'ricevuta' | 'inviata') => {
+    const trash = useCallback(async (id: string, direzione: 'ricevuta' | 'inviata') => {
         const table = direzione === 'ricevuta' ? 'emails_ricevute' : 'emails_inviate';
+        const queryKey = direzione === 'ricevuta' ? ["emails-ricevute", accountId] : ["emails-inviate", accountId];
+
+        // Optimistic Update
+        queryClient.setQueryData(queryKey, (old: any[] | undefined) =>
+            old?.filter(e => e.id !== id)
+        );
+
         const { error } = await supabase
             .from(table as any)
             .update({ stato: 'eliminata' } as any)
@@ -51,47 +66,73 @@ export function useEmailManagement(
 
         if (error) {
             toast.error(`Errore eliminazione: ${error.message}`);
+            invalidate();
         } else {
             toast.success("Email spostata nel cestino");
-            invalidate();
         }
-    };
+    }, [accountId, queryClient, invalidate]);
 
-    const markRead = async (id: string) => {
+    const markRead = useCallback(async (id: string) => {
+        const queryKey = ["emails-ricevute", accountId];
+
+        // Optimistic Update
+        queryClient.setQueryData(queryKey, (old: any[] | undefined) =>
+            old?.map(e => e.id === id ? { ...e, stato: 'letta', data_lettura: new Date().toISOString() } : e)
+        );
+
         const { error } = await supabase
             .from('emails_ricevute' as any)
             .update({ stato: 'letta', data_lettura: new Date().toISOString() } as any)
             .eq('id', id);
 
-        if (error) toast.error(error.message);
-        else invalidate();
-    };
+        if (error) {
+            toast.error(error.message);
+            invalidate();
+        }
+    }, [accountId, queryClient, invalidate]);
 
-    const markMultipleAsRead = async (ids: string[]) => {
+    const markMultipleAsRead = useCallback(async (ids: string[]) => {
         if (ids.length === 0) return;
+        const queryKey = ["emails-ricevute", accountId];
+
+        // Optimistic Update
+        queryClient.setQueryData(queryKey, (old: any[] | undefined) =>
+            old?.map(e => ids.includes(e.id) ? { ...e, stato: 'letta', data_lettura: new Date().toISOString() } : e)
+        );
+
         const { error } = await supabase
             .from('emails_ricevute' as any)
             .update({ stato: 'letta', data_lettura: new Date().toISOString() } as any)
             .in('id', ids);
 
-        if (error) toast.error(error.message);
-        else invalidate();
-    };
+        if (error) {
+            toast.error(error.message);
+            invalidate();
+        }
+    }, [accountId, queryClient, invalidate]);
 
-    const markUnread = async (id: string) => {
+    const markUnread = useCallback(async (id: string) => {
+        const queryKey = ["emails-ricevute", accountId];
+
+        // Optimistic Update
+        queryClient.setQueryData(queryKey, (old: any[] | undefined) =>
+            old?.map(e => e.id === id ? { ...e, stato: 'non_letta' } : e)
+        );
+
         const { error } = await supabase
             .from('emails_ricevute' as any)
             .update({ stato: 'non_letta' } as any)
             .eq('id', id);
 
-        if (error) toast.error(error.message);
-        else {
-            toast.success("Segnata come non letta");
+        if (error) {
+            toast.error(error.message);
             invalidate();
+        } else {
+            toast.success("Segnata come non letta");
         }
-    };
+    }, [accountId, queryClient, invalidate]);
 
-    const prepareReply = (email: any, thread?: EmailThread) => {
+    const prepareReply = useCallback((email: any, thread?: EmailThread) => {
         const to = email.direzione === 'ricevuta' ? email.da_email : email.a_emails?.[0]?.email;
         const subject = email.oggetto?.toLowerCase().startsWith("re:") ? email.oggetto : `Re: ${email.oggetto || ""}`;
 
@@ -101,9 +142,9 @@ export function useEmailManagement(
             threadId: thread?.id.startsWith('sub-') ? undefined : thread?.id
         });
         setComposerOpen(true);
-    };
+    }, [setComposerDefaults, setComposerOpen]);
 
-    const prepareForward = (email: any) => {
+    const prepareForward = useCallback((email: any) => {
         const subject = email.oggetto?.toLowerCase().startsWith("fwd:") ? email.oggetto : `Fwd: ${email.oggetto || ""}`;
         const header = `\n\n---------- Messaggio Inoltrato ----------\nDa: ${email.da_nome} <${email.da_email}>\nData: ${new Date(email.data_creazione).toLocaleString('it-IT')}\nOggetto: ${email.oggetto}\n\n`;
 
@@ -112,9 +153,9 @@ export function useEmailManagement(
             body: header + (email.corpo_text || "")
         });
         setComposerOpen(true);
-    };
+    }, [setComposerDefaults, setComposerOpen]);
 
-    const retrySend = async (email: any) => {
+    const retrySend = useCallback(async (email: any) => {
         const toastId = toast.loading("Ri-tentativo invio in corso...");
         try {
             const { data, error } = await supabase.functions.invoke("email-smtp-send", {
@@ -142,9 +183,16 @@ export function useEmailManagement(
             console.error("Retry Error:", error);
             toast.error(`Errore ri-invio: ${error.message}`, { id: toastId });
         }
-    };
+    }, [invalidate]);
 
-    const deleteSentEmail = async (id: string) => {
+    const deleteSentEmail = useCallback(async (id: string) => {
+        const queryKey = ["emails-inviate", accountId];
+
+        // Optimistic Update
+        queryClient.setQueryData(queryKey, (old: any[] | undefined) =>
+            old?.filter(e => e.id !== id)
+        );
+
         const { error } = await supabase
             .from('emails_inviate' as any)
             .delete()
@@ -152,13 +200,13 @@ export function useEmailManagement(
 
         if (error) {
             toast.error(`Errore eliminazione: ${error.message}`);
+            invalidate();
         } else {
             toast.success("Messaggio rimosso");
-            invalidate();
         }
-    };
+    }, [accountId, queryClient, invalidate]);
 
-    return {
+    return useMemo(() => ({
         archive,
         trash,
         markRead,
@@ -168,5 +216,15 @@ export function useEmailManagement(
         prepareForward,
         retrySend,
         deleteSentEmail
-    };
+    }), [
+        archive,
+        trash,
+        markRead,
+        markMultipleAsRead,
+        markUnread,
+        prepareReply,
+        prepareForward,
+        retrySend,
+        deleteSentEmail
+    ]);
 }

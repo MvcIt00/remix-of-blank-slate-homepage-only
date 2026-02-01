@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -20,6 +20,15 @@ import { ConversationSidebar } from "./ConversationSidebar";
 import { ConversationChatView } from "./ConversationChatView";
 import { ConversationInput } from "./ConversationInput";
 import { EmailClassicView } from "./EmailClassicView";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
+
 
 interface Email {
     id: string;
@@ -40,6 +49,7 @@ interface Email {
 }
 
 export function EmailClientPage() {
+    const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
     const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
     const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -53,49 +63,62 @@ export function EmailClientPage() {
     const [accountDialogOpen, setAccountDialogOpen] = useState(false);
     const [isQuickSending, setIsQuickSending] = useState(false);
 
-    // Fetch account email
-    const { data: account } = useQuery({
-        queryKey: ["email-account"],
+    // Fetch all active accounts
+    const { data: accounts = [] } = useQuery({
+        queryKey: ["email-accounts"],
         queryFn: async () => {
             const { data, error } = await supabase
                 .from("account_email" as any)
                 .select("*")
-                .eq("stato", "attivo")
-                .maybeSingle();
+                .eq("stato", "attivo");
             if (error) throw error;
-            return data;
+            return data as any[];
         },
     });
 
-    // Fetch emails
+    const activeAccount = useMemo(() =>
+        accounts.find(a => a.id === selectedAccountId) || accounts[0],
+        [accounts, selectedAccountId]);
+
+    useEffect(() => {
+        if (accounts.length > 0 && !selectedAccountId) {
+            setSelectedAccountId(accounts[0].id);
+        }
+    }, [accounts, selectedAccountId]);
+
+    // Fetch emails for the active account
     const { data: emailsRicevute = [], refetch: refetchRicevute } = useQuery({
-        queryKey: ["emails-ricevute"],
+        queryKey: ["emails-ricevute", activeAccount?.id],
         queryFn: async () => {
+            if (!activeAccount) return [];
             const { data, error } = await supabase
                 .from("emails_ricevute" as any)
                 .select("*, allegati:allegati_email(*)")
+                .eq("id_account", activeAccount.id)
                 .neq("stato", "archiviata")
                 .order("data_ricezione_server", { ascending: false })
                 .limit(200);
             if (error) throw error;
             return (data as any[]).map(e => ({ ...e, direzione: 'ricevuta' })) as Email[];
         },
-        enabled: !!account,
+        enabled: !!activeAccount,
     });
 
     const { data: emailsInviate = [], refetch: refetchInviate } = useQuery({
-        queryKey: ["emails-inviate"],
+        queryKey: ["emails-inviate", activeAccount?.id],
         queryFn: async () => {
+            if (!activeAccount) return [];
             const { data, error } = await supabase
                 .from("emails_inviate" as any)
                 .select("*, allegati:allegati_email(*)")
+                .eq("id_account", activeAccount.id)
                 .neq("stato", "archiviata")
                 .order("data_creazione", { ascending: false })
                 .limit(200);
             if (error) throw error;
             return (data as any[]).map(e => ({ ...e, direzione: 'inviata' })) as Email[];
         },
-        enabled: !!account,
+        enabled: !!activeAccount,
     });
 
     // Thread logic
@@ -110,12 +133,39 @@ export function EmailClientPage() {
     }, [selectedThread, selectedEmailId]);
 
     const emailManagement = useEmailManagement(
-        (account as any)?.id,
+        activeAccount?.id,
         setComposerOpen,
         setComposerDefaults
     );
 
-    // Auto-read logic
+    const handleSelectThread = useCallback((id: string | null) => {
+        setSelectedThreadId(id);
+        setSelectedEmailId(null);
+
+        if (id) {
+            const thread = threads.find(t => t.id === id);
+            if (thread) {
+                const unreadIds = thread.emails
+                    .filter(e => e.direzione === 'ricevuta' && e.stato === 'non_letta')
+                    .map(e => e.id);
+                if (unreadIds.length > 0) {
+                    emailManagement.markMultipleAsRead(unreadIds);
+                }
+            }
+        }
+    }, [threads, emailManagement]);
+
+    const handleSelectEmail = useCallback((id: string | null) => {
+        setSelectedEmailId(id);
+        if (id && selectedThread) {
+            const email = selectedThread.emails.find(e => e.id === id);
+            if (email && email.direzione === 'ricevuta' && email.stato === 'non_letta') {
+                emailManagement.markRead(email.id);
+            }
+        }
+    }, [selectedThread, emailManagement]);
+
+    // Auto-read logic (Keep for external state changes or initial load)
     useEffect(() => {
         if (!selectedThread) return;
 
@@ -139,16 +189,17 @@ export function EmailClientPage() {
 
     // Sync IMAP
     const syncEmails = async () => {
-        const accId = (account as any)?.id;
-        if (!accId) {
+        if (!activeAccount) {
             toast.error("Configura prima un account email");
             return;
         }
         setIsSyncing(true);
         try {
-            const accId = (account as any)?.id;
             const { data, error } = await supabase.functions.invoke("email-imap-fetch", {
-                body: { accountId: accId, limit: 30 },
+                body: {
+                    accountId: activeAccount.id,
+                    limit: 30
+                },
             });
             if (error) throw error;
             if (data.success) {
@@ -168,11 +219,10 @@ export function EmailClientPage() {
 
     // Quick Send
     const handleQuickSend = async (content: string) => {
-        if (!selectedThread || !account) return;
+        if (!selectedThread || !activeAccount) return;
 
         setIsQuickSending(true);
         try {
-            const accId = (account as any)?.id;
             const lastEmail = selectedThread.latest;
             const to = lastEmail.direzione === 'ricevuta' ? lastEmail.da_email : lastEmail.a_emails?.[0]?.email;
 
@@ -180,7 +230,7 @@ export function EmailClientPage() {
 
             const { data, error } = await supabase.functions.invoke("email-smtp-send", {
                 body: {
-                    accountId: accId,
+                    accountId: activeAccount.id,
                     to: [to],
                     subject: lastEmail.oggetto?.startsWith("Re:") ? lastEmail.oggetto : `Re: ${lastEmail.oggetto || ""}`,
                     text: content,
@@ -194,7 +244,7 @@ export function EmailClientPage() {
             if (error) throw error;
             if (data?.error) throw new Error(data.error);
 
-            toast.success("Email inviata correttamente");
+            toast.success(`Email inviata correttamente da ${activeAccount.email}`);
             refetchInviate();
         } catch (error: any) {
             console.error("Errore Invio:", error);
@@ -217,7 +267,7 @@ export function EmailClientPage() {
         setComposerOpen(true);
     };
 
-    if (!account) {
+    if (!activeAccount) {
         return (
             <div className="h-full flex items-center justify-center bg-muted/30">
                 <div className="text-center space-y-4">
@@ -237,24 +287,45 @@ export function EmailClientPage() {
         <div className="h-[calc(100vh-140px)] flex bg-background border rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
             {/* Sidebar */}
             <div className="w-85 lg:w-96 flex flex-col shrink-0">
-                <div className="p-4 border-b flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <Mail className="h-4 w-4 text-primary" />
+                <div className="p-4 border-b space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Mail className="h-4 w-4 text-primary" />
+                            </div>
+                            <h1 className="font-bold text-lg tracking-tight">Messaggi</h1>
                         </div>
-                        <h1 className="font-bold text-lg tracking-tight">Messaggi</h1>
+                        <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={syncEmails} disabled={isSyncing}>
+                                <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setAccountDialogOpen(true)}>
+                                <Settings className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" className="h-8 w-8 rounded-full shadow-md hover:shadow-primary/20" onClick={() => { setComposerDefaults({}); setComposerOpen(true); }}>
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
-                    <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={syncEmails} disabled={isSyncing}>
-                            <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setAccountDialogOpen(true)}>
-                            <Settings className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" className="h-8 w-8 rounded-full shadow-md hover:shadow-primary/20" onClick={() => { setComposerDefaults({}); setComposerOpen(true); }}>
-                            <Plus className="h-4 w-4" />
-                        </Button>
-                    </div>
+
+                    {/* Account Switcher */}
+                    {accounts.length > 1 && (
+                        <Select value={selectedAccountId || ""} onValueChange={setSelectedAccountId}>
+                            <SelectTrigger className="w-full h-9 text-xs bg-muted/50 border-none focus:ring-0 shadow-none">
+                                <SelectValue placeholder="Seleziona account" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {accounts.map((acc) => (
+                                    <SelectItem key={acc.id} value={acc.id} className="text-xs">
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-medium">{acc.nome_account || acc.email}</span>
+                                            <span className="text-[10px] opacity-60 text-muted-foreground">{acc.email}</span>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 <div className="flex-1 overflow-hidden">
@@ -262,8 +333,8 @@ export function EmailClientPage() {
                         threads={threads}
                         selectedThreadId={selectedThreadId}
                         selectedEmailId={selectedEmailId}
-                        onSelectThread={setSelectedThreadId}
-                        onSelectEmail={setSelectedEmailId}
+                        onSelectThread={handleSelectThread}
+                        onSelectEmail={handleSelectEmail}
                     />
                 </div>
             </div>
@@ -329,6 +400,7 @@ export function EmailClientPage() {
                 onOpenChange={(open) => { setComposerOpen(open); if (!open) setComposerDefaults({}); }}
                 defaultValues={composerDefaults}
                 onEmailSent={() => { refetchInviate(); setComposerOpen(false); setComposerDefaults({}); }}
+                accountId={activeAccount?.id}
             />
             <EmailAccountConfigDialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen} />
         </div>

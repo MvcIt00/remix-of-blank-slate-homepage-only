@@ -4,6 +4,33 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 
 ---
 
+## [V027] 2026-02-01 05:15
+**commit_hash**: `PENDING_SWITCH_V27`
+
+### Functional State
+- **Multi-Account Manager**: Implementata gestione completa di più account email simultanei. Introdotto uno switcher nella sidebar che permette di cambiare contesto istantaneamente tra diversi indirizzi.
+- **Independent Storage**: Rimosso ogni riferimento a logiche di "account padre". Ogni account ora gestisce le proprie tabelle di ricezione e invio in modo isolato e indipendente.
+- **Performance UI (Instant reactivity)**: Ottimizzata la risposta visuale al click tramite **Optimistic Updates** (16ms). Segnare una mail come letta o archiviarla ora avviene istantaneamente a livello di cache.
+- **Hook Stability**: Memoizzati tutti i componenti operativi dell'hook `useEmailManagement` e i selettori in `EmailClientPage.tsx` per garantire una reazione immediata del thread nel sidebar senza ricaricamenti superflui.
+- **Edge Functions Sync**: Aggiornate `email-imap-fetch` e `email-smtp-send` per operare correttamente su base `id_account` specifica, garantendo integrità dei dati in scenari multi-account.
+
+### Structural Changes
+- **Logic & Hooks**:
+  - `src/hooks/useEmailManagement.ts`: Implementata logica di **Optimistic Update** (`setQueryData`) per tutte le azioni. Corretto bug delle query keys mismatched (`_` vs `-`).
+- **UI Components**:
+  - `src/components/email/EmailClientPage.tsx`: Refactoring totale per supportare `activeAccount` dinamico e filtraggio query basato sull'account selezionato. Aggiunta UI per lo switcher.
+- **Edge Functions**:
+  - `supabase/functions/email-imap-fetch/index.ts`: Rimosso `targetAccountId`, ora scrive direttamente su `accountId`.
+  - `supabase/functions/email-smtp-send/index.ts`: Rimosso `targetAccountId`, ora registra invii su `accountId`.
+
+### Complete Rollback
+- **steps**:
+  1. `git checkout V026.2`
+  2. SQL: `DELETE FROM account_email WHERE email = 'testimap2026app@libero.it'` (se aggiunto per test)
+- **verification**: Verificare la scomparsa dello switcher e il ritorno alla visualizzazione del solo primo account disponibile.
+
+---
+
 ## [V026.2] 2026-02-01 04:20
 **commit_hash**: `7c81e1f`
 
