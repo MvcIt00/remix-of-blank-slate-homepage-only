@@ -4,6 +4,32 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 
 ---
 
+## [V026] 2026-02-01 03:15
+**commit_hash**: `PENDING_PUSH`
+
+### Functional State
+- **Hybrid UI (V3)**: Implementata architettura a doppia vista (Chat moderna + Email Classica).
+- **Accordion Sidebar**: Navigazione a due livelli (Conversazione -> Email singola) con espansione fluida.
+- **Typography & High-Contrast**: Incremento font del 10% globale e testi in "Pieno Nero" (Black/White) per massima leggibilità in sidebar e chat.
+- **Email Cleaning**: Integrazione logica `emailUtils` per la pulizia del corpo mail (rimozione quote/header) con toggle di espansione.
+
+### Structural Changes
+- **architecture**: Creazione componenti atomici `ConversationChatView`, `ConversationInput`, `ConversationSidebar`, `EmailClassicView`.
+- **logic**: Introdotta utility centralizzata `lib/emailUtils.ts` per il processing del testo.
+- **refactoring**: `EmailClientPage.tsx` ora agisce come orchestratore di viste tramite stato `selectedEmailId`.
+
+### Ordinary Changes
+- Corretti import icone mancanti (`Layout`).
+- Aggiornati stili Tailwind per coerenza tipografica (font-black, leading-snug).
+
+### Complete Rollback
+- **steps**:
+    1. `git checkout b7e0951` (Stato pre-V3)
+    2. `rm src/components/email/ConversationChatView.tsx src/components/email/ConversationInput.tsx src/components/email/ConversationSidebar.tsx src/components/email/EmailClassicView.tsx src/lib/emailUtils.ts`
+- **verification**: Verificare il ripristino della visualizzazione email singola standard senza accordion.
+
+---
+
 ## [V025] 2026-02-01 02:05
 **commit_hash**: `PENDING`
 

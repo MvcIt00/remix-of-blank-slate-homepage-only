@@ -43,6 +43,7 @@ interface EmailComposerDialogProps {
         id_anagrafica?: string;
         id_noleggio?: string;
         id_preventivo?: string;
+        threadId?: string;
     };
     onEmailSent?: () => void;
 }
@@ -146,6 +147,7 @@ export function EmailComposerDialog({
                     id_anagrafica: defaultValues?.id_anagrafica,
                     id_noleggio: defaultValues?.id_noleggio,
                     id_preventivo: defaultValues?.id_preventivo,
+                    threadId: defaultValues?.threadId,
                 },
             });
 
