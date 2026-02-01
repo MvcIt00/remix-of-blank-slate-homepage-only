@@ -5,7 +5,7 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 ---
 
 ## [V026.2] 2026-02-01 04:20
-**commit_hash**: `PENDING`
+**commit_hash**: `7c81e1f`
 
 ### Functional State
 - **Compact Sidebar**: UI della sidebar resa più densa e leggibile. Le card sono state rimpicciolite e lo spacing ottimizzato.
