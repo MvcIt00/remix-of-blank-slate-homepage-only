@@ -1,5 +1,20 @@
-// Edge Function SMTP Send - v3
-// Con stati tipizzati (stato_inviata ENUM)
+/**
+ * ⚠️ ARCHITETTURA NON CONVENZIONALE - LEGGERE PRIMA DI MODIFICARE ⚠️
+ * 
+ * Edge Function SMTP Send - v14
+ * Con stati tipizzati (stato_inviata ENUM) + Salvataggio Conversazione
+ * 
+ * 🔴 CRITICAL: Leggere OBBLIGATORIAMENTE la documentazione architettuale prima di modificare:
+ * 📄 File: ../../src/components/email/README.md
+ * 
+ * Questa funzione NON è un semplice SMTP sender. Implementa:
+ * - Invio email via SMTP
+ * - Salvataggio automatico in emails_inviate con campi threading
+ * - Aggiornamento/creazione CONVERSAZIONE quando è reply (In-Reply-To presente)
+ * 
+ * Il sistema di threading dipende CRITICAMENTE dal salvataggio corretto dei campi
+ * message_id, in_reply_to. Modifiche possono rompere l'intero threading.
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { SMTPClient } from "npm:emailjs@4.0.3";

@@ -1,6 +1,8 @@
+/** ⚠️ ARCHITETTURA NON CONVENZIONALE - LEGGERE [src/components/email/README.md] PRIMA DI MODIFICARE ⚠️ */
 import { format } from "date-fns";
+
 import { it } from "date-fns/locale";
-import { Paperclip, User, Mail, Calendar, ArrowLeft, Trash2, Archive } from "lucide-react";
+import { Paperclip, User, Mail, Calendar, ArrowLeft, Trash2, Archive, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -8,12 +10,35 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EmailManagementActions } from "@/hooks/useEmailManagement";
 import { EmailActionsToolbar } from "./EmailActionsToolbar";
+import { EmailAttachmentGallery } from "./EmailAttachmentGallery";
+import { useEmailAttachments } from "@/hooks/useEmailAttachments";
+
 
 interface EmailClassicViewProps {
     email: any;
     onBack?: () => void;
     actions: EmailManagementActions;
 }
+
+// Componente helper per EmailClassicView
+function AttachmentSection({ email, isSent }: { email: any, isSent: boolean }) {
+    const { data: attachments, isLoading } = useEmailAttachments(
+        email.id,
+        email.direzione || (isSent ? 'inviata' : 'ricevuta')
+    );
+
+    if (isLoading) return (
+        <div className="flex items-center gap-2 animate-pulse py-4">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <span className="text-sm text-muted-foreground font-medium">Recupero allegati in corso...</span>
+        </div>
+    );
+
+    if (!attachments || attachments.length === 0) return null;
+
+    return <EmailAttachmentGallery attachments={attachments} isSent={isSent} />;
+}
+
 
 export function EmailClassicView({ email, onBack, actions }: EmailClassicViewProps) {
     if (!email) return null;
@@ -123,32 +148,13 @@ export function EmailClassicView({ email, onBack, actions }: EmailClassicViewPro
                     </div>
 
                     {/* Attachments Section */}
-                    {email.allegati?.length > 0 && (
+                    {email.ha_allegati && (
                         <div className="pt-10">
-                            <div className="flex items-center gap-2 mb-4">
+                            <div className="flex items-center gap-2 mb-6">
                                 <Paperclip className="h-5 w-5 text-primary" />
-                                <h3 className="font-bold text-sm uppercase tracking-wider">Allegati ({email.allegati.length})</h3>
+                                <h3 className="font-bold text-sm uppercase tracking-wider">Allegati Email</h3>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {email.allegati.map((file: any) => (
-                                    <div
-                                        key={file.id}
-                                        className="group p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
-                                    >
-                                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                            <Paperclip className="h-5 w-5 text-slate-500 group-hover:text-primary" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold truncate text-slate-900 dark:text-slate-100">
-                                                {file.nome}
-                                            </p>
-                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">
-                                                File {file.estensione || 'Binario'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <AttachmentSection email={email} isSent={email.direzione === 'inviata'} />
                         </div>
                     )}
 

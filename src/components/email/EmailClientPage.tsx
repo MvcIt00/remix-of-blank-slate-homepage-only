@@ -1,3 +1,20 @@
+/**
+ * ⚠️ ARCHITETTURA NON CONVENZIONALE - LEGGERE PRIMA DI MODIFICARE ⚠️
+ * 
+ * Questo componente implementa un EMAIL CLIENT con paradigma CONVERSAZIONALE
+ * (simile a WhatsApp/Telegram) invece del tradizionale inbox-based.
+ * 
+ * 🔴 CRITICAL: Leggere OBBLIGATORIAMENTE la documentazione architettuale prima di modificare:
+ * 📄 File: src/components/email/README.md
+ * 
+ * Pattern critico implementato: SMART TOGGLE
+ * - 1° clic su email: Seleziona + Legge + Espande thread
+ * - 2° clic (stessa email): Toggle (collapse/expand)
+ * - Badge MessagesSquare: Toggle puro (indipendente dalla selezione)
+ * 
+ * Modifiche all'interazione onClick possono rompere la UX consolidata.
+ */
+
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

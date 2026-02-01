@@ -4,8 +4,30 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 
 ---
 
+## [V028] 2026-02-01 05:40
+**commit_hash**: `PENDING`
+
+### Functional State
+- **Gestione Allegati Email**: Implementata pipeline completa per estrazione, storage e persistenza degli allegati nelle email ricevute via IMAP.
+- **Storage Automatico**: Gli allegati vengono caricati in Supabase Storage (bucket `email-attachments`) durante la sincronizzazione.
+- **Metadati Completi**: Per ogni allegato: nome file, tipo MIME, dimensione, path storage, content-id (per inline), flag inline.
+
+### Structural Changes
+- **Edge Functions**:
+  - `supabase/functions/email-imap-fetch/index.ts`: v22 - Aggiunta interfaccia `ExtractedAttachment`, mappa `attachmentsByUid`, estrazione da `parsed.attachments`, lookup ID post-batch, upload a Storage, insert in `allegati_email`.
+
+### Complete Rollback
+- **steps**:
+    1. `git checkout V027`
+    2. `npx supabase functions deploy email-imap-fetch --project-ref ahboipwbpyalpyzriizf`
+    3. SQL: `DELETE FROM allegati_email WHERE creato_il > '2026-02-01 05:40:00'`
+- **verification**: Sync non carica più allegati, tabella `allegati_email` non riceve nuovi record.
+
+---
+
 ## [V027] 2026-02-01 05:15
 **commit_hash**: `8789c8d`
+
 
 ### Functional State
 - **Multi-Account Manager**: Implementata gestione completa di più account email simultanei. Introdotto uno switcher nella sidebar che permette di cambiare contesto istantaneamente tra diversi indirizzi.

@@ -1,3 +1,21 @@
+/**
+ * ⚠️ ARCHITETTURA NON CONVENZIONALE - LEGGERE PRIMA DI MODIFICARE ⚠️
+ * 
+ * Questo hook implementa un pattern di threading MULTI-LAYER FALLBACK per gestire
+ * email come conversazioni stile messaging app.
+ * 
+ * 🔴 CRITICAL: Leggere OBBLIGATORIAMENTE la documentazione architettuale prima di modificare:
+ * 📄 File: src/components/email/README.md
+ * 
+ * Il sistema NON segue il pattern tradizionale inbox-based. Modifiche incaute possono
+ * rompere la logica di fallback che garantisce threading resiliente anche con DB incompleto.
+ * 
+ * Pattern implementato:
+ * 1. Primary: raggruppa per id_conversazione (DB)
+ * 2. Fallback #1: raggruppa per in_reply_to (orphaned emails)
+ * 3. Fallback #2: raggruppa per oggetto normalizzato (Re:/Fwd: stripped)
+ */
+
 import { useMemo } from "react";
 
 export interface EmailThread {

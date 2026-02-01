@@ -1,6 +1,20 @@
 /**
- * Edge Function IMAP Fetch - v21
- * Implementazione Delta Sync (UID based) + Batching RPC
+ * ⚠️ ARCHITETTURA NON CONVENZIONALE - LEGGERE PRIMA DI MODIFICARE ⚠️
+ * 
+ * Edge Function IMAP Fetch - v22
+ * Implementazione Delta Sync (UID based) + Batching RPC + Threading Automatico + ALLEGATI
+ * 
+ * 🔴 CRITICAL: Leggere OBBLIGATORIAMENTE la documentazione architettuale prima di modificare:
+ * 📄 File: ../../src/components/email/README.md
+ * 
+ * Questa funzione NON è un semplice IMAP fetcher. Implementa:
+ * - Delta sync resiliente (fallback automatico su reset UID)
+ * - Parsing header RFC per threading (Message-ID, In-Reply-To, References)
+ * - Batch insert via RPC che crea/aggiorna CONVERSAZIONI automaticamente
+ * - Estrazione e storage degli ALLEGATI in Supabase Storage + insert in allegati_email
+ * 
+ * Il sistema di threading dipende CRITICAMENTE dai campi message_id, in_reply_to, references_chain.
+ * Modifiche ai nomi dei campi o alla logica di parsing possono rompere l'intero threading.
  */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -14,6 +28,16 @@ const corsHeaders = {
 
 function decrypt(s: string): string {
     try { return atob(s); } catch { return s; }
+}
+
+// Interfaccia per allegati estratti
+interface ExtractedAttachment {
+    filename: string;
+    mimeType: string;
+    content: Uint8Array;
+    size: number;
+    contentId: string | null;
+    isInline: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -163,6 +187,9 @@ Deno.serve(async (req) => {
         const batch: any[] = [];
         let maxSeenUid = lastUid;
 
+        // ========== ALLEGATI: Mappa per UID ==========
+        const attachmentsByUid = new Map<number, ExtractedAttachment[]>();
+
         for (const msg of messages) {
             try {
                 const uid = msg.uid;
@@ -212,6 +239,30 @@ Deno.serve(async (req) => {
                     console.error(`[IMAP] Errore threading per messaggio ${uid}:`, convErr.message);
                 }
 
+                // ========== ALLEGATI: Estrazione da parsed.attachments ==========
+                if (parsed.attachments && parsed.attachments.length > 0) {
+                    const extractedAtts: ExtractedAttachment[] = [];
+                    for (const att of parsed.attachments) {
+                        // att.content è già Uint8Array in postal-mime v2
+                        const content = att.content instanceof Uint8Array
+                            ? att.content
+                            : new Uint8Array(att.content || []);
+
+                        extractedAtts.push({
+                            filename: att.filename || `unnamed_${Date.now()}`,
+                            mimeType: att.mimeType || 'application/octet-stream',
+                            content: content,
+                            size: content.length,
+                            contentId: att.contentId || null,
+                            isInline: att.disposition === 'inline'
+                        });
+                    }
+                    if (extractedAtts.length > 0) {
+                        attachmentsByUid.set(uid, extractedAtts);
+                        console.log(`[IMAP] Email UID ${uid}: ${extractedAtts.length} allegati estratti`);
+                    }
+                }
+
                 // Prepara oggetto per batch RPC
                 batch.push({
                     id_account: accountId,
@@ -247,6 +298,81 @@ Deno.serve(async (req) => {
                 throw new Error(`Errore RPC Sync: ${rpcErr.message}`);
             }
 
+            // ========== ALLEGATI: Lookup ID email e salvataggio ==========
+            if (attachmentsByUid.size > 0) {
+                console.log(`[IMAP] Processing attachments for ${attachmentsByUid.size} emails...`);
+
+                // Recupera gli ID delle email appena inserite
+                const uidsWithAttachments = Array.from(attachmentsByUid.keys());
+                const { data: insertedEmails, error: lookupErr } = await sb
+                    .from('emails_ricevute')
+                    .select('id, uid_imap')
+                    .eq('id_account', accountId)
+                    .eq('uid_validity', currentValidity)
+                    .in('uid_imap', uidsWithAttachments);
+
+                if (lookupErr) {
+                    console.error('[IMAP] Errore lookup email per allegati:', lookupErr.message);
+                } else if (insertedEmails && insertedEmails.length > 0) {
+                    let totalUploaded = 0;
+                    let totalFailed = 0;
+
+                    for (const email of insertedEmails) {
+                        const atts = attachmentsByUid.get(email.uid_imap);
+                        if (!atts || atts.length === 0) continue;
+
+                        for (const att of atts) {
+                            try {
+                                // Genera path univoco: accountId/emailId/filename
+                                // Sanitizza filename per evitare problemi con caratteri speciali
+                                const safeFilename = att.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+                                const storagePath = `${accountId}/${email.id}/${safeFilename}`;
+
+                                // Upload a Storage
+                                const { error: uploadErr } = await sb.storage
+                                    .from('email-attachments')
+                                    .upload(storagePath, att.content, {
+                                        contentType: att.mimeType,
+                                        upsert: true // Sovrascrive se esiste già
+                                    });
+
+                                if (uploadErr) {
+                                    console.error(`[IMAP] Upload fallito per ${att.filename}:`, uploadErr.message);
+                                    totalFailed++;
+                                    continue;
+                                }
+
+                                // Insert in allegati_email
+                                const { error: insertErr } = await sb
+                                    .from('allegati_email')
+                                    .insert({
+                                        id_email_ricevuta: email.id,
+                                        nome_file: att.filename,
+                                        tipo_mime: att.mimeType,
+                                        dimensione_bytes: att.size,
+                                        storage_path: storagePath,
+                                        content_id: att.contentId,
+                                        is_inline: att.isInline
+                                    });
+
+                                if (insertErr) {
+                                    console.error(`[IMAP] Insert allegato fallito:`, insertErr.message);
+                                    totalFailed++;
+                                } else {
+                                    totalUploaded++;
+                                }
+
+                            } catch (attErr: any) {
+                                console.error(`[IMAP] Errore processing allegato:`, attErr.message);
+                                totalFailed++;
+                            }
+                        }
+                    }
+
+                    console.log(`[IMAP] Allegati: ${totalUploaded} salvati, ${totalFailed} falliti`);
+                }
+            }
+
             // 6. Aggiorna metadati account nel DB
             await sb
                 .from("account_email")
@@ -265,7 +391,8 @@ Deno.serve(async (req) => {
                 success: true,
                 count: actuallyNewCount, // CONTEGGIO REALE PER IL TOAST
                 totalInbox: totalMessages,
-                lastUid: maxSeenUid
+                lastUid: maxSeenUid,
+                attachmentsProcessed: attachmentsByUid.size
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );

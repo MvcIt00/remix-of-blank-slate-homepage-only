@@ -1,7 +1,9 @@
+/** ⚠️ ARCHITETTURA NON CONVENZIONALE - LEGGERE [src/components/email/README.md] PRIMA DI MODIFICARE ⚠️ */
 import { useRef, useEffect, useState } from "react";
+
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { Paperclip, User, Bot, Mail, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { Paperclip, Loader2, Smile, Send, MoreVertical, Reply, CornerUpRight, Trash2, Clock, Check, CheckCheck, User, Calendar, Mail, ArrowLeft, Archive, Bot, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +13,17 @@ import { EmailThread } from "@/hooks/useEmailThreads";
 import { EmailManagementActions } from "@/hooks/useEmailManagement";
 import { EmailActionsToolbar } from "./EmailActionsToolbar";
 import { cleanEmailBody, CleanedEmail } from "@/lib/emailUtils";
+import { EmailAttachmentGallery } from "./EmailAttachmentGallery";
+import { useEmailAttachments, useConversationAttachments } from "@/hooks/useEmailAttachments";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+    SheetDescription
+} from "@/components/ui/sheet";
+
 
 interface ConversationChatViewProps {
     thread: EmailThread;
@@ -63,6 +76,8 @@ export function ConversationChatView({ thread, actions }: ConversationChatViewPr
                     <Badge variant="outline" className="text-[11px] font-normal py-0 px-2.5 h-6 bg-muted/30">
                         {thread.count} messaggi
                     </Badge>
+
+                    <ConversationFilesDrawer thread={thread} />
                 </div>
             </div>
 
@@ -89,6 +104,85 @@ export function ConversationChatView({ thread, actions }: ConversationChatViewPr
         </div>
     );
 }
+
+// Componente per il caricamento asincrono degli allegati (per non bloccare il render della bolla)
+function AttachmentSection({ email, isSent }: { email: any, isSent: boolean }) {
+    const { data: attachments, isLoading } = useEmailAttachments(
+        email.id,
+        email.direzione || (isSent ? 'inviata' : 'ricevuta')
+    );
+
+    if (isLoading) return (
+        <div className="mt-4 flex items-center gap-2 animate-pulse">
+            <Paperclip className="h-3 w-3 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-tight">Caricamento allegati...</span>
+        </div>
+    );
+
+    if (!attachments || attachments.length === 0) return null;
+
+    return <EmailAttachmentGallery attachments={attachments} isSent={isSent} />;
+}
+
+// Componente per la vista aggregata di tutti i file nel thread
+function ConversationFilesDrawer({ thread }: { thread: EmailThread }) {
+    const emailIds = thread.emails.map(e => e.id);
+    const { data: attachments, isLoading } = useConversationAttachments(emailIds);
+
+    const hasAttachments = attachments && attachments.length > 0;
+
+    return (
+        <Sheet>
+            <SheetTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                        "h-8 w-8 rounded-full transition-colors relative",
+                        hasAttachments ? "text-primary hover:bg-primary/10" : "text-muted-foreground opacity-50 cursor-not-allowed"
+                    )}
+                    disabled={!hasAttachments}
+                >
+                    <Paperclip className="h-4 w-4" />
+                    {hasAttachments && (
+                        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 bg-primary text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-background">
+                            {attachments.length}
+                        </span>
+                    )}
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[350px] sm:w-[450px] p-0 flex flex-col">
+                <SheetHeader className="p-6 pb-2">
+                    <SheetTitle className="text-xl font-bold flex items-center gap-2">
+                        <Paperclip className="h-5 w-5 text-primary" />
+                        File della Conversazione
+                    </SheetTitle>
+                    <SheetDescription>
+                        Tutti gli allegati scambiati in questo thread.
+                    </SheetDescription>
+                </SheetHeader>
+
+                <ScrollArea className="flex-1 p-6">
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                            <p className="text-xs uppercase font-bold tracking-widest">Analisi thread...</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            <EmailAttachmentGallery
+                                attachments={attachments || []}
+                                className="grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-2"
+                            />
+                        </div>
+                    )}
+                </ScrollArea>
+            </SheetContent>
+        </Sheet>
+    );
+}
+
+
 
 // Componente interno per la singola bolla con stato locale per espansione
 function MessageBubble({ email, isSent, showDateSeparator, formatSectionDate, formatMessageDate, actions }: any) {
@@ -213,23 +307,8 @@ function MessageBubble({ email, isSent, showDateSeparator, formatSectionDate, fo
                         )}
 
                         {/* Attachments */}
-                        {email.allegati?.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {email.allegati.map((file: any) => (
-                                    <button
-                                        key={file.id}
-                                        className={cn(
-                                            "flex items-center gap-2 px-3.5 py-2 rounded-lg text-[13px] font-medium transition-colors",
-                                            isSent
-                                                ? "bg-white/10 hover:bg-white/20 text-white"
-                                                : "bg-muted hover:bg-muted/80 text-foreground border border-muted-foreground/10"
-                                        )}
-                                    >
-                                        <Paperclip className="h-3 w-3" />
-                                        <span className="truncate max-w-[120px]">{file.nome}</span>
-                                    </button>
-                                ))}
-                            </div>
+                        {email.ha_allegati && (
+                            <AttachmentSection email={email} isSent={isSent} />
                         )}
 
 
