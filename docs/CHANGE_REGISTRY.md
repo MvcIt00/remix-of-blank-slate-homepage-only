@@ -4,8 +4,28 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 
 ---
 
-## [V026.1] 2026-02-01 03:55
+## [V026.2] 2026-02-01 04:20
 **commit_hash**: `PENDING`
+
+### Functional State
+- **Compact Sidebar**: UI della sidebar resa più densa e leggibile. Le card sono state rimpicciolite e lo spacing ottimizzato.
+- **Safety Input**: Tasto "Invio" disabilitato per l'invio rapido dei messaggi per evitare errori; ora genera solo un a capo (`\n`). L'invio avviene esclusivamente tramite pulsante "Invia".
+- **Visual Improvements**: Contatore messaggi spostato in alto a destra nella card per non sottrarre spazio al mittente. Migliorato il contrasto di mittente e oggetto.
+
+### Structural Changes
+- **UI Components**:
+  - `src/components/email/ConversationSidebar.tsx`: Padding ridotto (`p-2.5`), counter riposizionato (`absolute top-2.5 right-2`), font-size compattato.
+  - `src/components/email/ConversationInput.tsx`: Rimozione trigger `Enter` in `handleKeyDown` e rimozione dicitura informativa obsoleta.
+
+### Complete Rollback
+- **steps**:
+  1. `git checkout V026.1`
+- **verification**: Il sistema ripristina le card sidebar più grandi e il comportamento di invio tramite tasto Invio.
+
+---
+
+## [V026.1] 2026-02-01 03:55
+**commit_hash**: `a4b7ce2`
 
 ### Functional State
 - **Affidabilità Invio (RFC 822)**: Risolto errore "bare LF" tramite normalizzazione CRLF forzata nella Edge Function, garantendo compatibilità con Libero/Virgilio.

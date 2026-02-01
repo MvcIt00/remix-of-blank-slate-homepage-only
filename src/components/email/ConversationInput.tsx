@@ -21,10 +21,8 @@ export function ConversationInput({ onSend, onExpand, isSending }: ConversationI
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
+        // L'utente vuole che l'invio sia solo tramite tasto fisico, quindi non facciamo nulla sull'Enter
+        // Il default di Textarea gestirà l'andata a capo (\n)
     };
 
     return (
@@ -81,10 +79,6 @@ export function ConversationInput({ onSend, onExpand, isSending }: ConversationI
                     <Send className={cn("h-5 w-5", isSending && "animate-pulse")} />
                 </Button>
             </div>
-
-            <p className="text-[11px] text-center mt-2 text-muted-foreground opacity-50 font-medium tracking-tight uppercase">
-                Premi invio per spedire l'email · Shift + Invio per andare a capo
-            </p>
         </div>
     );
 }
