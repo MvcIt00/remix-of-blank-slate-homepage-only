@@ -4,24 +4,50 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 
 ---
 
-## [V028] 2026-02-01 05:40
-**commit_hash**: `PENDING`
+## [V028.1] 2026-02-01 06:15
+**commit_hash**: `7a79242`
 
 ### Functional State
-- **Gestione Allegati Email**: Implementata pipeline completa per estrazione, storage e persistenza degli allegati nelle email ricevute via IMAP.
+- **UI Allegati (Chat)**: Visualizzazione 1-N degli allegati nelle bolle della chat con griglia dinamica auto-adattiva (1-2 card, 3+ grid).
+- **Cassetto Allegati Thread**: Implementato drawer aggregato nell'header della conversazione per l'accesso rapido a tutti i file scambiati nel thread.
+- **Classic View Update**: Refactoring della vista classica per utilizzare il nuovo sistema di gallery allegati.
+- **Sicurezza Download**: Download dei file tramite Signed URL di Supabase Storage con scadenza oraria.
+- **Architettura (AX09)**: Consolidamento architetturale con README dedicato e header mandatori in tutti i file coinvolti.
+
+### Structural Changes
+- **Components**:
+  - `src/components/email/EmailAttachmentCard.tsx`: [NEW] Componente atomico per singolo file.
+  - `src/components/email/EmailAttachmentGallery.tsx`: [NEW] Gestore layout dinamico 1-N.
+  - `src/components/email/ConversationChatView.tsx`: Integrazione `AttachmentSection` e `ConversationFilesDrawer`.
+  - `src/components/email/EmailClassicView.tsx`: Integrazione `AttachmentSection`.
+  - `src/components/email/README.md`: [NEW] Documentazione architetturale ecosistema email.
+- **Hooks**:
+  - `src/hooks/useEmailAttachments.ts`: [NEW] Logica di fetching granulare e aggregata.
+
+### Complete Rollback
+- **steps**:
+    1. `git checkout 8789c8d` (Versione V027)
+- **verification**: I componenti degli allegati scompaiono dalla UI e l'app torna allo stato pre-integrazione frontend.
+
+---
+
+## [V028] 2026-02-01 05:40
+**commit_hash**: `7a79242`
+
+### Functional State
+- **Gestione Allegati Email (Backend)**: Implementata pipeline completa per estrazione, storage e persistenza degli allegati nelle email ricevute via IMAP.
 - **Storage Automatico**: Gli allegati vengono caricati in Supabase Storage (bucket `email-attachments`) durante la sincronizzazione.
 - **Metadati Completi**: Per ogni allegato: nome file, tipo MIME, dimensione, path storage, content-id (per inline), flag inline.
 
 ### Structural Changes
 - **Edge Functions**:
-  - `supabase/functions/email-imap-fetch/index.ts`: v22 - Aggiunta interfaccia `ExtractedAttachment`, mappa `attachmentsByUid`, estrazione da `parsed.attachments`, lookup ID post-batch, upload a Storage, insert in `allegati_email`.
+  - `supabase/functions/email-imap-fetch/index.ts`: v22 - Aggiunta estrazione da `parsed.attachments`, upload a Storage e insert in `allegati_email`.
 
 ### Complete Rollback
 - **steps**:
-    1. `git checkout V027`
-    2. `npx supabase functions deploy email-imap-fetch --project-ref ahboipwbpyalpyzriizf`
-    3. SQL: `DELETE FROM allegati_email WHERE creato_il > '2026-02-01 05:40:00'`
-- **verification**: Sync non carica più allegati, tabella `allegati_email` non riceve nuovi record.
+    1. `git checkout 8789c8d`
+    2. SQL: `DELETE FROM allegati_email WHERE creato_il > '2026-02-01 05:40:00'`
+- **verification**: Sync non scarica più file fisici su Storage.
 
 ---
 
