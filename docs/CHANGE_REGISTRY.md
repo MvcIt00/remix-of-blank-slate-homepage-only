@@ -1,6 +1,27 @@
 # CHANGE REGISTRY - Gestionale Toscana Carrelli
 
-Registro cronologico delle modifiche al codebase secondo AX08_CHANGE_REGISTRY_MANDATORY.
+Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_MANDATORY**.
+
+---
+
+## [V025] 2026-02-01 02:05
+**commit_hash**: `PENDING`
+
+### Functional State
+- **Smart Toggle**: Implementata logica di interazione avanzata nell'header del thread. Il primo clic seleziona ed espande, il secondo clic sulla stessa email collassa il thread.
+- **Visual indicators**: Integrato Direction Dot luminoso (Sent/Received) e badge interattivo `MessagesSquare`.
+- **Integrità**: Risolto il conflitto di leggibilità dell'email capostipite preservando la funzione di raggruppamento.
+
+### Structural Changes
+- **architecture**: Modificata gestione eventi di clic in `EmailClientPage.tsx` per gestire stati di selezione e thread simultaneamente.
+
+### Ordinary Changes
+- Restyling grafico componenti lista email e thread nidificati.
+
+### Complete Rollback
+- **steps**:
+    1. `git checkout 164b17f` (Ritorno allo stato pre-Smart Toggle)
+- **verification**: Verificare che l'email capostipite non esegua il toggle al secondo clic ma rimanga selezionata.
 
 ---
 
