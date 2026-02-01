@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { EmailComposerDialog } from "./EmailComposerDialog";
 import { EmailAccountConfigDialog } from "./EmailAccountConfigDialog";
 import { useEmailThreads, EmailThread } from "@/hooks/useEmailThreads";
+import { useEmailManagement } from "@/hooks/useEmailManagement";
+import { EmailActionsToolbar } from "./EmailActionsToolbar";
 import { ConversationSidebar } from "./ConversationSidebar";
 import { ConversationChatView } from "./ConversationChatView";
 import { ConversationInput } from "./ConversationInput";
@@ -107,16 +109,46 @@ export function EmailClientPage() {
         return selectedThread.emails.find(e => e.id === selectedEmailId);
     }, [selectedThread, selectedEmailId]);
 
+    const emailManagement = useEmailManagement(
+        (account as any)?.id,
+        setComposerOpen,
+        setComposerDefaults
+    );
+
+    // Auto-read logic
+    useEffect(() => {
+        if (!selectedThread) return;
+
+        // Se un'email singola è selezionata (Classic View)
+        if (selectedEmailId) {
+            const email = selectedThread.emails.find(e => e.id === selectedEmailId);
+            if (email && email.direzione === 'ricevuta' && email.stato === 'non_letta') {
+                emailManagement.markRead(email.id);
+            }
+        } else {
+            // Chat View: segna come lette tutte le non lette del thread
+            const unreadIds = selectedThread.emails
+                .filter(e => e.direzione === 'ricevuta' && e.stato === 'non_letta')
+                .map(e => e.id);
+
+            if (unreadIds.length > 0) {
+                emailManagement.markMultipleAsRead(unreadIds);
+            }
+        }
+    }, [selectedThreadId, selectedEmailId, selectedThread?.id, emailManagement]);
+
     // Sync IMAP
     const syncEmails = async () => {
-        if (!account?.id) {
+        const accId = (account as any)?.id;
+        if (!accId) {
             toast.error("Configura prima un account email");
             return;
         }
         setIsSyncing(true);
         try {
+            const accId = (account as any)?.id;
             const { data, error } = await supabase.functions.invoke("email-imap-fetch", {
-                body: { accountId: account.id, limit: 30 },
+                body: { accountId: accId, limit: 30 },
             });
             if (error) throw error;
             if (data.success) {
@@ -140,6 +172,7 @@ export function EmailClientPage() {
 
         setIsQuickSending(true);
         try {
+            const accId = (account as any)?.id;
             const lastEmail = selectedThread.latest;
             const to = lastEmail.direzione === 'ricevuta' ? lastEmail.da_email : lastEmail.a_emails?.[0]?.email;
 
@@ -147,20 +180,24 @@ export function EmailClientPage() {
 
             const { data, error } = await supabase.functions.invoke("email-smtp-send", {
                 body: {
-                    accountId: account.id,
+                    accountId: accId,
                     to: [to],
                     subject: lastEmail.oggetto?.startsWith("Re:") ? lastEmail.oggetto : `Re: ${lastEmail.oggetto || ""}`,
-                    bodyText: content,
+                    text: content,
+                    html: content.replace(/\n/g, "<br>"),
                     threadId: selectedThread.id.startsWith('sub-') ? null : selectedThread.id,
-                    inReplyTo: lastEmail.message_id
+                    inReplyTo: lastEmail.message_id,
+                    references: (lastEmail as any).references_chain || []
                 },
             });
 
             if (error) throw error;
+            if (data?.error) throw new Error(data.error);
 
             toast.success("Email inviata correttamente");
             refetchInviate();
         } catch (error: any) {
+            console.error("Errore Invio:", error);
             toast.error(`Errore invio: ${error.message}`);
         } finally {
             setIsQuickSending(false);
@@ -252,11 +289,15 @@ export function EmailClientPage() {
                                 <EmailClassicView
                                     email={selectedEmail}
                                     onBack={() => setSelectedEmailId(null)}
+                                    actions={emailManagement}
                                 />
                             ) : (
                                 <div className="h-full flex flex-col">
                                     <div className="flex-1 overflow-hidden">
-                                        <ConversationChatView thread={selectedThread} />
+                                        <ConversationChatView
+                                            thread={selectedThread}
+                                            actions={emailManagement}
+                                        />
                                     </div>
                                     <ConversationInput
                                         onSend={handleQuickSend}

@@ -4,6 +4,32 @@ Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_
 
 ---
 
+## [V026.1] 2026-02-01 03:55
+**commit_hash**: `PENDING`
+
+### Functional State
+- **Affidabilità Invio (RFC 822)**: Risolto errore "bare LF" tramite normalizzazione CRLF forzata nella Edge Function, garantendo compatibilità con Libero/Virgilio.
+- **Transazionalità DB**: Implementato sistema di salvataggio preventivo ('bozza') che si aggiorna in 'inviata' solo a conferma SMTP avvenuta.
+- **UX Email Fallite**: Introdotta gestione visiva degli errori di invio. Se un'email fallisce (stato != 'inviata'), viene mostrato un avviso contestuale con opzioni di **"Riprova"** o **"Elimina"**.
+- **Auto-Read & Cleanup**: Integrato sistema di marcatura automatica come "letto" su apertura thread o selezione mail, con rimozione pulsanti manuali ridondanti.
+- **Ripristino Toolbar**: Tutte le azioni (Rispondi, Inoltra, Archivia, Elimina) sono state centralizzate e ripristinate coerentemente tra le diverse viste.
+
+### Structural Changes
+- **Edge Function**: Aggiornata a v18 (SMTP-Send) con normalizzazione parametri CRLF e gestione stati asincrona.
+- **Hook Centralizzato**: Creato/Potenziato `src/hooks/useEmailManagement.ts` per gestire tutta la logica operativa, stati compositore e feedback (toast).
+- **UI Component**: Creato `src/components/email/EmailActionsToolbar.tsx` e aggiornati `ConversationChatView` ed `EmailClassicView` con indicatori di errore.
+
+### Ordinary Changes
+- Typography: Incremento font del 10% e testi in "Black/White" per massima leggibilità.
+- Pulizia logica duplicata negli orchestratori.
+
+### Complete Rollback
+- **steps**:
+    1. `git checkout [commit_hash_pre_v26.1]`
+- **verification**: Il sistema torna ad avere invii non transazionali e manca della gestione automatica degli stati di lettura.
+
+---
+
 ## [V026] 2026-02-01 03:15
 **commit_hash**: `PENDING_PUSH`
 

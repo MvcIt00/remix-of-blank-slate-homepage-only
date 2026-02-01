@@ -112,7 +112,7 @@ export function EmailComposerDialog({
     };
 
     const onSubmit = async (data: EmailFormData) => {
-        if (!account?.id) {
+        if (!(account as any)?.id) {
             toast.error("Nessun account email configurato");
             return;
         }
@@ -138,10 +138,10 @@ export function EmailComposerDialog({
             // Invia via Edge Function SMTP
             const { data: result, error } = await supabase.functions.invoke("email-smtp-send", {
                 body: {
-                    accountId: account.id,
+                    accountId: (account as any).id,
                     to: data.to,
                     subject: data.subject,
-                    body: data.body,
+                    text: data.body,
                     html: data.body.replace(/\n/g, "<br>"),
                     attachments: attachmentsData.length > 0 ? attachmentsData : undefined,
                     id_anagrafica: defaultValues?.id_anagrafica,
@@ -152,6 +152,7 @@ export function EmailComposerDialog({
             });
 
             if (error) throw error;
+            if (result?.error) throw new Error(result.error);
 
             if (result.success) {
                 toast.success("Email inviata con successo via SMTP");
@@ -195,7 +196,7 @@ export function EmailComposerDialog({
                         Nuova Email
                     </DialogTitle>
                     <p className="text-sm text-muted-foreground">
-                        Da: {account.email} (via SMTP: {account.smtp_host})
+                        Da: {(account as any).email} (via SMTP: {(account as any).smtp_host})
                     </p>
                 </DialogHeader>
 

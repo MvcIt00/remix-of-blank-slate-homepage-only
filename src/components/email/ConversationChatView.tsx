@@ -8,13 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EmailThread } from "@/hooks/useEmailThreads";
+import { EmailManagementActions } from "@/hooks/useEmailManagement";
+import { EmailActionsToolbar } from "./EmailActionsToolbar";
 import { cleanEmailBody, CleanedEmail } from "@/lib/emailUtils";
 
 interface ConversationChatViewProps {
     thread: EmailThread;
+    actions: EmailManagementActions;
 }
 
-export function ConversationChatView({ thread }: ConversationChatViewProps) {
+export function ConversationChatView({ thread, actions }: ConversationChatViewProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Scroll to bottom when thread changes or messages are added
@@ -77,6 +80,7 @@ export function ConversationChatView({ thread }: ConversationChatViewProps) {
                                 }
                                 formatSectionDate={formatSectionDate}
                                 formatMessageDate={formatMessageDate}
+                                actions={actions}
                             />
                         );
                     })}
@@ -87,7 +91,7 @@ export function ConversationChatView({ thread }: ConversationChatViewProps) {
 }
 
 // Componente interno per la singola bolla con stato locale per espansione
-function MessageBubble({ email, isSent, showDateSeparator, formatSectionDate, formatMessageDate }: any) {
+function MessageBubble({ email, isSent, showDateSeparator, formatSectionDate, formatMessageDate, actions }: any) {
     const [showFull, setShowFull] = useState(false);
 
     // Puliamo il corpo del messaggio
@@ -127,21 +131,53 @@ function MessageBubble({ email, isSent, showDateSeparator, formatSectionDate, fo
                         "flex items-center gap-2 mb-1 px-1",
                         isSent ? "flex-row-reverse" : "flex-row text-left"
                     )}>
-                        <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
+                        <span className="text-[11px] font-bold text-black dark:text-white">
                             {isSent ? "Sistema (Tu)" : (email.da_nome || email.da_email)}
                         </span>
-                        <Separator orientation="vertical" className="h-2 bg-muted-foreground/30" />
-                        <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-tight">
+                        <Separator orientation="vertical" className="h-2 bg-black/20 dark:bg-white/20" />
+                        <span className="text-[11px] text-black/60 dark:text-white/60 font-medium uppercase tracking-tight">
                             {format(new Date(email.dataOrd), "d MMM yyyy 'alle' HH:mm", { locale: it })}
                         </span>
+
+                        <div className="flex-1" />
+
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <EmailActionsToolbar email={email} actions={actions} variant="compact" />
+                        </div>
                     </div>
 
                     <div className={cn(
                         "relative p-3 lg:p-4 rounded-2xl shadow-sm transition-all duration-200 w-full",
                         isSent
-                            ? "bg-primary text-primary-foreground rounded-tr-none hover:shadow-md"
+                            ? (email.stato === 'inviata' ? "bg-primary text-primary-foreground rounded-tr-none hover:shadow-md" : "bg-destructive/10 text-destructive border border-destructive/20 rounded-tr-none")
                             : "bg-white dark:bg-muted/50 border border-muted-foreground/10 rounded-tl-none hover:shadow-md dark:hover:bg-muted"
                     )}>
+                        {isSent && email.stato !== 'inviata' && (
+                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-destructive/10">
+                                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-tight">
+                                    <Bot className="h-3 w-3" />
+                                    <span>Invio Fallito</span>
+                                </div>
+                                <div className="flex gap-1">
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        className="h-6 px-2 text-[10px] uppercase font-black"
+                                        onClick={() => actions.retrySend(email)}
+                                    >
+                                        Riprova
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-6 px-2 text-[10px] uppercase font-bold border-destructive/20 text-destructive hover:bg-destructive/10"
+                                        onClick={() => actions.deleteSentEmail(email.id)}
+                                    >
+                                        Elimina
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                         {/* HTML or Text Content - PULITO */}
                         <div className={cn(
                             "text-[15.5px] leading-relaxed prose prose-sm max-w-none break-words",
