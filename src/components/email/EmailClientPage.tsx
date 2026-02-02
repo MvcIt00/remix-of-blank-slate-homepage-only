@@ -65,7 +65,7 @@ interface Email {
     in_reply_to?: string;
 }
 
-export function EmailClientPage() {
+export function EmailClientPage({ activeAccount: propActiveAccount }: { activeAccount?: any }) {
     const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
     const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
     const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
@@ -80,7 +80,7 @@ export function EmailClientPage() {
     const [accountDialogOpen, setAccountDialogOpen] = useState(false);
     const [isQuickSending, setIsQuickSending] = useState(false);
 
-    // Fetch all active accounts
+    // Fetch all active accounts (only if not provided via props)
     const { data: accounts = [] } = useQuery({
         queryKey: ["email-accounts"],
         queryFn: async () => {
@@ -91,17 +91,22 @@ export function EmailClientPage() {
             if (error) throw error;
             return data as any[];
         },
+        enabled: !propActiveAccount, // Only fetch if not provided
     });
 
-    const activeAccount = useMemo(() =>
+    // ALWAYS call useMemo (Rules of Hooks)
+    const computedAccount = useMemo(() =>
         accounts.find(a => a.id === selectedAccountId) || accounts[0],
         [accounts, selectedAccountId]);
 
+    // Use prop if provided, otherwise use computed
+    const activeAccount = propActiveAccount || computedAccount;
+
     useEffect(() => {
-        if (accounts.length > 0 && !selectedAccountId) {
+        if (!propActiveAccount && accounts && accounts.length > 0 && !selectedAccountId) {
             setSelectedAccountId(accounts[0].id);
         }
-    }, [accounts, selectedAccountId]);
+    }, [accounts, selectedAccountId, propActiveAccount]);
 
     // Fetch emails for the active account
     const { data: emailsRicevute = [], refetch: refetchRicevute } = useQuery({
@@ -325,8 +330,8 @@ export function EmailClientPage() {
                         </div>
                     </div>
 
-                    {/* Account Switcher */}
-                    {accounts.length > 1 && (
+                    {/* Account Switcher (only show if not controlled via props) */}
+                    {!propActiveAccount && accounts.length > 1 && (
                         <Select value={selectedAccountId || ""} onValueChange={setSelectedAccountId}>
                             <SelectTrigger className="w-full h-9 text-xs bg-muted/50 border-none focus:ring-0 shadow-none">
                                 <SelectValue placeholder="Seleziona account" />

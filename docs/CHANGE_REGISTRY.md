@@ -1,6 +1,34 @@
-# CHANGE REGISTRY - Gestionale Toscana Carrelli
+## [V029] 2026-02-02 03:15
+**commit_hash**: `PENDING`
 
-Registro cronologico delle modifiche al codebase secondo **AX08_CHANGE_REGISTRY_MANDATORY**.
+### Functional State
+- **AI Briefings MVP**: Sistema di analisi email intelligente che estrae fatti rilevanti tramite LLM (GPT-4o-mini).
+- **Multi-Account Sync**: Lo stato dell'account è ora centralizzato in `EmailPage.tsx`, permettendo uno switch sincronizzato tra visualizzazione classica e AI.
+- **Structured AI Insights**: L'AI estrae i fatti seguendo il formato "CHI vuole COSA", migliorando la leggibilità immediata.
+- **Filtro Rilevanza**: Introdotto punteggio di rilevanza (soglia test 0.2) per filtrare rumore e spam dalle comunicazioni critiche.
+- **Fix Ordine Hooks**: Risolto crash "Pagina Bianca" causato da una chiamata condizionale di `useMemo` in `EmailClientPage.tsx`.
+
+### Structural Changes
+- **Database**:
+  - `ai_knowledge_base`: [NEW] Tabella per memorizzazione atomica dei fatti estratti.
+  - `ai_briefings`: [NEW] Tabella per notifiche/briefings presentati all'utente.
+  - Migrazione: `supabase/migrations/20260202000001_ai_briefings_mvp.sql`.
+- **Edge Functions**:
+  - `ai-extract-facts-mvp`: [NEW] Pipeline Deno per processing batch email via OpenAI.
+- **Components**:
+  - `src/components/ai/AIBriefingsMVP.tsx`: [NEW] Interfaccia di visualizzazione e trigger analisi.
+  - `src/pages/EmailPage.tsx`: [MODIFY] Integrata logica Tab e lifting dello stato account.
+  - `src/components/email/EmailClientPage.tsx`: [MODIFY] Implementato supporto per `activeAccount` via props e fix per `useMemo`.
+- **Documentation**:
+  - `docs/AI_BRIEFINGS_MVP_IMPLEMENTATION.md`: [NEW/REWRITE] Manuale tecnico completo con procedure di rollback DB.
+
+### Complete Rollback
+- **Frontend**: `git checkout V028.2`
+- **Database**: 
+    1. SQL: `DROP TABLE IF EXISTS ai_briefings CASCADE;`
+    2. SQL: `DROP TABLE IF EXISTS ai_knowledge_base CASCADE;`
+- **Edge Functions**: `npx supabase functions delete ai-extract-facts-mvp`
+- **Note**: Vedere [AI_BRIEFINGS_MVP_IMPLEMENTATION.md](file:///c:/Users/nijar/.gemini/antigravity/scratch/remix-of-blank-slate-homepage-only/docs/AI_BRIEFINGS_MVP_IMPLEMENTATION.md#rollback-completo-database) per la procedura passo-passo granulare.
 
 ---
 
