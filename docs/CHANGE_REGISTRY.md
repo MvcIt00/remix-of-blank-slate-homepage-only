@@ -1,5 +1,5 @@
 ## [V029] 2026-02-02 03:15
-**commit_hash**: `PENDING`
+**commit_hash**: `67b2715`
 
 ### Functional State
 - **AI Briefings MVP**: Sistema di analisi email intelligente che estrae fatti rilevanti tramite LLM (GPT-4o-mini).
