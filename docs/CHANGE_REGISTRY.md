@@ -1,3 +1,29 @@
+## [V030] 2026-02-02 04:15
+**commit_hash**: `97f2ed0213d933ec436cedeb4463fe5d1bb6de4b`
+
+### Functional State
+- **Etichettatura Account**: Introdotta la possibilità di assegnare nomi amichevoli (es. "Amministrazione", "Assistenza") agli account email per un'identificazione immediata nello switcher.
+- **Routing Semantico (Prep)**: Predisposto il database per lo smistamento intelligente dei briefing tra reparti tramite il campo `target_account_id`.
+- **Stato Invio/Ricezione**: Il sistema gestisce correttamente il flusso email standard, ma la questione degli **allegati pesanti** non è ancora risolta e rimane una limitazione nota.
+
+### Structural Changes
+- **Database**:
+  - `account_email`: [MODIFY] Aggiunta colonna `label` (TEXT) per nomi visualizzati.
+  - `ai_briefings`: [MODIFY] Aggiunta colonna `target_account_id` (UUID, REFERENCES `account_email`) per routing semantico.
+- **Components**:
+  - `EmailAccountConfigDialog.tsx`: [MODIFY] Aggiunto campo "Etichetta Visualizzata" al form di configurazione.
+  - `EmailPage.tsx` & `EmailClientPage.tsx`: [MODIFY] Aggiornati i selettori per dare priorità alla label rispetto all'indirizzo email.
+
+### Rollback (Brief)
+1. **Frontend**: `git checkout V029`
+2. **Database**: 
+   ```sql
+   ALTER TABLE public.account_email DROP COLUMN IF EXISTS label;
+   ALTER TABLE public.ai_briefings DROP COLUMN IF EXISTS target_account_id;
+   ```
+
+---
+
 ## [V029] 2026-02-02 03:15
 **commit_hash**: `67b2715`
 
@@ -33,7 +59,7 @@
 ---
 
 ## [V028.2] 2026-02-01 06:20
-**commit_hash**: `PENDING`
+**commit_hash**: `27cbd25`
 
 ### Functional State
 - **Anteprime WhatsApp Style**: Implementazione anteprime visuali 'full-bleed' per immagini e bolle 'Document-First' per PDF e file generici nel thread della chat.

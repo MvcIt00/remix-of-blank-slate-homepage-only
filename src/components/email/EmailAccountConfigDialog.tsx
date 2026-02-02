@@ -41,6 +41,7 @@ const accountSchema = z.object({
     smtp_port: z.coerce.number().min(1).max(65535).default(465),
     smtp_ssl: z.boolean().default(true),
     smtp_auth: z.boolean().default(true),
+    label: z.string().optional(),
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -122,6 +123,7 @@ export function EmailAccountConfigDialog({
             smtp_port: 465,
             smtp_ssl: true,
             smtp_auth: true,
+            label: "",
         },
     });
 
@@ -139,6 +141,7 @@ export function EmailAccountConfigDialog({
                 smtp_port: account.smtp_port || 465,
                 smtp_ssl: account.smtp_ssl !== false,
                 smtp_auth: account.smtp_auth !== false,
+                label: account.label || "",
             });
         }
     }, [account, form]);
@@ -171,6 +174,7 @@ export function EmailAccountConfigDialog({
                 smtp_port: data.smtp_port,
                 smtp_ssl: data.smtp_ssl,
                 smtp_auth: data.smtp_auth,
+                label: data.label || null,
                 stato: "attivo",
             };
 
@@ -285,10 +289,27 @@ export function EmailAccountConfigDialog({
                                 name="nome_account"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Nome Account (opzionale)</FormLabel>
+                                        <FormLabel>Nome Account IMAP (opzionale)</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Account Principale" {...field} />
+                                            <Input placeholder="Es: Mario Rossi" {...field} />
                                         </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="label"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Etichetta Visualizzata (es. Amministrazione)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Es: Amministrazione" {...field} />
+                                        </FormControl>
+                                        <FormDescription className="text-xs">
+                                            Usata per identificare l'account e per lo smistamento intelligente.
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

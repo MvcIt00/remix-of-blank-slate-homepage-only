@@ -340,7 +340,7 @@ export function EmailClientPage({ activeAccount: propActiveAccount }: { activeAc
                                 {accounts.map((acc) => (
                                     <SelectItem key={acc.id} value={acc.id} className="text-xs">
                                         <div className="flex flex-col items-start">
-                                            <span className="font-medium">{acc.nome_account || acc.email}</span>
+                                            <span className="font-medium">{acc.label || acc.nome_account || acc.email}</span>
                                             <span className="text-[10px] opacity-60 text-muted-foreground">{acc.email}</span>
                                         </div>
                                     </SelectItem>

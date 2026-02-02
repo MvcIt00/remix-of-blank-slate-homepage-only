@@ -60,7 +60,7 @@ export default function EmailPage() {
                                 {accounts.map((acc) => (
                                     <SelectItem key={acc.id} value={acc.id} className="text-sm">
                                         <div className="flex flex-col items-start">
-                                            <span className="font-medium">{acc.nome_account || acc.email}</span>
+                                            <span className="font-medium">{acc.label || acc.nome_account || acc.email}</span>
                                             <span className="text-xs opacity-60 text-muted-foreground">{acc.email}</span>
                                         </div>
                                     </SelectItem>
